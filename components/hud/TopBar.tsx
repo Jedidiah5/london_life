@@ -1,6 +1,7 @@
 "use client";
 
 import { clockParts, isNight } from "@/lib/sim/clock";
+import { SLEEP_SPEED } from "@/lib/sim/constants";
 import { formatPence } from "@/lib/sim/money";
 import { moodBand, moodScore } from "@/lib/sim/mood";
 import type { MoodBand } from "@/lib/sim/types";
@@ -27,6 +28,7 @@ export function TopBar() {
   const speed = useGame((state) => state.speed);
   const location = useGame((state) => state.location);
   const shift = useGame((state) => state.shift);
+  const sleeping = useGame((state) => !state.shift && !state.readOnly && state.action?.anim === "sleep");
   const online = usePresence((state) => state.online);
   const here = usePresence((state) => state.here.length);
   const muted = useUi((state) => state.muted);
@@ -55,7 +57,7 @@ export function TopBar() {
         <span className="font-semibold">{Math.max(online, here + 1)}</span>
         <span className="text-[10px] text-[#5c6b7a]">online</span>
       </Pill>
-      {atHome ? (
+      {atHome && !sleeping ? (
         <div className="flex shrink-0 gap-0.5 rounded-full bg-[#f1ede6] p-0.5">
           {([1, 2, 3] as const).map((value) => (
             <button
@@ -69,15 +71,13 @@ export function TopBar() {
           ))}
         </div>
       ) : null}
+      {sleeping ? (
+        <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-[#1b2838] px-3 py-1 text-[12px] text-white">
+          <span className="text-base">💤</span>
+          <span className="font-semibold">Sleeping · ×{SLEEP_SPEED}</span>
+        </div>
+      ) : null}
       <div className="flex-1" />
-      <button
-        type="button"
-        aria-label="Turn camera"
-        className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#f1ede6] text-sm"
-        onClick={() => useUi.getState().rotateYaw()}
-      >
-        🔄
-      </button>
       <button
         type="button"
         aria-label={muted ? "Unmute" : "Mute"}

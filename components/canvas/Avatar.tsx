@@ -1,8 +1,8 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
-import { DoubleSide, Group } from "three";
+import { useEffect, useMemo, useRef } from "react";
+import { DoubleSide, type Group, type Mesh } from "three";
 import type { Anim, Appearance } from "@/lib/sim/types";
 import { shadeHex as shade } from "./colour";
 
@@ -195,217 +195,336 @@ function Headwear({ look }: { look: Appearance }) {
   }
 }
 
+/** Head parts above are modelled around HEAD_Y/HEAD_R; this places and scales them on the body. */
+const HEAD_CENTRE = 0.875;
+const HEAD_SCALE = 0.86;
+const HIP_Y = 0.46;
+const SHOULDER_Y = 0.715;
+
+function Face({ look }: { look: Appearance }) {
+  const brow = look.hairStyle === "bald" ? shade(look.skin, -0.3) : look.hairColor;
+  const z = HEAD_R * 0.93;
+  return (
+    <group>
+      {[-1, 1].map((side) => (
+        <group key={side}>
+          <mesh position={[side * 0.04, HEAD_Y + 0.012, z]} scale={[1, 1.25, 0.6]}>
+            <sphereGeometry args={[0.014, 10, 8]} />
+            <meshStandardMaterial color="#1a1412" roughness={0.25} />
+          </mesh>
+          <mesh position={[side * 0.044, HEAD_Y + 0.045, z - 0.004]} rotation={[0, 0, side * -0.12]}>
+            <capsuleGeometry args={[0.005, 0.026, 2, 6]} />
+            <Mat color={brow} />
+          </mesh>
+          <mesh position={[side * HEAD_R * 0.93, HEAD_Y, -0.005]} scale={[0.45, 1, 0.75]}>
+            <sphereGeometry args={[0.03, 10, 8]} />
+            <Mat color={shade(look.skin, -0.04)} rough={0.6} />
+          </mesh>
+        </group>
+      ))}
+      <mesh position={[0, HEAD_Y - 0.012, z + 0.008]} scale={[0.8, 1, 1]}>
+        <sphereGeometry args={[0.018, 10, 8]} />
+        <Mat color={shade(look.skin, -0.05)} rough={0.6} />
+      </mesh>
+      <mesh position={[0, HEAD_Y - 0.052, z - 0.006]} rotation={[0, 0, Math.PI / 2]}>
+        <capsuleGeometry args={[0.006, 0.028, 2, 6]} />
+        <meshStandardMaterial color={shade(look.skin, -0.32)} roughness={0.5} />
+      </mesh>
+    </group>
+  );
+}
+
 function Outfit({ look, width }: { look: Appearance; width: number }) {
   const top = look.top;
+  const front = 0.068;
   switch (look.topStyle) {
     case "dress":
       return (
-        <mesh position={[0, 0.28, 0]}>
-          <cylinderGeometry args={[width * 0.42, width * 0.75, 0.3, 16]} />
+        <mesh position={[0, 0.37, 0]} castShadow>
+          <cylinderGeometry args={[width * 0.48, width * 0.82, 0.26, 20]} />
           <Mat color={top} />
         </mesh>
       );
     case "kaftan":
       return (
-        <mesh position={[0, 0.25, 0]}>
-          <boxGeometry args={[width + 0.02, 0.2, 0.17]} />
-          <Mat color={top} />
-        </mesh>
+        <group>
+          <mesh position={[0, 0.36, 0]} castShadow>
+            <cylinderGeometry args={[width * 0.52, width * 0.66, 0.3, 20]} />
+            <Mat color={top} />
+          </mesh>
+          <mesh position={[0, 0.66, front]}>
+            <boxGeometry args={[0.03, 0.12, 0.01]} />
+            <Mat color="#e8c25a" rough={0.4} />
+          </mesh>
+        </group>
       );
     case "hoodie":
       return (
         <group>
-          <mesh position={[0, HEAD_Y - 0.1, -0.08]}>
-            <sphereGeometry args={[0.09, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
-            <Mat color={shade(top, -0.05)} />
+          <mesh position={[0, 0.75, -0.05]} scale={[1.2, 0.7, 1]}>
+            <sphereGeometry args={[0.06, 12, 8]} />
+            <Mat color={shade(top, -0.06)} />
           </mesh>
-          <mesh position={[0, 0.34, 0.085]}>
-            <boxGeometry args={[width * 0.5, 0.06, 0.01]} />
+          <mesh position={[0, 0.53, front]}>
+            <boxGeometry args={[width * 0.55, 0.07, 0.012]} />
             <Mat color={shade(top, -0.08)} />
           </mesh>
+          {[-0.02, 0.02].map((x) => (
+            <mesh key={x} position={[x, 0.68, front + 0.004]}>
+              <capsuleGeometry args={[0.003, 0.05, 2, 4]} />
+              <Mat color="#f4f1ea" />
+            </mesh>
+          ))}
         </group>
       );
     case "jacket":
-    case "blazer":
+    case "blazer": {
+      const shirt = look.topStyle === "blazer" ? "#f4f1ea" : shade(top, 0.3);
       return (
         <group>
-          <mesh position={[0, 0.43, 0.082]}>
-            <boxGeometry args={[0.06, 0.25, 0.005]} />
-            <Mat color={look.topStyle === "blazer" ? "#f4f1ea" : shade(top, 0.25)} />
+          <mesh position={[0, 0.63, front]}>
+            <boxGeometry args={[0.05, 0.2, 0.01]} />
+            <Mat color={shirt} />
           </mesh>
+          {[-1, 1].map((side) => (
+            <mesh key={side} position={[side * 0.034, 0.67, front + 0.004]} rotation={[0, 0, side * 0.35]}>
+              <boxGeometry args={[0.02, 0.1, 0.008]} />
+              <Mat color={shade(top, -0.12)} />
+            </mesh>
+          ))}
           {look.topStyle === "blazer" ? (
-            <mesh position={[0, 0.48, 0.086]}>
-              <boxGeometry args={[0.02, 0.12, 0.005]} />
+            <mesh position={[0, 0.64, front + 0.008]}>
+              <boxGeometry args={[0.016, 0.13, 0.006]} />
               <Mat color="#8b2e3a" />
             </mesh>
           ) : null}
         </group>
       );
+    }
     default:
-      return null;
+      return (
+        <mesh position={[0, 0.735, 0.02]} rotation={[Math.PI / 2, 0, 0]} scale={[1, 0.7, 1]}>
+          <torusGeometry args={[0.036, 0.008, 6, 16]} />
+          <Mat color={shade(top, -0.1)} />
+        </mesh>
+      );
   }
+}
+
+function Limb({
+  radius,
+  length,
+  color,
+  centre,
+}: {
+  radius: number;
+  length: number;
+  color: string;
+  centre: number;
+}) {
+  return (
+    <mesh position={[0, centre, 0]} castShadow>
+      <capsuleGeometry args={[radius, length, 4, 12]} />
+      <Mat color={color} rough={0.7} />
+    </mesh>
+  );
 }
 
 export function Avatar({ look, anim, seed = 0 }: { look: Appearance; anim: Anim; seed?: number }) {
   const body = useRef<Group>(null);
+  const chest = useRef<Group>(null);
   const leftArm = useRef<Group>(null);
   const rightArm = useRef<Group>(null);
+  const leftElbow = useRef<Group>(null);
+  const rightElbow = useRef<Group>(null);
   const leftLeg = useRef<Group>(null);
   const rightLeg = useRef<Group>(null);
-  const width = look.build === "slim" ? 0.22 : look.build === "broad" ? 0.31 : 0.26;
-  const legGap = width * 0.25;
-  const longTop = look.topStyle === "dress" || look.topStyle === "kaftan";
+  const leftKnee = useRef<Group>(null);
+  const rightKnee = useRef<Group>(null);
+  const width = look.build === "slim" ? 0.19 : look.build === "broad" ? 0.26 : 0.22;
+  const legGap = width * 0.22;
+  const armX = width / 2 + 0.022;
+  const style = look.topStyle;
+  const upperArm = style === "dress" ? look.skin : look.top;
+  const foreArm = style === "dress" || style === "tee" ? look.skin : look.top;
+  const shin = style === "dress" ? look.skin : look.bottom;
+  const hips = style === "dress" || style === "kaftan" ? look.top : look.bottom;
   const skinDark = useMemo(() => shade(look.skin, -0.06), [look.skin]);
+
+  useEffect(() => {
+    body.current?.traverse((node) => {
+      if ((node as Mesh).isMesh) node.castShadow = true;
+    });
+  }, [look]);
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime + seed;
     const root = body.current;
+    const torso = chest.current;
     const la = leftArm.current;
     const ra = rightArm.current;
+    const le = leftElbow.current;
+    const re = rightElbow.current;
     const ll = leftLeg.current;
     const rl = rightLeg.current;
-    if (!root || !la || !ra || !ll || !rl) return;
+    const lk = leftKnee.current;
+    const rk = rightKnee.current;
+    if (!root || !torso || !la || !ra || !le || !re || !ll || !rl || !lk || !rk) return;
     root.position.set(0, 0, 0);
     root.rotation.set(0, 0, 0);
-    la.rotation.set(0, 0, 0.08);
-    ra.rotation.set(0, 0, -0.08);
+    torso.rotation.set(0, 0, 0);
+    torso.scale.set(1, 1, 1);
+    la.rotation.set(0, 0, -0.1);
+    ra.rotation.set(0, 0, 0.1);
+    le.rotation.set(-0.15, 0, 0);
+    re.rotation.set(-0.15, 0, 0);
     ll.rotation.set(0, 0, 0);
     rl.rotation.set(0, 0, 0);
+    lk.rotation.set(0, 0, 0);
+    rk.rotation.set(0, 0, 0);
     switch (anim) {
       case "walk": {
-        const swing = Math.sin(t * 11) * 0.65;
+        const phase = t * 9;
+        const swing = Math.sin(phase) * 0.5;
         ll.rotation.x = swing;
         rl.rotation.x = -swing;
-        la.rotation.x = -swing * 0.8;
-        ra.rotation.x = swing * 0.8;
-        root.position.y = Math.abs(Math.cos(t * 11)) * 0.02;
+        lk.rotation.x = 0.1 + Math.max(0, Math.sin(phase + 1.4)) * 0.7;
+        rk.rotation.x = 0.1 + Math.max(0, Math.sin(phase + 1.4 + Math.PI)) * 0.7;
+        la.rotation.x = -swing * 0.75;
+        ra.rotation.x = swing * 0.75;
+        le.rotation.x = -0.35;
+        re.rotation.x = -0.35;
+        root.position.y = Math.abs(Math.cos(phase)) * 0.012;
+        torso.rotation.y = Math.sin(phase) * 0.06;
         break;
       }
       case "sit":
-        root.position.y = -0.12;
+        root.position.y = -0.28;
         ll.rotation.x = -Math.PI / 2;
         rl.rotation.x = -Math.PI / 2;
+        lk.rotation.x = Math.PI / 2;
+        rk.rotation.x = Math.PI / 2;
         la.rotation.x = -0.35;
         ra.rotation.x = -0.35;
+        le.rotation.x = -0.7;
+        re.rotation.x = -0.7;
+        torso.scale.y = 1 + Math.sin(t * 2) * 0.01;
         break;
       case "sleep":
         root.rotation.x = -Math.PI / 2;
-        root.position.set(0, 0.12, 0.25);
-        la.rotation.z = 0.15 + Math.sin(t * 1.4) * 0.02;
+        root.position.set(0, 0.2, 0.45);
+        torso.scale.y = 1 + Math.sin(t * 1.3) * 0.02;
+        lk.rotation.x = 0.08;
+        rk.rotation.x = 0.08;
         break;
       case "eat": {
         const lift = (Math.sin(t * 3) + 1) / 2;
-        ra.rotation.x = -1.6 - lift * 0.7;
-        ra.rotation.z = 0.35;
-        la.rotation.x = -0.5;
+        ra.rotation.x = -0.45 - lift * 0.35;
+        re.rotation.x = -1.5 - lift * 0.4;
+        la.rotation.x = -0.3;
+        le.rotation.x = -1.1;
         break;
       }
       case "shower":
-        la.rotation.set(-2.6 + Math.sin(t * 8) * 0.25, 0, 0.3);
-        ra.rotation.set(-2.6 + Math.cos(t * 8) * 0.25, 0, -0.3);
-        root.position.y = Math.abs(Math.sin(t * 4)) * 0.015;
+        la.rotation.set(-2.7 + Math.sin(t * 8) * 0.2, 0, -0.25);
+        ra.rotation.set(-2.7 + Math.cos(t * 8) * 0.2, 0, 0.25);
+        le.rotation.x = -0.9;
+        re.rotation.x = -0.9;
+        root.position.y = Math.abs(Math.sin(t * 4)) * 0.01;
         break;
       case "dance": {
-        root.position.y = Math.abs(Math.sin(t * 6)) * 0.07;
+        const beat = t * 6;
+        root.position.y = Math.abs(Math.sin(beat)) * 0.04;
         root.rotation.y = Math.sin(t * 3) * 0.5;
-        la.rotation.set(-2.4 + Math.sin(t * 6) * 0.5, 0, 0.4);
-        ra.rotation.set(-0.5 - Math.cos(t * 6) * 0.6, 0, -0.4);
-        ll.rotation.x = Math.sin(t * 6) * 0.3;
-        rl.rotation.x = -Math.sin(t * 6) * 0.3;
+        la.rotation.set(-2.3 + Math.sin(beat) * 0.5, 0, -0.35);
+        ra.rotation.set(-0.6 - Math.cos(beat) * 0.6, 0, 0.35);
+        le.rotation.x = -0.6;
+        re.rotation.x = -0.9;
+        ll.rotation.x = Math.sin(beat) * 0.25;
+        rl.rotation.x = -Math.sin(beat) * 0.25;
+        lk.rotation.x = 0.2 + Math.max(0, Math.sin(beat)) * 0.4;
+        rk.rotation.x = 0.2 + Math.max(0, -Math.sin(beat)) * 0.4;
         break;
       }
       case "work":
-        la.rotation.x = -1.25 + Math.sin(t * 18) * 0.06;
-        ra.rotation.x = -1.25 + Math.cos(t * 18) * 0.06;
+        la.rotation.x = -0.5;
+        ra.rotation.x = -0.5;
+        le.rotation.x = -1 + Math.sin(t * 16) * 0.06;
+        re.rotation.x = -1 + Math.cos(t * 16) * 0.06;
         break;
       default:
-        root.scale.y = 1 + Math.sin(t * 2) * 0.012;
-        la.rotation.z = 0.08 + Math.sin(t * 2) * 0.03;
-        ra.rotation.z = -0.08 - Math.sin(t * 2) * 0.03;
+        torso.scale.y = 1 + Math.sin(t * 2) * 0.008;
+        la.rotation.z = -0.1 - Math.sin(t * 2) * 0.02;
+        ra.rotation.z = 0.1 + Math.sin(t * 2) * 0.02;
     }
   });
 
-  const armX = width / 2 + 0.035;
+  const leg = (side: number, legRef: React.RefObject<Group | null>, kneeRef: React.RefObject<Group | null>) => (
+    <group ref={legRef} position={[side * legGap, HIP_Y, 0]}>
+      <Limb radius={0.047} length={0.13} centre={-0.11} color={style === "dress" ? look.skin : look.bottom} />
+      <group ref={kneeRef} position={[0, -0.225, 0]}>
+        <Limb radius={0.039} length={0.14} centre={-0.1} color={shin} />
+        <mesh position={[0, -0.205, 0.03]} scale={[1, 0.55, 1.9]}>
+          <sphereGeometry args={[0.045, 14, 10]} />
+          <Mat color={look.shoes} rough={0.45} />
+        </mesh>
+      </group>
+    </group>
+  );
+
+  const arm = (side: number, armRef: React.RefObject<Group | null>, elbowRef: React.RefObject<Group | null>) => (
+    <group ref={armRef} position={[side * armX, SHOULDER_Y, 0]}>
+      <mesh scale={[1, 0.9, 1]}>
+        <sphereGeometry args={[0.042, 12, 10]} />
+        <Mat color={upperArm} />
+      </mesh>
+      <Limb radius={0.035} length={0.11} centre={-0.085} color={upperArm} />
+      <group ref={elbowRef} position={[0, -0.175, 0]}>
+        <Limb radius={0.03} length={0.11} centre={-0.08} color={foreArm} />
+        <mesh position={[0, -0.168, 0.004]} scale={[0.75, 1.15, 0.6]}>
+          <sphereGeometry args={[0.034, 12, 10]} />
+          <Mat color={look.skin} rough={0.6} />
+        </mesh>
+      </group>
+    </group>
+  );
 
   return (
     <group ref={body}>
-      <group ref={leftLeg} position={[-legGap, 0.3, 0]}>
-        <mesh position={[0, -0.13, 0]}>
-          <capsuleGeometry args={[0.045, 0.18, 4, 8]} />
-          <Mat color={look.bottom} />
+      {leg(-1, leftLeg, leftKnee)}
+      {leg(1, rightLeg, rightKnee)}
+      <group ref={chest}>
+        <mesh position={[0, 0.475, 0]} scale={[(width * 0.92) / 0.15, 0.75, 0.88]}>
+          <sphereGeometry args={[0.075, 16, 12]} />
+          <Mat color={hips} />
         </mesh>
-        <mesh position={[0, -0.27, 0.025]}>
-          <boxGeometry args={[0.08, 0.05, 0.13]} />
-          <Mat color={look.shoes} rough={0.5} />
+        <mesh position={[0, 0.6, 0]} scale={[width / 0.15, 1, 0.88]}>
+          <capsuleGeometry args={[0.075, 0.17, 6, 16]} />
+          <Mat color={look.top} />
         </mesh>
+        <Outfit look={look} width={width} />
+        {arm(-1, leftArm, leftElbow)}
+        {arm(1, rightArm, rightElbow)}
+        <mesh position={[0, 0.77, 0]}>
+          <cylinderGeometry args={[0.03, 0.035, 0.07, 12]} />
+          <Mat color={skinDark} />
+        </mesh>
+        <group position={[0, HEAD_CENTRE - HEAD_Y * HEAD_SCALE, 0]} scale={HEAD_SCALE}>
+          <mesh position={[0, HEAD_Y, 0]} scale={[0.93, 1.07, 0.98]}>
+            <sphereGeometry args={[HEAD_R, 24, 18]} />
+            <Mat color={look.skin} rough={0.55} />
+          </mesh>
+          <Face look={look} />
+          {look.beard ? (
+            <mesh position={[0, HEAD_Y - 0.055, 0.03]} scale={[0.95, 0.75, 0.9]}>
+              <sphereGeometry args={[0.1, 16, 10, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2]} />
+              <Mat color={look.hairColor} rough={0.95} />
+            </mesh>
+          ) : null}
+          <Hair look={look} />
+          <Headwear look={look} />
+        </group>
       </group>
-      <group ref={rightLeg} position={[legGap, 0.3, 0]}>
-        <mesh position={[0, -0.13, 0]}>
-          <capsuleGeometry args={[0.045, 0.18, 4, 8]} />
-          <Mat color={look.bottom} />
-        </mesh>
-        <mesh position={[0, -0.27, 0.025]}>
-          <boxGeometry args={[0.08, 0.05, 0.13]} />
-          <Mat color={look.shoes} rough={0.5} />
-        </mesh>
-      </group>
-      <mesh position={[0, 0.43, 0]}>
-        <boxGeometry args={[width, longTop ? 0.3 : 0.27, 0.16]} />
-        <Mat color={look.top} />
-      </mesh>
-      <mesh position={[0, 0.31, 0]}>
-        <boxGeometry args={[width * 0.94, 0.05, 0.15]} />
-        <Mat color={longTop ? look.top : look.bottom} />
-      </mesh>
-      <Outfit look={look} width={width} />
-      <group ref={leftArm} position={[-armX, 0.54, 0]}>
-        <mesh position={[0, -0.11, 0]}>
-          <capsuleGeometry args={[0.035, 0.16, 4, 8]} />
-          <Mat color={look.topStyle === "dress" ? look.skin : look.top} />
-        </mesh>
-        <mesh position={[0, -0.23, 0]}>
-          <sphereGeometry args={[0.035, 8, 8]} />
-          <Mat color={look.skin} />
-        </mesh>
-      </group>
-      <group ref={rightArm} position={[armX, 0.54, 0]}>
-        <mesh position={[0, -0.11, 0]}>
-          <capsuleGeometry args={[0.035, 0.16, 4, 8]} />
-          <Mat color={look.topStyle === "dress" ? look.skin : look.top} />
-        </mesh>
-        <mesh position={[0, -0.23, 0]}>
-          <sphereGeometry args={[0.035, 8, 8]} />
-          <Mat color={look.skin} />
-        </mesh>
-      </group>
-      <mesh position={[0, 0.58, 0]}>
-        <cylinderGeometry args={[0.04, 0.045, 0.05, 10]} />
-        <Mat color={skinDark} />
-      </mesh>
-      <mesh position={[0, HEAD_Y, 0]}>
-        <sphereGeometry args={[HEAD_R, 20, 16]} />
-        <Mat color={look.skin} rough={0.6} />
-      </mesh>
-      <mesh position={[-0.042, HEAD_Y + 0.01, HEAD_R - 0.012]}>
-        <sphereGeometry args={[0.016, 8, 8]} />
-        <meshStandardMaterial color="#141414" roughness={0.3} />
-      </mesh>
-      <mesh position={[0.042, HEAD_Y + 0.01, HEAD_R - 0.012]}>
-        <sphereGeometry args={[0.016, 8, 8]} />
-        <meshStandardMaterial color="#141414" roughness={0.3} />
-      </mesh>
-      <mesh position={[0, HEAD_Y - 0.045, HEAD_R - 0.01]} rotation={[0, 0, Math.PI / 2]}>
-        <capsuleGeometry args={[0.006, 0.03, 2, 6]} />
-        <meshStandardMaterial color={shade(look.skin, -0.25)} />
-      </mesh>
-      {look.beard ? (
-        <mesh position={[0, HEAD_Y - 0.06, 0.035]} scale={[1, 0.75, 0.9]}>
-          <sphereGeometry args={[0.1, 14, 10, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2]} />
-          <Mat color={look.hairColor} rough={0.95} />
-        </mesh>
-      ) : null}
-      <Hair look={look} />
-      <Headwear look={look} />
     </group>
   );
 }

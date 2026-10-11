@@ -12,9 +12,6 @@ import { Rain } from "./Rain";
 import { RoomScene } from "./RoomScene";
 
 export default function GameCanvas() {
-  const nav = useUi((state) => state.nav);
-  const map = nav === "map";
-
   return (
     <Canvas
       className="h-full w-full"
@@ -24,14 +21,24 @@ export default function GameCanvas() {
       gl={{ antialias: true, alpha: false }}
       onPointerMissed={() => undefined}
     >
-      <color attach="background" args={[map ? "#8ea4b8" : "#7d8f80"]} />
       <SceneLights />
       <IsoCamera />
       <Suspense fallback={null}>
-        {map ? <CityScene /> : <RoomScene />}
-        <Rain spread={map ? 36 : 14} />
+        <SceneSwitch />
       </Suspense>
     </Canvas>
+  );
+}
+
+/** Subscribes inside the canvas so switching scenes never re-renders the Canvas from the DOM side. */
+function SceneSwitch() {
+  const map = useUi((state) => state.nav === "map");
+  return (
+    <>
+      <color attach="background" args={[map ? "#8ea4b8" : "#7d8f80"]} />
+      {map ? <CityScene /> : <RoomScene />}
+      <Rain spread={map ? 36 : 14} />
+    </>
   );
 }
 

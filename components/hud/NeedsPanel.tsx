@@ -70,12 +70,15 @@ export function NeedsPanel() {
             ))}
           </div>
         ) : (
-          <button type="button" onClick={() => setOpen(true)} className="flex gap-1">
+          <button type="button" onClick={() => setOpen(true)} className="grid grid-cols-3 gap-x-2.5 gap-y-1.5 px-1.5 py-1">
             {NEED_KEYS.map((key) => (
-              <div key={key} className="flex flex-col items-center gap-0.5" title={`${NEED_LABELS[key]} ${Math.round(needs[key])}`}>
-                <span className="text-[13px] leading-none">{NEED_EMOJI[key]}</span>
-                <span className="flex h-7 w-2 flex-col justify-end overflow-hidden rounded-full bg-[#1b2838]/10">
-                  <span className="block w-full rounded-full" style={{ height: `${needs[key]}%`, background: colourFor(needs[key]) }} />
+              <div key={key} className="flex items-center gap-1" title={`${NEED_LABELS[key]} ${Math.round(needs[key])}`}>
+                <span className="text-[12px] leading-none">{NEED_EMOJI[key]}</span>
+                <span className="h-2 w-10 overflow-hidden rounded-full bg-[#1b2838]/10">
+                  <span
+                    className="block h-full rounded-full transition-[width] duration-700"
+                    style={{ width: `${needs[key]}%`, background: colourFor(needs[key]) }}
+                  />
                 </span>
               </div>
             ))}

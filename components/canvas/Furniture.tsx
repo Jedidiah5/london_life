@@ -5,7 +5,7 @@ import { itemWorld } from "@/lib/sim/grid";
 import { rotatedFootprint } from "@/lib/sim/placement";
 import { FittedModel } from "./fitted";
 
-const HEIGHTS: Record<string, number> = {
+export const MODEL_HEIGHTS: Record<string, number> = {
   bedSingle: 0.6,
   bedDouble: 0.6,
   bedBunk: 1.3,
@@ -73,7 +73,7 @@ export function FurniturePiece({
   const [width, depth] = rotatedFootprint(footprint, rotation);
   const position = itemWorld(x, y, footprint, rotation, roomWidth, roomHeight);
   const file = model ?? item?.model ?? "chair";
-  const height = HEIGHTS[file] ?? 1.5;
+  const height = MODEL_HEIGHTS[file] ?? 1.5;
   return (
     <group position={position} rotation={[0, (rotation * Math.PI) / 2, 0]}>
       <FittedModel url={`/models/furniture/${file}.glb`} targetWidth={Math.max(width, depth) * 0.92} tint={colour} maxHeight={height} />

@@ -11,6 +11,7 @@ import { useUi } from "@/lib/store/useUi";
 import { ActionSheet } from "./ActionSheet";
 import { BottomNav } from "./BottomNav";
 import { GoalCards } from "./GoalCards";
+import { RotateIcon } from "./icons";
 import { NeedsPanel } from "./NeedsPanel";
 import { Toasts } from "./Toasts";
 import { TopBar } from "./TopBar";
@@ -49,6 +50,15 @@ export function Hud() {
         <BottomNav />
       </div>
       <EventModal />
+      <button
+        type="button"
+        aria-label="Turn camera"
+        title="Turn camera (or drag the room)"
+        className="pointer-events-auto absolute bottom-28 right-3 grid h-11 w-11 place-items-center rounded-full bg-white/95 text-[#1b2838] shadow-lg"
+        onClick={() => useUi.getState().rotateYaw()}
+      >
+        <RotateIcon className="h-5 w-5" />
+      </button>
     </div>
   );
 }

@@ -151,14 +151,14 @@ export function RoomScene() {
               roomHeight={layout.height}
               onClick={menu ? () => tap(fixture.id) : undefined}
             />
-            {menu && (!atHome || highlight === fixture.id) ? (
+            {menu ? (
               <Html position={[fx, 1.7, fz]} center zIndexRange={[8, 0]}>
                 <button
                   type="button"
                   onClick={() => tap(fixture.id)}
-                  className={`flex items-center gap-1 whitespace-nowrap rounded-full bg-white/95 px-2 py-1 text-[11px] font-semibold text-[#1b2838] shadow-md ${
+                  className={`items-center gap-1 whitespace-nowrap rounded-full bg-white/95 px-2 py-1 text-[11px] font-semibold text-[#1b2838] shadow-md ${
                     highlight === fixture.id ? "animate-bounce ring-2 ring-[#e8a317]" : ""
-                  }`}
+                  } ${!atHome || highlight === fixture.id ? "flex" : "hidden"}`}
                 >
                   <span className="text-sm">{fixture.emoji ?? menu.emoji}</span>
                   {atHome ? "Tap me" : (fixture.label ?? menu.title)}
@@ -311,10 +311,9 @@ function SelfTag({
 }) {
   const [wx, , wz] = tileWorld(x, y, width, height);
   const done = action ? 1 - action.remainingMinutes / action.totalMinutes : 0;
-  if (moving) return null;
   return (
     <Html position={[wx, 1.45, wz]} center zIndexRange={[8, 0]}>
-      <div className="pointer-events-none flex flex-col items-center gap-1">
+      <div className={`pointer-events-none flex-col items-center gap-1 ${moving ? "hidden" : "flex"}`}>
         {action ? (
           <div className="flex items-center gap-1.5 rounded-full bg-white px-2 py-1 text-[11px] font-semibold text-[#1b2838] shadow-md">
             <span className="text-sm">{action.emoji}</span>

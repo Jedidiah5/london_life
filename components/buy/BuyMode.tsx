@@ -9,7 +9,7 @@ import { canPlace } from "@/lib/sim/placement";
 import { blockingTiles } from "@/lib/sim/room";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
-import { CatalogueGrid } from "./CatalogueGrid";
+import { CatalogueGrid, ItemPicture } from "./CatalogueGrid";
 
 export function BuyMode() {
   const nav = useUi((state) => state.nav);
@@ -24,13 +24,44 @@ export function BuyMode() {
   const big = !moving && item ? item.pricePence >= BIG_PURCHASE_PENCE || item.pricePence > balance / 2 : false;
 
   return (
-    <section className="pointer-events-auto max-h-[46vh] overflow-hidden rounded-3xl bg-white/95 p-3 text-[#1b2838] shadow-xl">
+    <section className="pointer-events-auto overflow-hidden rounded-3xl bg-white p-3 text-[#1b2838] shadow-xl">
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-sm font-extrabold">🛋️ Buy & place</h2>
-        <span className="text-[11px] font-semibold text-[#5c6b7a]">You have {formatPence(balance)}</span>
+        <h2 className="text-base font-extrabold">{moving ? "Move or sell" : "Catalogue"}</h2>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-semibold text-[#5c6b7a]">{formatPence(balance)}</span>
+          <button
+            type="button"
+            className="rounded-full bg-[#f1f3f6] px-3 py-1 text-[11px] font-semibold"
+            onClick={() => useUi.getState().setNav("home")}
+          >
+            Done
+          </button>
+        </div>
       </div>
-      <CatalogueGrid />
-      {ghost ? <p className="mt-1 text-[11px] text-[#5c6b7a]">Tap a floor tile to move it, then place.</p> : null}
+      {moving ? null : <CatalogueGrid />}
+      {ghost && item ? (
+        <div className="mt-2 flex items-center gap-2 rounded-2xl bg-[#f6f7f9] p-2">
+          <ItemPicture item={item} colour={ghost.colour} className="h-12 w-12 shrink-0" />
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-[12px] font-bold">{item.name}</div>
+            <div className="text-[10px] text-[#5c6b7a]">Tap a floor tile to move it, then place.</div>
+            {item.colours.length > 1 ? (
+              <div className="mt-1 flex gap-1">
+                {item.colours.map((colour) => (
+                  <button
+                    key={colour}
+                    type="button"
+                    aria-label={`Colour ${colour}`}
+                    className={`h-4 w-4 rounded-full border ${ghost.colour === colour ? "ring-2 ring-[#1b2838] ring-offset-1" : "border-black/10"}`}
+                    style={{ background: colour }}
+                    onClick={() => useUi.getState().setGhost({ ...ghost, colour })}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
       {confirming && item ? (
         <div className="mt-2 flex items-center gap-2 rounded-2xl bg-[#fff4d6] p-2 text-xs">
           <span className="flex-1">

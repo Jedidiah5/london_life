@@ -4,6 +4,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import { PerspectiveCamera, Vector3 } from "three";
 import { roomLayout } from "@/lib/content";
+import { tileWorld } from "@/lib/sim/grid";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
 
@@ -24,7 +25,7 @@ export function IsoCamera() {
   const visit = useUi((state) => state.visit);
   const view = useRef<{ yaw: number; pitch: number; zoom: number } | null>(null);
   const layout = roomLayout(location, homeId, visit?.homeId ?? null);
-  const roomSpan = Math.hypot(layout.width, layout.height) + 1.5;
+  const roomSpan = Math.hypot(layout.width, layout.height) + 0.4;
 
   useEffect(() => {
     const element = gl.domElement;
@@ -48,6 +49,12 @@ export function IsoCamera() {
       drag = { x: event.clientX, y: event.clientY, yaw, pitch, moved: false };
     };
     const move = (event: PointerEvent) => {
+      if (event.pointerType === "mouse" && event.buttons === 0) {
+        pointers.clear();
+        drag = null;
+        pinch = null;
+        return;
+      }
       if (pointers.has(event.pointerId)) pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
       if (pinch && pointers.size === 2) {
         const now = spread();
@@ -111,12 +118,15 @@ export function IsoCamera() {
     const pitch = map ? Math.max(current.pitch, 0.95) : current.pitch;
     const vertical = (camera.fov * Math.PI) / 180;
     const horizontal = 2 * Math.atan(Math.tan(vertical / 2) * (size.width / Math.max(size.height, 1)));
-    const fitWidth = span / 2 / Math.tan(horizontal / 2) / 0.92;
-    const fitHeight = ((span / 2) * Math.sin(pitch) + 1.4 * Math.cos(pitch)) / Math.tan(vertical / 2) / 0.62;
+    const fitWidth = span / 2 / Math.tan(horizontal / 2) / 0.98;
+    const fitHeight = ((span / 2) * Math.sin(pitch) + 0.8 * Math.cos(pitch)) / Math.tan(vertical / 2) / 0.8;
     const distance = Math.max(fitWidth, fitHeight) * (map ? 1 : DEFAULT_ZOOM / current.zoom);
 
     const angle = (current.yaw * Math.PI) / 2 + Math.PI / 4;
-    TARGET.set(0, map ? 0 : 0.35, 0);
+    const follow = map ? 0 : Math.min(1, Math.max(0, (current.zoom - DEFAULT_ZOOM) / 30));
+    const tile = useGame.getState().tile;
+    const [px, , pz] = tileWorld(tile.x, tile.y, layout.width, layout.height);
+    TARGET.set(px * follow, map ? 0 : 0.35 + follow * 0.25, pz * follow);
     camera.position.set(
       Math.cos(angle) * Math.cos(pitch) * distance,
       TARGET.y + Math.sin(pitch) * distance,
