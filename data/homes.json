@@ -1,0 +1,67 @@
+[
+  {
+    "id": "boxroom_z4",
+    "name": "Box room, Zone 4",
+    "zone": 4,
+    "width": 5,
+    "height": 5,
+    "rentPence": 18000,
+    "buyPence": null,
+    "fixtures": [
+      {"id":"loo","model":"toilet","itemId":"toilet","x":4,"y":0,"rotation":0,"action":"toilet","blocks":true,"label":"Shared loo"},
+      {"id":"shower","model":"shower","itemId":"shower","x":4,"y":1,"rotation":0,"action":"shower","blocks":true,"label":"Shared shower"}
+    ]
+  },
+  {
+    "id": "studio_z3",
+    "name": "Studio, Zone 3",
+    "zone": 3,
+    "width": 7,
+    "height": 7,
+    "rentPence": 32000,
+    "buyPence": null,
+    "fixtures": []
+  },
+  {
+    "id": "onebed_z2",
+    "name": "1-bed, Zone 2",
+    "zone": 2,
+    "width": 9,
+    "height": 9,
+    "rentPence": 45000,
+    "buyPence": null,
+    "fixtures": []
+  },
+  {
+    "id": "penthouse_z1",
+    "name": "Zone 1 penthouse",
+    "zone": 1,
+    "width": 12,
+    "height": 12,
+    "rentPence": 150000,
+    "buyPence": null,
+    "fixtures": []
+  },
+  {
+    "id": "hampstead",
+    "name": "Hampstead house",
+    "zone": 2,
+    "width": 12,
+    "height": 12,
+    "rentPence": 0,
+    "buyPence": 200000000,
+    "fixtures": []
+  },
+  {
+    "id": "sofa",
+    "name": "Sofa surfing",
+    "zone": 4,
+    "width": 5,
+    "height": 5,
+    "rentPence": 0,
+    "buyPence": null,
+    "fixtures": [
+      {"id":"loo","model":"toilet","itemId":"toilet","x":4,"y":0,"rotation":0,"action":"toilet","blocks":true,"label":"Someone's loo"}
+    ]
+  }
+]

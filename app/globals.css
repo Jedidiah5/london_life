@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-jakarta);
+  --color-ink: #1b2838;
+  --color-paper: #f4efe6;
+  --color-tube: #c8102e;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #f4efe6;
+  color: #1b2838;
+  font-family: var(--font-jakarta), sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}

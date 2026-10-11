@@ -1,0 +1,135 @@
+[
+  {
+    "id": "home",
+    "name": "Your flat",
+    "district": "Zone 4",
+    "zone": 4,
+    "x": -12,
+    "z": 8,
+    "kind": "home",
+    "blurb": "A box room, a borrowed bathroom, and a landlord who has never met the boiler.",
+    "width": 5,
+    "height": 5,
+    "model": "building-type-a",
+    "fixtures": []
+  },
+  {
+    "id": "camden",
+    "name": "Camden Market",
+    "district": "North",
+    "zone": 2,
+    "x": -6,
+    "z": 11,
+    "kind": "market",
+    "blurb": "Food stalls, rails of coats, and a guitar that is almost in tune.",
+    "width": 7,
+    "height": 6,
+    "model": "building-type-c",
+    "fixtures": [
+      {"id":"stall","model":"table","itemId":"dining_table","x":1,"y":1,"rotation":0,"action":"eat","blocks":true,"label":"Food stall","purchase":"meal_deal"},
+      {"id":"bench","model":"chair","itemId":"plastic_chair","x":4,"y":3,"rotation":0,"action":"socialise","blocks":true,"label":"Have a natter"}
+    ]
+  },
+  {
+    "id": "shoreditch_coffee",
+    "name": "Shoreditch coffee shop",
+    "district": "East",
+    "zone": 1,
+    "x": 7,
+    "z": 7,
+    "kind": "cafe",
+    "blurb": "Laptops out, oat milk in, and a startup that pays in experience.",
+    "width": 6,
+    "height": 6,
+    "model": "building-d",
+    "fixtures": [
+      {"id":"counter","model":"kitchenCoffeeMachine","itemId":"coffee_machine","x":1,"y":1,"rotation":0,"action":"coffee","blocks":true,"label":"Flat white","purchase":"coffee"},
+      {"id":"seat","model":"chairDesk","itemId":"desk_chair","x":3,"y":3,"rotation":0,"action":"socialise","blocks":true,"label":"Join a table"}
+    ]
+  },
+  {
+    "id": "brixton",
+    "name": "Brixton Village",
+    "district": "South",
+    "zone": 2,
+    "x": -5,
+    "z": -8,
+    "kind": "food",
+    "blurb": "Arcade lights, late food, and a chair that is never quite free.",
+    "width": 6,
+    "height": 6,
+    "model": "building-type-b",
+    "fixtures": [
+      {"id":"roast","model":"table","itemId":"dining_table","x":2,"y":2,"rotation":0,"action":"eat","blocks":true,"label":"Sunday roast","purchase":"roast"},
+      {"id":"barber","model":"chair","itemId":"plastic_chair","x":4,"y":1,"rotation":0,"action":"socialise","blocks":true,"label":"Wait for a trim"}
+    ]
+  },
+  {
+    "id": "canary_wharf",
+    "name": "Canary Wharf",
+    "district": "East",
+    "zone": 2,
+    "x": 12,
+    "z": 4,
+    "kind": "office",
+    "blurb": "Glass, badges, and a cleaner who knows the building better than the tenants.",
+    "width": 7,
+    "height": 6,
+    "model": "building-skyscraper-a",
+    "fixtures": [
+      {"id":"desk","model":"desk","itemId":"desk","x":1,"y":1,"rotation":0,"action":null,"blocks":true,"label":"Hot desk"},
+      {"id":"lobby","model":"loungeSofa","itemId":"sofa","x":3,"y":3,"rotation":0,"action":"socialise","blocks":true,"label":"Lobby chat"}
+    ]
+  },
+  {
+    "id": "hyde_park",
+    "name": "Hyde Park",
+    "district": "West",
+    "zone": 1,
+    "x": -11,
+    "z": 1,
+    "kind": "park",
+    "blurb": "Grass, geese, and one optimistic person pretending it is sunny.",
+    "width": 8,
+    "height": 8,
+    "model": "tree_oak",
+    "fixtures": [
+      {"id":"bench","model":"chair","itemId":"lounge_chair","x":2,"y":2,"rotation":0,"action":"watch_tv","blocks":true,"label":"Sit on the grass"},
+      {"id":"chat","model":"pottedPlant","itemId":"plant","x":5,"y":4,"rotation":0,"action":"socialise","blocks":false,"label":"Talk to a stranger"}
+    ]
+  },
+  {
+    "id": "pub",
+    "name": "The local pub",
+    "district": "South",
+    "zone": 2,
+    "x": 2,
+    "z": -7,
+    "kind": "pub",
+    "blurb": "Quiz night, a sticky bar, and chicken shop afterwards if you are honest.",
+    "width": 6,
+    "height": 6,
+    "model": "building-type-d",
+    "fixtures": [
+      {"id":"pint","model":"tableRound","itemId":"round_table","x":2,"y":2,"rotation":0,"action":"socialise","blocks":true,"label":"Pint","purchase":"pint"},
+      {"id":"stool","model":"chair","itemId":"plastic_chair","x":4,"y":1,"rotation":0,"action":"socialise","blocks":true,"label":"Pub quiz"}
+    ]
+  },
+  {
+    "id": "tube",
+    "name": "Tube station",
+    "district": "Zone 1",
+    "zone": 1,
+    "x": 0,
+    "z": 3,
+    "kind": "station",
+    "blurb": "Minor delays. A busker. Somebody apologising to a stranger they bumped.",
+    "width": 6,
+    "height": 5,
+    "model": "building-a",
+    "fixtures": [
+      {"id":"busk","model":"speaker","itemId":"speaker","x":1,"y":1,"rotation":0,"action":"socialise","blocks":false,"label":"Listen to the busker"},
+      {"id":"bench","model":"chair","itemId":"plastic_chair","x":3,"y":2,"rotation":0,"action":"watch_tv","blocks":true,"label":"Wait on the platform"}
+    ]
+  }
+]

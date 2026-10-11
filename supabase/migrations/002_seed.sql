@@ -1,0 +1,71 @@
+-- Seed data. Run after 001_london_life.sql
+
+insert into homes (id, name, zone, width, height, rent_pence, buy_pence) values
+('boxroom_z4', 'Box room, Zone 4', 4, 5, 5, 18000, null),
+('studio_z3', 'Studio, Zone 3', 3, 7, 7, 32000, null),
+('onebed_z2', '1-bed, Zone 2', 2, 9, 9, 45000, null),
+('penthouse_z1', 'Zone 1 penthouse', 1, 12, 12, 150000, null),
+('hampstead', 'Hampstead house', 2, 12, 12, 0, 200000000),
+('sofa', 'Sofa surfing', 4, 5, 5, 0, null) on conflict (id) do nothing;
+
+insert into venues (id, name, zone) values
+('home', 'Your flat', 4),
+('camden', 'Camden Market', 2),
+('shoreditch_coffee', 'Shoreditch coffee shop', 1),
+('brixton', 'Brixton Village', 2),
+('canary_wharf', 'Canary Wharf', 2),
+('hyde_park', 'Hyde Park', 1),
+('pub', 'The local pub', 2),
+('tube', 'Tube station', 1) on conflict (id) do nothing;
+
+insert into catalogue_items (id, name, category, footprint, wall, price_pence, tier, blocks, effects) values
+('mattress', 'Box-room mattress', 'Sleep', '{2,1}', false, 4500, 1, true, '{"effect":0.8,"action":"sleep"}'::jsonb),
+('single_bed', 'Single bed', 'Sleep', '{2,1}', false, 12000, 2, true, '{"effect":1.1,"action":"sleep"}'::jsonb),
+('double_bed', 'Double bed', 'Sleep', '{2,2}', false, 28000, 3, true, '{"effect":1.4,"action":"sleep"}'::jsonb),
+('bunk', 'Bunk bed', 'Sleep', '{2,1}', false, 16000, 2, true, '{"effect":1,"action":"sleep"}'::jsonb),
+('plastic_chair', 'Plastic chair', 'Comfort', '{1,1}', false, 1500, 1, true, '{"effect":1,"action":null}'::jsonb),
+('desk_chair', 'Desk chair', 'Comfort', '{1,1}', false, 4500, 2, true, '{"effect":1,"action":null}'::jsonb),
+('cushion_chair', 'Cushion chair', 'Comfort', '{1,1}', false, 7000, 2, true, '{"effect":1,"action":null}'::jsonb),
+('lounge_chair', 'Lounge chair', 'Comfort', '{1,1}', false, 18000, 3, true, '{"effect":1.1,"action":"watch_tv"}'::jsonb),
+('sofa', 'Two-seat sofa', 'Comfort', '{2,1}', false, 24000, 2, true, '{"effect":1.2,"action":"watch_tv"}'::jsonb),
+('sofa_long', 'Long sofa', 'Comfort', '{3,1}', false, 42000, 3, true, '{"effect":1.3,"action":"watch_tv"}'::jsonb),
+('chesterfield', 'Chesterfield sofa', 'Luxury', '{3,1}', false, 180000, 4, true, '{"effect":1.6,"action":"watch_tv"}'::jsonb),
+('coffee_table', 'Coffee table', 'Comfort', '{2,1}', false, 6000, 2, true, '{"effect":1,"action":null}'::jsonb),
+('dining_table', 'Dining table', 'Kitchen', '{2,1}', false, 9000, 2, true, '{"effect":1,"action":"eat"}'::jsonb),
+('round_table', 'Round table', 'Kitchen', '{1,1}', false, 7500, 2, true, '{"effect":1,"action":"eat"}'::jsonb),
+('side_table', 'Side table', 'Decor', '{1,1}', false, 2500, 1, false, '{"effect":1,"action":null}'::jsonb),
+('fridge', 'Fridge', 'Kitchen', '{1,1}', false, 22000, 2, true, '{"effect":1.3,"action":"eat"}'::jsonb),
+('microwave', 'Microwave', 'Kitchen', '{1,1}', false, 5500, 1, false, '{"effect":1.1,"action":"eat"}'::jsonb),
+('coffee_machine', 'Coffee machine', 'Kitchen', '{1,1}', false, 8000, 2, false, '{"effect":1,"action":"coffee"}'::jsonb),
+('sink', 'Kitchen sink', 'Kitchen', '{1,1}', false, 11000, 2, true, '{"effect":1,"action":null}'::jsonb),
+('toilet', 'Toilet', 'Bath', '{1,1}', false, 14000, 2, true, '{"effect":1,"action":"toilet"}'::jsonb),
+('shower', 'Shower', 'Bath', '{1,1}', false, 26000, 2, true, '{"effect":1,"action":"shower"}'::jsonb),
+('bath', 'Bathtub', 'Bath', '{2,1}', false, 48000, 3, true, '{"effect":1.4,"action":"shower"}'::jsonb),
+('basin', 'Basin', 'Bath', '{1,1}', false, 9000, 2, true, '{"effect":1,"action":null}'::jsonb),
+('tv', 'Telly', 'Fun', '{1,1}', false, 18000, 2, true, '{"effect":1.2,"action":"watch_tv"}'::jsonb),
+('vintage_tv', 'Vintage telly', 'Fun', '{1,1}', false, 7000, 1, true, '{"effect":0.9,"action":"watch_tv"}'::jsonb),
+('speaker', 'Speaker', 'Fun', '{1,1}', false, 6500, 2, false, '{"effect":1,"action":"watch_tv"}'::jsonb),
+('radio', 'Radio', 'Fun', '{1,1}', false, 2000, 1, false, '{"effect":0.8,"action":"watch_tv"}'::jsonb),
+('laptop', 'Laptop', 'Tech', '{1,1}', false, 45000, 3, false, '{"effect":1,"action":null}'::jsonb),
+('monitor', 'Monitor', 'Tech', '{1,1}', false, 16000, 2, false, '{"effect":1,"action":null}'::jsonb),
+('desk', 'Desk', 'Skills', '{2,1}', false, 14000, 2, true, '{"effect":1,"action":null}'::jsonb),
+('bookcase', 'Bookcase', 'Skills', '{1,1}', false, 8500, 2, true, '{"effect":1,"action":null}'::jsonb),
+('floor_lamp', 'Floor lamp', 'Light', '{1,1}', false, 3500, 1, false, '{"effect":1,"action":null}'::jsonb),
+('table_lamp', 'Table lamp', 'Light', '{1,1}', false, 1800, 1, false, '{"effect":1,"action":null}'::jsonb),
+('wall_lamp', 'Wall lamp', 'Light', null, true, 2200, 1, false, '{"effect":1,"action":null}'::jsonb),
+('plant', 'Pot plant', 'Plants', '{1,1}', false, 2500, 1, false, '{"effect":1,"action":null}'::jsonb),
+('small_plant', 'Windowsill plant', 'Plants', '{1,1}', false, 800, 1, false, '{"effect":1,"action":null}'::jsonb),
+('rug', 'Rug', 'Decor', '{2,1}', false, 4000, 2, false, '{"effect":1,"action":null}'::jsonb),
+('round_rug', 'Round rug', 'Decor', '{1,1}', false, 2800, 1, false, '{"effect":1,"action":null}'::jsonb),
+('washer', 'Washer', 'Bath', '{1,1}', false, 32000, 3, true, '{"effect":1,"action":null}'::jsonb),
+('boiler', 'Smart heating', 'Luxury', '{1,1}', false, 45000, 3, true, '{"effect":1,"action":null}'::jsonb) on conflict (id) do nothing;
+
+insert into jobs (id, name, venue, pay_per_hour_pence, hours, skill, skill_required, energy_cost, xp_skill, tips) values
+('barista', 'Barista', 'shoreditch_coffee', 1150, 4, null, 0, 30, 'charisma', false),
+('delivery_rider', 'Delivery rider', 'tube', 1300, 3, 'fitness', 0, 40, 'fitness', false),
+('retail', 'Retail assistant', 'camden', 1150, 4, 'charisma', 0, 25, 'charisma', false),
+('cleaner', 'Cleaner', 'canary_wharf', 1260, 4, null, 0, 35, 'fitness', false),
+('junior_developer', 'Junior developer', 'shoreditch_coffee', 1800, 6, 'coding', 3, 20, 'coding', false),
+('bartender', 'Bartender', 'pub', 1200, 5, 'charisma', 2, 30, 'charisma', false),
+('barber', 'Barber', 'brixton', 1400, 4, 'style', 2, 20, 'style', false),
+('busker', 'Busker', 'tube', 0, 2, 'music', 0, 15, 'music', true) on conflict (id) do nothing;

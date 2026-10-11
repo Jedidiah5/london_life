@@ -1,0 +1,10 @@
+[
+  {"id":"barista","name":"Barista","venue":"shoreditch_coffee","payPerHourPence":1150,"hours":4,"skill":null,"skillRequired":0,"energyCost":30,"xpSkill":"charisma","tips":false},
+  {"id":"delivery_rider","name":"Delivery rider","venue":"tube","payPerHourPence":1300,"hours":3,"skill":"fitness","skillRequired":0,"energyCost":40,"xpSkill":"fitness","tips":false},
+  {"id":"retail","name":"Retail assistant","venue":"camden","payPerHourPence":1150,"hours":4,"skill":"charisma","skillRequired":0,"energyCost":25,"xpSkill":"charisma","tips":false},
+  {"id":"cleaner","name":"Cleaner","venue":"canary_wharf","payPerHourPence":1260,"hours":4,"skill":null,"skillRequired":0,"energyCost":35,"xpSkill":"fitness","tips":false},
+  {"id":"junior_developer","name":"Junior developer","venue":"shoreditch_coffee","payPerHourPence":1800,"hours":6,"skill":"coding","skillRequired":3,"energyCost":20,"xpSkill":"coding","tips":false},
+  {"id":"bartender","name":"Bartender","venue":"pub","payPerHourPence":1200,"hours":5,"skill":"charisma","skillRequired":2,"energyCost":30,"xpSkill":"charisma","tips":false},
+  {"id":"barber","name":"Barber","venue":"brixton","payPerHourPence":1400,"hours":4,"skill":"style","skillRequired":2,"energyCost":20,"xpSkill":"style","tips":false},
+  {"id":"busker","name":"Busker","venue":"tube","payPerHourPence":0,"hours":2,"skill":"music","skillRequired":0,"energyCost":15,"xpSkill":"music","tips":true}
+]
