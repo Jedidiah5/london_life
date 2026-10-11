@@ -162,7 +162,7 @@ export function RoomScene() {
               roomHeight={layout.height}
               walkingEnabled={false}
             />
-            <Html position={[x, 1.7, z]} center sprite>
+            <Html position={[x, 1.7, z]} center sprite zIndexRange={[8, 0]}>
               <div className="pointer-events-none text-center">
                 <div className="rounded-full bg-[#1b2838]/80 px-2 py-0.5 text-[10px] text-[#f4efe6]">
                   {player.name}

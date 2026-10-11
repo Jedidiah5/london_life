@@ -36,10 +36,10 @@ export function SimLoop() {
   }, [cloud]);
 
   useEffect(() => {
-    if (!cloud || !simId) return;
     const tile = useGame.getState().tile;
-    const track = { simId, name, appearance, x: tile.x, y: tile.y };
+    const track = { simId: simId ?? "local", name, appearance, x: tile.x, y: tile.y };
     rememberTrack(track);
+    if (!cloud || !simId) return;
     const channelLocation = location === "home" ? `home-${simId}` : location;
     void joinWorld(track, channelLocation);
     return () => {

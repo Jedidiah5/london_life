@@ -2,6 +2,7 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { SHARD_SIZE } from "@/lib/sim/constants";
 import type { Appearance, Tile } from "@/lib/sim/types";
 import { usePresence, type RemotePlayer } from "@/lib/store/usePresence";
+import { useGame } from "@/lib/store/useGame";
 import { getSupabase } from "./supabase";
 
 let venueChannel: RealtimeChannel | null = null;
@@ -196,28 +197,33 @@ function currentTrack(tile: Tile): TrackPayload {
 }
 
 export function broadcastChat(text: string): void {
-  if (!trackCache) return;
+  const game = useGame.getState();
   const clean = text.trim().slice(0, 140);
-  if (!clean) return;
+  if (!clean || !game.name) return;
+  const simId = trackCache?.simId || game.simId || "local";
+  const speaker = trackCache?.name || game.name;
   void venueChannel?.send({
     type: "broadcast",
     event: "chat",
-    payload: { text: clean, name: trackCache.name, simId: trackCache.simId },
+    payload: { text: clean, name: speaker, simId },
   });
   usePresence.getState().pushChat({
     id: `me-${Date.now()}`,
-    from: trackCache.name,
-    simId: trackCache.simId,
+    from: speaker,
+    simId,
     text: clean,
     at: Date.now(),
   });
 }
 
 export function broadcastEmote(kind: "wave" | "compliment" | "invite", homeSimId?: string): void {
-  if (!trackCache) return;
+  const game = useGame.getState();
+  const simId = trackCache?.simId || game.simId || "local";
+  const speaker = trackCache?.name || game.name;
+  if (!speaker) return;
   void venueChannel?.send({
     type: "broadcast",
     event: "emote",
-    payload: { kind, name: trackCache.name, simId: trackCache.simId, homeSimId },
+    payload: { kind, name: speaker, simId, homeSimId },
   });
 }

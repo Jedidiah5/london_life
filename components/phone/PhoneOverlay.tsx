@@ -28,21 +28,20 @@ export function PhoneOverlay() {
           Close
         </button>
       </div>
-      {app === null ? null : (
-        <div className="mb-2 flex gap-1 overflow-x-auto">
-          {APPS.map((entry) => (
-            <button
-              key={entry.id}
-              type="button"
-              className={`rounded-full px-2 py-1 text-[11px] ${app === entry.id ? "bg-[#c8102e]" : "bg-white/10"}`}
-              onClick={() => useUi.getState().openPhone(entry.id)}
-            >
-              {entry.label}
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="mb-2 flex gap-1 overflow-x-auto">
+        {APPS.map((entry) => (
+          <button
+            key={entry.id}
+            type="button"
+            className={`rounded-full px-2 py-1 text-[11px] ${app === entry.id ? "bg-[#c8102e]" : "bg-white/10"}`}
+            onClick={() => useUi.getState().openPhone(entry.id)}
+          >
+            {entry.label}
+          </button>
+        ))}
+      </div>
       <div className="max-h-64 overflow-y-auto rounded-2xl bg-[#f4efe6] p-3 text-[#1b2838]">
+        {app === null ? <p className="text-xs text-[#5c6b7a]">Jobs, bank, messages, friends.</p> : null}
         {app === "jobs" ? <Jobs /> : null}
         {app === "bank" ? <Bank /> : null}
         {app === "messages" ? <Messages /> : null}
