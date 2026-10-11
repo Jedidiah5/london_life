@@ -1,0 +1,10 @@
+[
+  {"id":"eat","title":"Eat something","hint":"Tap the fridge and pick a snack","emoji":"🍞","stat":"eat","count":1,"rewardPence":500,"highlight":"fridge"},
+  {"id":"shower","title":"Freshen up","hint":"Tap the shower in the corner","emoji":"🚿","stat":"shower","count":1,"rewardPence":500,"highlight":"shower"},
+  {"id":"get_job","title":"Get a job","hint":"Phone → Jobs → Apply","emoji":"💼","stat":"job","count":1,"rewardPence":1000,"highlight":"phone"},
+  {"id":"buy_place","title":"Make it yours","hint":"Buy → pick something → Place","emoji":"🛋️","stat":"place","count":1,"rewardPence":1000,"highlight":"buy"},
+  {"id":"travel","title":"See the city","hint":"Map → pick a place → Go","emoji":"🗺️","stat":"travel","count":1,"rewardPence":1000,"highlight":"map"},
+  {"id":"say_hello","title":"Say hello","hint":"At a venue, tap someone and wave","emoji":"👋","stat":"hello","count":1,"rewardPence":1000,"highlight":"people"},
+  {"id":"work_shift","title":"Work a shift","hint":"Go to your job, then Phone → Jobs → Start","emoji":"⏱️","stat":"shift","count":1,"rewardPence":2000,"highlight":"phone"},
+  {"id":"pay_rent","title":"Survive to Sunday","hint":"Rent comes out at midnight on Sunday","emoji":"🏠","stat":"rent","count":1,"rewardPence":2000,"highlight":"bank"}
+]

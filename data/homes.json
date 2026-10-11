@@ -8,8 +8,9 @@
     "rentPence": 18000,
     "buyPence": null,
     "fixtures": [
-      {"id":"loo","model":"toilet","itemId":"toilet","x":4,"y":0,"rotation":0,"action":"toilet","blocks":true,"label":"Shared loo"},
-      {"id":"shower","model":"shower","itemId":"shower","x":4,"y":1,"rotation":0,"action":"shower","blocks":true,"label":"Shared shower"}
+      {"id":"loo","model":"toilet","itemId":"toilet","x":4,"y":0,"rotation":0,"menu":"loo","blocks":true,"label":"Shared loo"},
+      {"id":"shower","model":"shower","itemId":"shower","x":4,"y":1,"rotation":0,"menu":"shower","blocks":true,"label":"Shared shower"},
+      {"id":"fridge","model":"kitchenFridge","itemId":"fridge","x":4,"y":4,"rotation":0,"menu":"kitchen","blocks":true,"label":"Shared fridge"}
     ]
   },
   {
@@ -20,7 +21,11 @@
     "height": 7,
     "rentPence": 32000,
     "buyPence": null,
-    "fixtures": []
+    "fixtures": [
+      {"id":"loo","model":"toilet","itemId":"toilet","x":6,"y":0,"rotation":0,"menu":"loo","blocks":true,"label":"Loo"},
+      {"id":"shower","model":"shower","itemId":"shower","x":6,"y":1,"rotation":0,"menu":"shower","blocks":true,"label":"Shower"},
+      {"id":"fridge","model":"kitchenFridge","itemId":"fridge","x":6,"y":6,"rotation":0,"menu":"kitchen","blocks":true,"label":"Fridge"}
+    ]
   },
   {
     "id": "onebed_z2",
@@ -30,7 +35,11 @@
     "height": 9,
     "rentPence": 45000,
     "buyPence": null,
-    "fixtures": []
+    "fixtures": [
+      {"id":"loo","model":"toilet","itemId":"toilet","x":8,"y":0,"rotation":0,"menu":"loo","blocks":true,"label":"Loo"},
+      {"id":"shower","model":"shower","itemId":"shower","x":8,"y":1,"rotation":0,"menu":"shower","blocks":true,"label":"Shower"},
+      {"id":"fridge","model":"kitchenFridge","itemId":"fridge","x":8,"y":8,"rotation":0,"menu":"kitchen","blocks":true,"label":"Fridge"}
+    ]
   },
   {
     "id": "penthouse_z1",
@@ -40,7 +49,11 @@
     "height": 12,
     "rentPence": 150000,
     "buyPence": null,
-    "fixtures": []
+    "fixtures": [
+      {"id":"loo","model":"toilet","itemId":"toilet","x":11,"y":0,"rotation":0,"menu":"loo","blocks":true,"label":"Loo"},
+      {"id":"shower","model":"shower","itemId":"shower","x":11,"y":1,"rotation":0,"menu":"shower","blocks":true,"label":"Rain shower"},
+      {"id":"fridge","model":"kitchenFridge","itemId":"fridge","x":11,"y":11,"rotation":0,"menu":"kitchen","blocks":true,"label":"Smart fridge"}
+    ]
   },
   {
     "id": "hampstead",
@@ -50,7 +63,11 @@
     "height": 12,
     "rentPence": 0,
     "buyPence": 200000000,
-    "fixtures": []
+    "fixtures": [
+      {"id":"loo","model":"toilet","itemId":"toilet","x":11,"y":0,"rotation":0,"menu":"loo","blocks":true,"label":"Loo"},
+      {"id":"shower","model":"shower","itemId":"shower","x":11,"y":1,"rotation":0,"menu":"shower","blocks":true,"label":"Shower"},
+      {"id":"fridge","model":"kitchenFridge","itemId":"fridge","x":11,"y":11,"rotation":0,"menu":"kitchen","blocks":true,"label":"Fridge"}
+    ]
   },
   {
     "id": "sofa",
@@ -61,7 +78,8 @@
     "rentPence": 0,
     "buyPence": null,
     "fixtures": [
-      {"id":"loo","model":"toilet","itemId":"toilet","x":4,"y":0,"rotation":0,"action":"toilet","blocks":true,"label":"Someone's loo"}
+      {"id":"loo","model":"toilet","itemId":"toilet","x":4,"y":0,"rotation":0,"menu":"loo","blocks":true,"label":"Someone's loo"},
+      {"id":"fridge","model":"kitchenFridge","itemId":"fridge","x":4,"y":4,"rotation":0,"menu":"kitchen","blocks":true,"label":"Someone's fridge"}
     ]
   }
 ]

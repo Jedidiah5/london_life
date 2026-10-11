@@ -1,10 +1,17 @@
 [
-  {"id":"barista","name":"Barista","venue":"shoreditch_coffee","payPerHourPence":1150,"hours":4,"skill":null,"skillRequired":0,"energyCost":30,"xpSkill":"charisma","tips":false},
-  {"id":"delivery_rider","name":"Delivery rider","venue":"tube","payPerHourPence":1300,"hours":3,"skill":"fitness","skillRequired":0,"energyCost":40,"xpSkill":"fitness","tips":false},
-  {"id":"retail","name":"Retail assistant","venue":"camden","payPerHourPence":1150,"hours":4,"skill":"charisma","skillRequired":0,"energyCost":25,"xpSkill":"charisma","tips":false},
-  {"id":"cleaner","name":"Cleaner","venue":"canary_wharf","payPerHourPence":1260,"hours":4,"skill":null,"skillRequired":0,"energyCost":35,"xpSkill":"fitness","tips":false},
-  {"id":"junior_developer","name":"Junior developer","venue":"shoreditch_coffee","payPerHourPence":1800,"hours":6,"skill":"coding","skillRequired":3,"energyCost":20,"xpSkill":"coding","tips":false},
-  {"id":"bartender","name":"Bartender","venue":"pub","payPerHourPence":1200,"hours":5,"skill":"charisma","skillRequired":2,"energyCost":30,"xpSkill":"charisma","tips":false},
-  {"id":"barber","name":"Barber","venue":"brixton","payPerHourPence":1400,"hours":4,"skill":"style","skillRequired":2,"energyCost":20,"xpSkill":"style","tips":false},
-  {"id":"busker","name":"Busker","venue":"tube","payPerHourPence":0,"hours":2,"skill":"music","skillRequired":0,"energyCost":15,"xpSkill":"music","tips":true}
+  {"id":"barista","name":"Barista","emoji":"☕","venue":"shoreditch_coffee","payPerHourPence":1150,"hours":4,"skill":null,"skillRequired":0,"energyCost":30,"xpSkill":"charisma","tips":false,"ladder":["Trainee barista","Barista","Head barista","Café manager"]},
+  {"id":"delivery_rider","name":"Delivery rider","emoji":"🚲","venue":"tube","payPerHourPence":1300,"hours":3,"skill":null,"skillRequired":0,"energyCost":40,"xpSkill":"fitness","tips":false,"ladder":["Rider","Pro rider","Fleet captain"]},
+  {"id":"retail","name":"Retail assistant","emoji":"🛍️","venue":"camden","payPerHourPence":1150,"hours":4,"skill":null,"skillRequired":0,"energyCost":25,"xpSkill":"style","tips":false,"ladder":["Shop floor","Sales lead","Store manager"]},
+  {"id":"cleaner","name":"Office cleaner","emoji":"🧹","venue":"canary_wharf","payPerHourPence":1260,"hours":4,"skill":null,"skillRequired":0,"energyCost":35,"xpSkill":"fitness","tips":false,"ladder":["Cleaner","Team lead","Facilities supervisor"]},
+  {"id":"busker","name":"Busker","emoji":"🎸","venue":"tube","payPerHourPence":0,"hours":2,"skill":null,"skillRequired":0,"energyCost":15,"xpSkill":"music","tips":true,"ladder":["Busker","Licensed busker","Platform legend"]},
+  {"id":"bartender","name":"Bartender","emoji":"🍺","venue":"pub","payPerHourPence":1200,"hours":5,"skill":"charisma","skillRequired":1,"energyCost":30,"xpSkill":"charisma","tips":false,"ladder":["Glass collector","Bartender","Bar manager","Landlord"]},
+  {"id":"barber","name":"Barber","emoji":"💈","venue":"brixton","payPerHourPence":1400,"hours":4,"skill":"style","skillRequired":1,"energyCost":20,"xpSkill":"style","tips":false,"ladder":["Apprentice","Barber","Master barber","Shop owner"]},
+  {"id":"content_creator","name":"Content creator","emoji":"📸","venue":"hyde_park","payPerHourPence":1100,"hours":3,"skill":"photography","skillRequired":1,"energyCost":15,"xpSkill":"photography","tips":false,"ladder":["Micro-influencer","Creator","Brand ambassador","Blue tick"]},
+  {"id":"dj","name":"DJ","emoji":"🎧","venue":"pub","payPerHourPence":1600,"hours":3,"skill":"music","skillRequired":2,"energyCost":25,"xpSkill":"music","tips":false,"ladder":["Warm-up DJ","Resident DJ","Headliner"]},
+  {"id":"teacher","name":"Teacher","emoji":"🍎","venue":"camden","payPerHourPence":1650,"hours":6,"skill":"comedy","skillRequired":2,"energyCost":35,"xpSkill":"charisma","tips":false,"ladder":["Trainee teacher","Teacher","Head of year","Headteacher"]},
+  {"id":"nurse","name":"Nurse","emoji":"🩺","venue":"brixton","payPerHourPence":1750,"hours":6,"skill":"fitness","skillRequired":2,"energyCost":40,"xpSkill":"fitness","tips":false,"ladder":["Student nurse","Staff nurse","Sister","Matron"]},
+  {"id":"junior_developer","name":"Developer","emoji":"💻","venue":"shoreditch_coffee","payPerHourPence":1800,"hours":6,"skill":"coding","skillRequired":2,"energyCost":20,"xpSkill":"coding","tips":false,"ladder":["Intern","Junior developer","Senior developer","CTO"]},
+  {"id":"estate_agent","name":"Estate agent","emoji":"🏘️","venue":"canary_wharf","payPerHourPence":1900,"hours":5,"skill":"hustle","skillRequired":2,"energyCost":25,"xpSkill":"hustle","tips":false,"ladder":["Negotiator","Senior negotiator","Branch manager"]},
+  {"id":"doctor","name":"Doctor","emoji":"👩‍⚕️","venue":"brixton","payPerHourPence":2600,"hours":8,"skill":"fitness","skillRequired":3,"energyCost":45,"xpSkill":"fitness","tips":false,"ladder":["Foundation doctor","Registrar","Consultant"]},
+  {"id":"lawyer","name":"Lawyer","emoji":"⚖️","venue":"canary_wharf","payPerHourPence":3000,"hours":8,"skill":"charisma","skillRequired":3,"energyCost":40,"xpSkill":"charisma","tips":false,"ladder":["Paralegal","Associate","Senior associate","Partner"]}
 ]

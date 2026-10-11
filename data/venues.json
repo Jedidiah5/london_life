@@ -1,135 +1,95 @@
 [
   {
-    "id": "home",
-    "name": "Your flat",
-    "district": "Zone 4",
-    "zone": 4,
-    "x": -12,
-    "z": 8,
-    "kind": "home",
-    "blurb": "A box room, a borrowed bathroom, and a landlord who has never met the boiler.",
-    "width": 5,
-    "height": 5,
-    "model": "building-type-a",
-    "fixtures": []
+    "id": "home", "name": "Your flat", "district": "Zone 4", "zone": 4, "x": -12, "z": 8, "emoji": "🏠",
+    "kind": "home", "blurb": "A box room, a borrowed bathroom, and a landlord who has never met the boiler.",
+    "width": 5, "height": 5, "model": "building-type-a", "floor": "#c9b49a", "wall": "#d9cfc0",
+    "flavour": [], "fixtures": []
   },
   {
-    "id": "camden",
-    "name": "Camden Market",
-    "district": "North",
-    "zone": 2,
-    "x": -6,
-    "z": 11,
-    "kind": "market",
-    "blurb": "Food stalls, rails of coats, and a guitar that is almost in tune.",
-    "width": 7,
-    "height": 6,
-    "model": "building-type-c",
+    "id": "camden", "name": "Camden Market", "district": "North · Zone 2", "zone": 2, "x": -6, "z": 11, "emoji": "🛍️",
+    "kind": "market", "blurb": "Food stalls from every country, rails of coats, and a guitar that is almost in tune.",
+    "width": 8, "height": 7, "model": "building-type-c", "floor": "#8a7b6a", "wall": "#b5523b",
+    "flavour": ["A man is selling a single boot for £40.", "Someone is playing the bongos badly but with passion.", "The queue for the noodle stall goes round the corner.", "A goth and a tourist share a bench in silence."],
     "fixtures": [
-      {"id":"stall","model":"table","itemId":"dining_table","x":1,"y":1,"rotation":0,"action":"eat","blocks":true,"label":"Food stall","purchase":"meal_deal"},
-      {"id":"bench","model":"chair","itemId":"plastic_chair","x":4,"y":3,"rotation":0,"action":"socialise","blocks":true,"label":"Have a natter"}
+      {"id":"food","model":"table","itemId":"dining_table","x":1,"y":1,"rotation":0,"menu":"camden_food","blocks":true,"label":"Food stalls","emoji":"🍜"},
+      {"id":"rails","model":"bookcaseOpen","itemId":"bookcase","x":6,"y":0,"rotation":0,"menu":"camden_rails","blocks":true,"label":"Vintage rails","emoji":"🧥"},
+      {"id":"lock","model":"loungeSofa","itemId":"sofa","x":2,"y":5,"rotation":0,"menu":"camden_lock","blocks":true,"label":"Lock bench","emoji":"🌉"},
+      {"id":"plant1","model":"pottedPlant","itemId":"plant","x":7,"y":6,"rotation":0,"menu":null,"blocks":true},
+      {"id":"stool","model":"chair","itemId":"plastic_chair","x":4,"y":2,"rotation":0,"menu":null,"blocks":true}
     ]
   },
   {
-    "id": "shoreditch_coffee",
-    "name": "Shoreditch coffee shop",
-    "district": "East",
-    "zone": 1,
-    "x": 7,
-    "z": 7,
-    "kind": "cafe",
-    "blurb": "Laptops out, oat milk in, and a startup that pays in experience.",
-    "width": 6,
-    "height": 6,
-    "model": "building-d",
+    "id": "shoreditch_coffee", "name": "Shoreditch coffee shop", "district": "East · Zone 1", "zone": 1, "x": 7, "z": 7, "emoji": "☕",
+    "kind": "cafe", "blurb": "Laptops out, oat milk in, and a startup that pays in experience.",
+    "width": 7, "height": 7, "model": "building-d", "floor": "#a07c5b", "wall": "#3d4a52",
+    "flavour": ["Someone is pitching 'Uber for houseplants' very loudly.", "The barista has a moustache older than the café.", "Wi-Fi password is on a chalkboard: 'disrupt2026'.", "A man in a gilet takes a Zoom call standing up."],
     "fixtures": [
-      {"id":"counter","model":"kitchenCoffeeMachine","itemId":"coffee_machine","x":1,"y":1,"rotation":0,"action":"coffee","blocks":true,"label":"Flat white","purchase":"coffee"},
-      {"id":"seat","model":"chairDesk","itemId":"desk_chair","x":3,"y":3,"rotation":0,"action":"socialise","blocks":true,"label":"Join a table"}
+      {"id":"counter","model":"kitchenCoffeeMachine","itemId":"coffee_machine","x":1,"y":0,"rotation":0,"menu":"coffee_counter","blocks":true,"label":"Counter","emoji":"☕"},
+      {"id":"laptops","model":"desk","itemId":"desk","x":4,"y":2,"rotation":0,"menu":"coffee_laptops","blocks":true,"label":"Laptop tables","emoji":"💻"},
+      {"id":"meetup","model":"loungeSofaLong","itemId":"sofa_long","x":1,"y":5,"rotation":0,"menu":"coffee_meetup","blocks":true,"label":"Meetup corner","emoji":"🎤"},
+      {"id":"plant","model":"plantSmall1","itemId":"small_plant","x":6,"y":6,"rotation":0,"menu":null,"blocks":false},
+      {"id":"lamp","model":"lampSquareFloor","itemId":"floor_lamp","x":6,"y":0,"rotation":0,"menu":null,"blocks":false}
     ]
   },
   {
-    "id": "brixton",
-    "name": "Brixton Village",
-    "district": "South",
-    "zone": 2,
-    "x": -5,
-    "z": -8,
-    "kind": "food",
-    "blurb": "Arcade lights, late food, and a chair that is never quite free.",
-    "width": 6,
-    "height": 6,
-    "model": "building-type-b",
+    "id": "brixton", "name": "Brixton Village", "district": "South · Zone 2", "zone": 2, "x": -5, "z": -8, "emoji": "🍛",
+    "kind": "food", "blurb": "Arcade lights, food from everywhere, and a barber's chair that is never quite free.",
+    "width": 8, "height": 7, "model": "building-type-b", "floor": "#6f6a5f", "wall": "#2f6b4f",
+    "flavour": ["The smell of jerk smoke and phở fights for your attention.", "A sound system is testing bass at 4pm on a Tuesday.", "Three generations argue about whose jollof is best.", "A man sells incense and life advice."],
     "fixtures": [
-      {"id":"roast","model":"table","itemId":"dining_table","x":2,"y":2,"rotation":0,"action":"eat","blocks":true,"label":"Sunday roast","purchase":"roast"},
-      {"id":"barber","model":"chair","itemId":"plastic_chair","x":4,"y":1,"rotation":0,"action":"socialise","blocks":true,"label":"Wait for a trim"}
+      {"id":"food","model":"tableRound","itemId":"round_table","x":2,"y":1,"rotation":0,"menu":"brixton_food","blocks":true,"label":"Food arcade","emoji":"🍛"},
+      {"id":"barber","model":"chairModernCushion","itemId":"cushion_chair","x":6,"y":1,"rotation":0,"menu":"brixton_barber","blocks":true,"label":"Barber's chair","emoji":"💈"},
+      {"id":"records","model":"speaker","itemId":"speaker","x":1,"y":5,"rotation":0,"menu":"brixton_records","blocks":true,"label":"Record shop","emoji":"💿"},
+      {"id":"stool","model":"chair","itemId":"plastic_chair","x":3,"y":3,"rotation":0,"menu":null,"blocks":true}
     ]
   },
   {
-    "id": "canary_wharf",
-    "name": "Canary Wharf",
-    "district": "East",
-    "zone": 2,
-    "x": 12,
-    "z": 4,
-    "kind": "office",
-    "blurb": "Glass, badges, and a cleaner who knows the building better than the tenants.",
-    "width": 7,
-    "height": 6,
-    "model": "building-skyscraper-a",
+    "id": "canary_wharf", "name": "Canary Wharf", "district": "East · Zone 2", "zone": 2, "x": 12, "z": 4, "emoji": "🏢",
+    "kind": "office", "blurb": "Glass, lanyards, and a cleaner who knows the building better than the tenants.",
+    "width": 8, "height": 7, "model": "building-skyscraper-a", "floor": "#d7dde3", "wall": "#5c6b7a",
+    "flavour": ["Everyone is walking at 6mph and holding a Pret.", "A man says 'let's circle back' to nobody in particular.", "The lobby art cost more than a house in Zone 6.", "Somebody's lanyard says 'Head of Synergy'."],
     "fixtures": [
-      {"id":"desk","model":"desk","itemId":"desk","x":1,"y":1,"rotation":0,"action":null,"blocks":true,"label":"Hot desk"},
-      {"id":"lobby","model":"loungeSofa","itemId":"sofa","x":3,"y":3,"rotation":0,"action":"socialise","blocks":true,"label":"Lobby chat"}
+      {"id":"lobby","model":"loungeDesignSofa","itemId":"chesterfield","x":1,"y":1,"rotation":0,"menu":"wharf_lobby","blocks":true,"label":"Lobby","emoji":"🏢"},
+      {"id":"desk","model":"desk","itemId":"desk","x":5,"y":2,"rotation":0,"menu":"wharf_desk","blocks":true,"label":"Hot desk","emoji":"📊"},
+      {"id":"dock","model":"pottedPlant","itemId":"plant","x":3,"y":6,"rotation":0,"menu":"wharf_dock","blocks":true,"label":"Dockside","emoji":"⚓"},
+      {"id":"screen","model":"computerScreen","itemId":"monitor","x":7,"y":0,"rotation":0,"menu":null,"blocks":false}
     ]
   },
   {
-    "id": "hyde_park",
-    "name": "Hyde Park",
-    "district": "West",
-    "zone": 1,
-    "x": -11,
-    "z": 1,
-    "kind": "park",
-    "blurb": "Grass, geese, and one optimistic person pretending it is sunny.",
-    "width": 8,
-    "height": 8,
-    "model": "tree_oak",
+    "id": "hyde_park", "name": "Hyde Park", "district": "West · Zone 1", "zone": 1, "x": -11, "z": 1, "emoji": "🌳",
+    "kind": "park", "blurb": "Grass, geese, and one optimistic person pretending it is sunny.",
+    "width": 9, "height": 8, "model": "tree_oak", "floor": "#5f8f4e", "wall": null,
+    "flavour": ["A goose is chasing a man in a suit.", "Someone at Speakers' Corner is very angry about roundabouts.", "It is 14°C and three people are sunbathing.", "A dog has stolen an entire baguette."],
     "fixtures": [
-      {"id":"bench","model":"chair","itemId":"lounge_chair","x":2,"y":2,"rotation":0,"action":"watch_tv","blocks":true,"label":"Sit on the grass"},
-      {"id":"chat","model":"pottedPlant","itemId":"plant","x":5,"y":4,"rotation":0,"action":"socialise","blocks":false,"label":"Talk to a stranger"}
+      {"id":"grass","model":"rugRectangle","itemId":"rug","x":2,"y":2,"rotation":0,"menu":"park_grass","blocks":false,"label":"The grass","emoji":"🌳"},
+      {"id":"lake","model":"rugRound","itemId":"round_rug","x":7,"y":1,"rotation":0,"menu":"park_lake","blocks":false,"label":"Serpentine","emoji":"🦆"},
+      {"id":"speakers","model":"chair","itemId":"plastic_chair","x":5,"y":6,"rotation":0,"menu":"park_speakers","blocks":true,"label":"Speakers' Corner","emoji":"📣"},
+      {"id":"tree1","model":"pottedPlant","itemId":"plant","x":0,"y":7,"rotation":0,"menu":null,"blocks":true},
+      {"id":"tree2","model":"pottedPlant","itemId":"plant","x":8,"y":7,"rotation":0,"menu":null,"blocks":true}
     ]
   },
   {
-    "id": "pub",
-    "name": "The local pub",
-    "district": "South",
-    "zone": 2,
-    "x": 2,
-    "z": -7,
-    "kind": "pub",
-    "blurb": "Quiz night, a sticky bar, and chicken shop afterwards if you are honest.",
-    "width": 6,
-    "height": 6,
-    "model": "building-type-d",
+    "id": "pub", "name": "The Mucky Duck", "district": "South · Zone 2", "zone": 2, "x": 2, "z": -7, "emoji": "🍺",
+    "kind": "pub", "blurb": "Quiz night, a sticky bar, and the chicken shop afterwards if you're honest.",
+    "width": 7, "height": 7, "model": "building-type-d", "floor": "#6b4a32", "wall": "#6b2d2d",
+    "flavour": ["The quizmaster is reading the questions off his phone.", "A regular has been on the same stool since 1987.", "The jukebox only plays Oasis and ABBA.", "Somebody shouts 'Get in!' at a game nobody else is watching."],
     "fixtures": [
-      {"id":"pint","model":"tableRound","itemId":"round_table","x":2,"y":2,"rotation":0,"action":"socialise","blocks":true,"label":"Pint","purchase":"pint"},
-      {"id":"stool","model":"chair","itemId":"plastic_chair","x":4,"y":1,"rotation":0,"action":"socialise","blocks":true,"label":"Pub quiz"}
+      {"id":"bar","model":"kitchenSink","itemId":"sink","x":1,"y":0,"rotation":0,"menu":"pub_bar","blocks":true,"label":"The bar","emoji":"🍺"},
+      {"id":"quiz","model":"tableRound","itemId":"round_table","x":4,"y":2,"rotation":0,"menu":"pub_quiz","blocks":true,"label":"Quiz table","emoji":"🧠"},
+      {"id":"pool","model":"table","itemId":"dining_table","x":1,"y":4,"rotation":0,"menu":"pub_pool","blocks":true,"label":"Pool table","emoji":"🎱"},
+      {"id":"chicken","model":"kitchenMicrowave","itemId":"microwave","x":6,"y":6,"rotation":0,"menu":"pub_chicken","blocks":true,"label":"Chicken shop","emoji":"🍗"},
+      {"id":"stool","model":"chair","itemId":"plastic_chair","x":3,"y":0,"rotation":0,"menu":null,"blocks":true}
     ]
   },
   {
-    "id": "tube",
-    "name": "Tube station",
-    "district": "Zone 1",
-    "zone": 1,
-    "x": 0,
-    "z": 3,
-    "kind": "station",
-    "blurb": "Minor delays. A busker. Somebody apologising to a stranger they bumped.",
-    "width": 6,
-    "height": 5,
-    "model": "building-a",
+    "id": "tube", "name": "Oval Square station", "district": "Zone 1", "zone": 1, "x": 0, "z": 3, "emoji": "🚇",
+    "kind": "station", "blurb": "Minor delays. A busker. Somebody apologising to a stranger they bumped.",
+    "width": 7, "height": 6, "model": "building-a", "floor": "#b9b4a8", "wall": "#e8e2d4",
+    "flavour": ["'Please mind the gap between the train and the platform.'", "A man is running for a train that has already left.", "Two tourists are blocking the escalator. Nobody says anything.", "The board says 1 min. It has said 1 min for 6 minutes."],
     "fixtures": [
-      {"id":"busk","model":"speaker","itemId":"speaker","x":1,"y":1,"rotation":0,"action":"socialise","blocks":false,"label":"Listen to the busker"},
-      {"id":"bench","model":"chair","itemId":"plastic_chair","x":3,"y":2,"rotation":0,"action":"watch_tv","blocks":true,"label":"Wait on the platform"}
+      {"id":"platform","model":"loungeSofaLong","itemId":"sofa_long","x":1,"y":4,"rotation":0,"menu":"tube_platform","blocks":true,"label":"Platform","emoji":"🚇"},
+      {"id":"busker","model":"speaker","itemId":"speaker","x":5,"y":1,"rotation":0,"menu":"tube_busker","blocks":true,"label":"Busker","emoji":"🎸"},
+      {"id":"kiosk","model":"kitchenFridge","itemId":"fridge","x":1,"y":0,"rotation":0,"menu":"tube_kiosk","blocks":true,"label":"Kiosk","emoji":"🥪"}
     ]
   }
 ]

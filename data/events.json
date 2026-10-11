@@ -1,0 +1,78 @@
+[
+  {
+    "id":"clipboard","title":"Clipboard ambush!","emoji":"📋",
+    "text":"A cheerful person in a tabard steps into your path. 'Got two minutes for the whales?'",
+    "venues":["camden","shoreditch_coffee","tube","canary_wharf"],
+    "choices":[
+      {"label":"Sign up for £2","emoji":"💷","action":"event_clipboard_pay","success":{"text":"You now support whales monthly. You feel weirdly good.","moodlet":{"label":"Did a good deed","emoji":"🐋","value":6}}},
+      {"label":"Fake a phone call","emoji":"📱","check":{"skill":"comedy","difficulty":1},"success":{"text":"'Sorry, it's my nan.' Flawless.","moodlet":{"label":"Smooth escape","emoji":"😎","value":4}},"fail":{"text":"Your phone rings for real mid-fake call. Twenty minutes on whales.","moodlet":{"label":"Ambushed","emoji":"😩","value":-6}}},
+      {"label":"Power walk past","emoji":"🚶","check":{"skill":"fitness","difficulty":1},"success":{"text":"You're gone before they finish 'Hi there!'.","needs":{"energy":-3}},"fail":{"text":"They match your pace. Respect.","moodlet":{"label":"Ambushed","emoji":"😩","value":-6}}}
+    ]
+  },
+  {
+    "id":"pigeon","title":"Pigeon heist!","emoji":"🐦",
+    "text":"A one-footed pigeon eyes your chips. It has done this before.",
+    "venues":["camden","hyde_park","pub","brixton"],
+    "choices":[
+      {"label":"Buy more chips","emoji":"🍟","action":"event_pigeon_pay","success":{"text":"You and the pigeon both eat. Peace in our time."}},
+      {"label":"Stare it down","emoji":"👀","check":{"skill":"charisma","difficulty":1},"success":{"text":"The pigeon backs off. You are the alpha.","moodlet":{"label":"Beat a pigeon","emoji":"🏆","value":5}},"fail":{"text":"It takes a chip and maintains eye contact.","moodlet":{"label":"Robbed by a pigeon","emoji":"🐦","value":-5},"needs":{"hunger":-6}}},
+      {"label":"Leg it","emoji":"🏃","check":{"skill":"fitness","difficulty":0},"success":{"text":"Chips intact. Dignity mostly intact.","needs":{"energy":-3}},"fail":{"text":"You trip. The pigeon eats well tonight.","needs":{"hunger":-6}}}
+    ]
+  },
+  {
+    "id":"tourist","title":"Lost tourist","emoji":"🗺️",
+    "text":"Someone holding a paper map asks for 'the Big Ben' and is facing exactly the wrong way.",
+    "venues":["*"],
+    "choices":[
+      {"label":"Walk them there","emoji":"🤝","action":"event_tourist_help","success":{"text":"They take a selfie with you. You're in an album in another country now.","moodlet":{"label":"Local hero","emoji":"🦸","value":8}}},
+      {"label":"Explain the Tube","emoji":"🚇","check":{"skill":"charisma","difficulty":1},"success":{"text":"'Jubilee to Westminster.' They look at you like a wizard.","needs":{"social":10}},"fail":{"text":"You get confused halfway. Now you're both lost.","moodlet":{"label":"Awkward","emoji":"😬","value":-4}}},
+      {"label":"Point vaguely","emoji":"👉","success":{"text":"Somewhere over there, probably. Good luck."}}
+    ]
+  },
+  {
+    "id":"busker","title":"Busker duet","emoji":"🎸",
+    "text":"The busker hands you the mic mid-chorus and the crowd turns to look at you.",
+    "venues":["tube","camden"],
+    "choices":[
+      {"label":"Belt it out","emoji":"🎤","check":{"skill":"music","difficulty":1},"success":{"text":"The whole platform claps. Someone films it.","moodlet":{"label":"Platform star","emoji":"🌟","value":10},"needs":{"social":10}},"fail":{"text":"You forgot the words to Wonderwall. Everyone knows the words to Wonderwall.","moodlet":{"label":"Mortified","emoji":"🫠","value":-8}}},
+      {"label":"Tip £1 and walk on","emoji":"🪙","action":"event_busker_pay","success":{"text":"They nod. Professional courtesy."}}
+    ]
+  },
+  {
+    "id":"downpour","title":"Sudden downpour","emoji":"🌧️",
+    "text":"The sky opens. Nobody has an umbrella except the man selling them for £5.",
+    "venues":["*"],
+    "choices":[
+      {"label":"Buy a £5 brolly","emoji":"☂️","action":"event_brolly_pay","success":{"text":"It turns inside-out on the first gust but you're dryish."}},
+      {"label":"Shelter in a doorway","emoji":"🚪","check":{"skill":"hustle","difficulty":0},"success":{"text":"You find the one dry doorway in London.","moodlet":{"label":"Stayed dry","emoji":"😌","value":3}},"fail":{"text":"The doorway was a bus stop. The bus splashed you.","moodlet":{"label":"Got rained on","emoji":"🌧️","value":-10},"needs":{"hygiene":-10}}},
+      {"label":"Embrace it","emoji":"💃","success":{"text":"Soaked. Free. Very British.","moodlet":{"label":"Got rained on","emoji":"🌧️","value":-10},"needs":{"hygiene":-10,"fun":6}}}
+    ]
+  },
+  {
+    "id":"accent","title":"Someone hears your accent","emoji":"🗣️","heritage":true,
+    "text":"'Wait, are you {demonym}?' A stranger lights up. 'My family's from there too!'",
+    "venues":["*"],
+    "choices":[
+      {"label":"Reply: {greeting}","emoji":"😄","check":{"skill":"charisma","difficulty":0},"success":{"text":"Ten minutes later you've swapped numbers and they've recommended a place for {dish}.","moodlet":{"label":"Taste of home","emoji":"🏡","value":10},"needs":{"social":20}},"fail":{"text":"You both get emotional about {dish}. Worth it.","needs":{"social":12}}},
+      {"label":"Play it cool","emoji":"😎","success":{"text":"A small nod. Two people far from home.","needs":{"social":6}}}
+    ]
+  },
+  {
+    "id":"signal","title":"Signal failure","emoji":"🚦",
+    "text":"'Due to a signal failure at Baker Street…' The carriage sighs as one.",
+    "venues":["tube","canary_wharf","shoreditch_coffee"],
+    "choices":[
+      {"label":"Chat to the stranger next to you","emoji":"💬","check":{"skill":"charisma","difficulty":2},"success":{"text":"You break the unbreakable rule. They're lovely, actually.","needs":{"social":15},"moodlet":{"label":"Broke the silence","emoji":"🤯","value":6}},"fail":{"text":"They put their headphones in. Fair.","moodlet":{"label":"Awkward","emoji":"😬","value":-4}}},
+      {"label":"Tut loudly","emoji":"😤","success":{"text":"Six people tut back. Solidarity.","moodlet":{"label":"Commuter solidarity","emoji":"🫡","value":2}}}
+    ]
+  },
+  {
+    "id":"cash_only","title":"Card machine's down","emoji":"💳",
+    "text":"'Cash only, sorry love.' You haven't held a coin since 2019.",
+    "venues":["camden","brixton","pub"],
+    "choices":[
+      {"label":"Charm your way to an IOU","emoji":"😇","check":{"skill":"charisma","difficulty":2},"success":{"text":"'Go on then, pay me next time.' Trust restored in humanity.","moodlet":{"label":"Trusted","emoji":"🤝","value":6}},"fail":{"text":"They politely point at the cashpoint. It charges £2.","moodlet":{"label":"Fee'd","emoji":"🙄","value":-4}}},
+      {"label":"Walk away hungry","emoji":"🚶","success":{"text":"Your stomach files a complaint.","needs":{"hunger":-5}}}
+    ]
+  }
+]

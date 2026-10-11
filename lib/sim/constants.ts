@@ -1,4 +1,4 @@
-import type { ActionType, NeedKey } from "./types";
+import type { NeedKey } from "./types";
 
 export const NEED_DECAY_PER_HOUR: Record<NeedKey, number> = {
   hunger: 4,
@@ -28,11 +28,6 @@ export const BILL_HEATING_OFF_PENCE = 400;
 export const BILL_COUNCIL_PENCE = 800;
 export const BILL_PHONE_PENCE = 500;
 
-export const MEAL_DEAL_PENCE = 385;
-export const COFFEE_PENCE = 280;
-export const PINT_PENCE = 550;
-export const ROAST_PENCE = 900;
-
 export const BUS_PENCE = 175;
 export const TUBE_MIN_PENCE = 280;
 export const TUBE_PER_ZONE_PENCE = 160;
@@ -45,19 +40,14 @@ export const SHARD_SIZE = 50;
 export const GIFT_MIN_PENCE = 100;
 export const GIFT_MAX_PENCE = 2_000;
 
-export const ACTION_DEFS: Record<
-  ActionType,
-  { need: NeedKey; perMinute: number; minutes: number; label: string }
-> = {
-  sleep: { need: "energy", perMinute: 1.2, minutes: 60, label: "Sleeping" },
-  eat: { need: "hunger", perMinute: 2.4, minutes: 20, label: "Eating" },
-  shower: { need: "hygiene", perMinute: 3.2, minutes: 15, label: "Showering" },
-  toilet: { need: "bladder", perMinute: 16, minutes: 5, label: "Using the loo" },
-  watch_tv: { need: "fun", perMinute: 1.1, minutes: 30, label: "Watching telly" },
-  coffee: { need: "energy", perMinute: 2, minutes: 10, label: "Coffee" },
-  socialise: { need: "social", perMinute: 1.4, minutes: 20, label: "Having a chat" },
-  pass_out: { need: "energy", perMinute: 0.6, minutes: 40, label: "Passed out" },
-};
+export const SKILL_MAX = 10;
+export const SHIFT_XP = 0.25;
+/** Each career level adds this share to base pay. */
+export const LEVEL_PAY_STEP = 0.15;
+export const SHIFTS_PER_LEVEL = 3;
+export const ARRIVAL_EVENT_CHANCE = 0.4;
+export const MISSING_HOME_DAYS = 3;
+export const HOME_SPEED_MAX = 3;
 
 export const NEED_LABELS: Record<NeedKey, string> = {
   hunger: "Hunger",
@@ -108,11 +98,43 @@ export const SKILL_KEYS = [
   "photography",
 ] as const;
 
-export const SKINS = ["#f3d2b5", "#e0ac7a", "#c68642", "#8d5524", "#4a2912"];
-export const HAIRS = ["#1c1c1c", "#5c3a24", "#c4a35a", "#8b2e3a", "#d5d5d5"];
-export const TOPS = ["#1f4b99", "#b23a48", "#2f6b4f", "#f4f1ea", "#1a1a1a", "#e8a317"];
-export const BOTTOMS = ["#243044", "#3e3a34", "#1f4b99", "#6b2d5b"];
-export const SHOES = ["#1a1a1a", "#f4f1ea", "#6b3a2a", "#1f4b99"];
+export const SKINS = [
+  "#f6dcc8",
+  "#f3d2b5",
+  "#e8c098",
+  "#e0ac7a",
+  "#d9a575",
+  "#c68642",
+  "#a86b45",
+  "#8d5524",
+  "#6b3e26",
+  "#5a3420",
+  "#4a2912",
+  "#3a2010",
+];
+export const HAIRS = ["#111111", "#2b1a10", "#5c3a24", "#8b5a2b", "#c4a35a", "#c45a2a", "#8b2e3a", "#d5d5d5", "#6b8fd1", "#d16bb0"];
+export const TOPS = ["#1f4b99", "#b23a48", "#2f6b4f", "#f4f1ea", "#1a1a1a", "#e8a317", "#6b2d5b", "#c5d4e8", "#3e3a34", "#d9673b"];
+export const BOTTOMS = ["#243044", "#3e3a34", "#1f4b99", "#6b2d5b", "#1a1a1a", "#c4a574"];
+export const SHOES = ["#1a1a1a", "#f4f1ea", "#6b3a2a", "#1f4b99", "#b23a48"];
+export const HEADWEAR_COLOURS = ["#1a1a1a", "#f4f1ea", "#2f6b4f", "#6b2d5b", "#e8a317", "#1f4b99", "#b23a48", "#c4a574"];
+
+export const HAIR_STYLES = [
+  "short",
+  "fade",
+  "buzz",
+  "bald",
+  "afro",
+  "curly",
+  "long",
+  "ponytail",
+  "bun",
+  "braids",
+  "locs",
+  "cornrows",
+] as const;
+export const HEADWEAR = ["none", "hijab", "turban", "headwrap", "cap", "beanie"] as const;
+export const BUILDS = ["slim", "regular", "broad"] as const;
+export const TOP_STYLES = ["tee", "hoodie", "jacket", "blazer", "dress", "kaftan"] as const;
 
 export const CATALOGUE_CATEGORIES = [
   "Sleep",
