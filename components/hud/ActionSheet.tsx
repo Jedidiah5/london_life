@@ -3,19 +3,13 @@
 import { useState } from "react";
 import { actionsById, nationalitiesById, roomLayout, targetMenu } from "@/lib/content";
 import { performAction } from "@/lib/net/rpc";
-import { actionBlocker, effectChips } from "@/lib/sim/actions";
+import { actionBlocker, effectChips, heritageLabel } from "@/lib/sim/actions";
 import { NEED_LABELS } from "@/lib/sim/constants";
 import { formatPence } from "@/lib/sim/money";
-import type { ActionDef, NeedKey, Nationality } from "@/lib/sim/types";
+import type { NeedKey } from "@/lib/sim/types";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
 import { NEED_EMOJI } from "./NeedsPanel";
-
-export function heritageLabel(def: ActionDef, nation: Nationality | undefined): { label: string; emoji: string } {
-  if (!def.heritage || !nation) return { label: def.label, emoji: def.emoji };
-  if (def.id === "taste_of_home") return { label: `Cook ${nation.dish}`, emoji: nation.dishEmoji };
-  return { label: `${nation.demonym} stall: ${nation.dish}`, emoji: nation.dishEmoji };
-}
 
 export function ActionSheet() {
   const target = useUi((state) => state.sheet);

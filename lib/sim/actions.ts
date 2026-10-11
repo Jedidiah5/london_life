@@ -1,7 +1,13 @@
 import { OVERDRAFT_LIMIT_PENCE } from "./constants";
 import { canAfford } from "./money";
 import { clampNeed } from "./needs";
-import { NEED_KEYS, type ActionDef, type Needs, type SimAction } from "./types";
+import { NEED_KEYS, type ActionDef, type Nationality, type Needs, type SimAction } from "./types";
+
+export function heritageLabel(def: ActionDef, nation: Nationality | undefined): { label: string; emoji: string } {
+  if (!def.heritage || !nation) return { label: def.label, emoji: def.emoji };
+  if (def.id === "taste_of_home") return { label: `Cook ${nation.dish}`, emoji: nation.dishEmoji };
+  return { label: `${nation.demonym} stall: ${nation.dish}`, emoji: nation.dishEmoji };
+}
 
 export function makeAction(def: ActionDef, quality = 1, id = "action", target: string | null = null): SimAction {
   const minutes = Math.max(1, def.minutes);

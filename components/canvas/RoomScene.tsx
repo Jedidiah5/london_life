@@ -150,7 +150,7 @@ export function RoomScene() {
               onClick={menu ? () => tap(fixture.id) : undefined}
             />
             {menu && (!atHome || highlight === fixture.id) ? (
-              <Html position={[fx, 1.15, fz]} center zIndexRange={[8, 0]}>
+              <Html position={[fx, 1.7, fz]} center zIndexRange={[8, 0]}>
                 <button
                   type="button"
                   onClick={() => tap(fixture.id)}
@@ -235,7 +235,7 @@ export function RoomScene() {
               <boxGeometry args={[0.45, 0.8, 0.45]} />
               <meshBasicMaterial transparent opacity={0} depthWrite={false} />
             </mesh>
-            <Html position={[x, 1.05, z]} center zIndexRange={[8, 0]}>
+            <Html position={[x, 1.4, z]} center zIndexRange={[8, 0]}>
               <button
                 type="button"
                 onClick={() => useUi.getState().openPerson({ kind: "local", id: member.local.id })}
@@ -267,7 +267,7 @@ export function RoomScene() {
               roomHeight={layout.height}
               walkingEnabled={false}
             />
-            <Html position={[x, 1.05, z]} center zIndexRange={[8, 0]}>
+            <Html position={[x, 1.4, z]} center zIndexRange={[8, 0]}>
               <div className="text-center">
                 <button
                   type="button"
@@ -312,7 +312,7 @@ function SelfTag({
   const done = action ? 1 - action.remainingMinutes / action.totalMinutes : 0;
   if (moving) return null;
   return (
-    <Html position={[wx, 1.1, wz]} center zIndexRange={[8, 0]}>
+    <Html position={[wx, 1.45, wz]} center zIndexRange={[8, 0]}>
       <div className="pointer-events-none flex flex-col items-center gap-1">
         {action ? (
           <div className="flex items-center gap-1.5 rounded-full bg-white px-2 py-1 text-[11px] font-semibold text-[#1b2838] shadow-md">
@@ -356,6 +356,59 @@ function Walls({ width, height, colour }: { width: number; height: number; colou
         <boxGeometry args={[Math.min(1.6, width * 0.3), 0.6, 0.02]} />
         <meshStandardMaterial color="#b8d4ea" emissive="#6f8fa8" emissiveIntensity={0.25} />
       </mesh>
+    </group>
+  );
+}
+
+function Street({ width, height }: { width: number; height: number }) {
+  const halfW = width / 2;
+  const halfH = height / 2;
+  const roadZ = halfH + 2.4;
+  const lamps: [number, number][] = [
+    [-halfW - 0.8, -halfH - 0.6],
+    [-halfW - 2, roadZ + 1.6],
+    [halfW + 3, roadZ + 1.6],
+  ];
+  return (
+    <group>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} raycast={() => null}>
+        <planeGeometry args={[width + 30, height + 30]} />
+        <meshStandardMaterial color="#a9a69f" />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.015, roadZ]} raycast={() => null}>
+        <planeGeometry args={[width + 30, 2.6]} />
+        <meshStandardMaterial color="#4c5056" />
+      </mesh>
+      {Array.from({ length: 12 }, (_, index) => (
+        <mesh key={index} rotation={[-Math.PI / 2, 0, 0]} position={[-15 + index * 2.6, -0.01, roadZ]} raycast={() => null}>
+          <planeGeometry args={[1.1, 0.1]} />
+          <meshStandardMaterial color="#f2efe6" />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.06, roadZ - 1.35]} raycast={() => null}>
+        <boxGeometry args={[width + 30, 0.12, 0.12]} />
+        <meshStandardMaterial color="#d6d2c8" />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-halfW - 3.2, -0.012, -1]} raycast={() => null}>
+        <planeGeometry args={[4, height + 6]} />
+        <meshStandardMaterial color="#6f8f55" />
+      </mesh>
+      <mesh position={[-halfW - 1.4, 0.3, -1]} raycast={() => null}>
+        <boxGeometry args={[0.5, 0.6, height + 4]} />
+        <meshStandardMaterial color="#3f6b38" />
+      </mesh>
+      {lamps.map(([x, z]) => (
+        <group key={`${x}-${z}`} position={[x, 0, z]}>
+          <mesh position={[0, 1.1, 0]} raycast={() => null}>
+            <cylinderGeometry args={[0.04, 0.05, 2.2, 8]} />
+            <meshStandardMaterial color="#2a2f36" />
+          </mesh>
+          <mesh position={[0, 2.25, 0]} raycast={() => null}>
+            <sphereGeometry args={[0.12, 10, 8]} />
+            <meshStandardMaterial color="#ffe2a8" emissive="#ffc35a" emissiveIntensity={0.8} />
+          </mesh>
+        </group>
+      ))}
     </group>
   );
 }

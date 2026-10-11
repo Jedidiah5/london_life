@@ -105,8 +105,8 @@ test("placing an item cannot sit on the shared fridge", () => {
   const { ok, err } = fresh();
   const bought = ok("buy_item", { p_item: "bookcase", p_colour: "" });
   const item = bought.item as Record<string, unknown>;
-  assert.equal(err("place_item", { p_inventory: item.id, p_x: 4, p_y: 4, p_rotation: 0 }), "The shared fridge is already there");
-  const placed = ok("place_item", { p_inventory: item.id, p_x: 2, p_y: 0, p_rotation: 0 });
+  assert.equal(err("place_item", { p_inventory: item.id, p_x: 0, p_y: 4, p_rotation: 0 }), "The shared fridge is already there");
+  const placed = ok("place_item", { p_inventory: item.id, p_x: 2, p_y: 2, p_rotation: 0 });
   assert.equal((placed.stats as Record<string, number>).place, 1);
 });
 

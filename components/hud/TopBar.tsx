@@ -61,7 +61,7 @@ export function TopBar() {
             <button
               key={value}
               type="button"
-              className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${speed === value ? "bg-[#1b2838] text-white" : ""}`}
+              className={`rounded-full px-2 py-0.5 text-[13px] font-bold ${speed === value ? "bg-[#1b2838] text-white" : ""}`}
               onClick={() => useGame.getState().setSpeed(value)}
             >
               {value === 1 ? "▶" : value === 2 ? "▶▶" : "▶▶▶"}

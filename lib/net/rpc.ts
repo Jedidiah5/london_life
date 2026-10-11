@@ -1,4 +1,5 @@
-import { actionsById } from "@/lib/content";
+import { actionsById, nationalitiesById } from "@/lib/content";
+import { heritageLabel } from "@/lib/sim/actions";
 import { formatPence } from "@/lib/sim/money";
 import type { InventoryItem, TravelMode } from "@/lib/sim/types";
 import type { CreateInput } from "@/lib/store/useGame";
@@ -92,7 +93,8 @@ export async function performAction(actionId: string, target: string | null): Pr
     });
   }
   if (actionId === "call_home") useGame.getState().setLastCall(num(result.data.last_call_minute));
-  return useGame.getState().queueAction(def, target);
+  const shown = heritageLabel(def, nationalitiesById[useGame.getState().appearance.origin]);
+  return useGame.getState().queueAction({ ...def, ...shown }, target);
 }
 
 export async function claimGoal(goalId: string): Promise<number | string> {

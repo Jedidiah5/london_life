@@ -227,7 +227,7 @@ export function createSandbox(storage: SandboxStorage, now: () => number = Date.
         };
         db.inventory = [
           { id: nextId(db, "inv"), item_id: "mattress", placed: true, x: 0, y: 0, rotation: 0, colour: "#d9c7a6" },
-          { id: nextId(db, "inv"), item_id: "plastic_chair", placed: true, x: 3, y: 3, rotation: 0, colour: "#d7d7d4" },
+          { id: nextId(db, "inv"), item_id: "plastic_chair", placed: true, x: 2, y: 0, rotation: 0, colour: "#d7d7d4" },
         ];
         log(db, STARTING_PENCE, "wage", "arrival");
       }

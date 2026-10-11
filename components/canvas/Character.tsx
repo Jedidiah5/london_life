@@ -82,7 +82,9 @@ export function Character({
 
   return (
     <group ref={group}>
-      <Avatar look={look} anim={moving ? "walk" : anim} seed={seed} />
+      <group scale={1.45}>
+        <Avatar look={look} anim={moving ? "walk" : anim} seed={seed} />
+      </group>
     </group>
   );
 }

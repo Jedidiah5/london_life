@@ -3,12 +3,24 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import { OrthographicCamera, Vector3 } from "three";
+import { roomLayout } from "@/lib/content";
+import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
+
+const DEFAULT_ZOOM = 52;
+const ORIGIN = new Vector3(0, 0, 0);
 
 export function IsoCamera() {
   const camera = useThree((state) => state.camera);
   const gl = useThree((state) => state.gl);
+  const size = useThree((state) => state.size);
+  const location = useGame((state) => state.location);
+  const homeId = useGame((state) => state.homeId);
+  const visit = useUi((state) => state.visit);
   const drag = useRef<{ x: number; yaw: number } | null>(null);
+  const layout = roomLayout(location, homeId, visit?.homeId ?? null);
+  const span = (layout.width + layout.height) * 0.707;
+  const fit = Math.min((size.width * 0.82) / span, (size.height * 0.5) / (span * 0.5 + 1.6));
 
   useEffect(() => {
     const element = gl.domElement;
@@ -47,11 +59,10 @@ export function IsoCamera() {
     const { yaw, zoom, nav } = useUi.getState();
     const angle = (yaw * Math.PI) / 2 + Math.PI / 4;
     const distance = nav === "map" ? 28 : 16;
-    const target = new Vector3(0, 0, 0);
     camera.position.set(Math.cos(angle) * distance, distance * 0.82, Math.sin(angle) * distance);
-    camera.lookAt(target);
+    camera.lookAt(ORIGIN);
     if (camera instanceof OrthographicCamera) {
-      camera.zoom = nav === "map" ? 18 : zoom;
+      camera.zoom = nav === "map" ? Math.min(size.width / 34, size.height / 22) : fit * (zoom / DEFAULT_ZOOM);
       camera.updateProjectionMatrix();
     }
   });

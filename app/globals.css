@@ -19,7 +19,9 @@ body {
   font-family: var(--font-jakarta), sans-serif;
 }
 
-button,
-input {
-  font: inherit;
+@layer base {
+  button,
+  input {
+    font: inherit;
+  }
 }

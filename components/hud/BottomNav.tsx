@@ -27,7 +27,7 @@ export function BottomNav() {
           <button
             key={item.id}
             type="button"
-            className={`relative flex flex-col items-center rounded-full py-1 text-[10px] font-bold ${
+            className={`relative flex flex-col items-center rounded-full py-1.5 text-[12px] font-bold ${
               active ? "bg-[#1b2838] text-white" : ""
             }`}
             onClick={() => {

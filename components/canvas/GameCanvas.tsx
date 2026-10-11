@@ -23,7 +23,7 @@ export default function GameCanvas() {
       gl={{ antialias: true, alpha: false }}
       onPointerMissed={() => undefined}
     >
-      <color attach="background" args={[map ? "#8ea4b8" : "#9aafc2"]} />
+      <color attach="background" args={[map ? "#8ea4b8" : "#7d8f80"]} />
       <SceneLights />
       <IsoCamera />
       <Suspense fallback={null}>
