@@ -20,6 +20,7 @@ export function VenuePanel() {
   const chat = usePresence((state) => state.chat);
   const sheet = useUi((state) => state.sheet);
   const person = useUi((state) => state.person);
+  const nav = useUi((state) => state.nav);
   const [text, setText] = useState("");
   const [line, setLine] = useState(0);
   const [open, setOpen] = useState(true);
@@ -36,7 +37,7 @@ export function VenuePanel() {
     return () => window.clearInterval(id);
   }, []);
 
-  if (!venue || location === "home" || sheet || person) return null;
+  if (!venue || location === "home" || sheet || person || nav !== "home") return null;
   const nation = nationalitiesById[origin];
   const spots = venue.fixtures.filter((fixture) => fixture.menu);
   const people = crowd.length + here.length + 1;

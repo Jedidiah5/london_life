@@ -58,7 +58,7 @@ export function RoomScene() {
   const layout = roomLayout(location, homeId, visit?.homeId ?? null);
   const venue = visit ? undefined : venuesById[location];
   const atHome = location === "home" || Boolean(visit);
-  const pieces = visit ? visit.items : inventory.filter((item) => item.placed);
+  const pieces = visit ? visit.items : atHome ? inventory.filter((item) => item.placed) : [];
   const look = visit?.appearance ?? appearance;
   const floor = atHome ? "#c4a574" : (venue?.floor ?? "#c4a574");
   const wall = atHome ? "#efe7da" : venue?.wall;
@@ -211,7 +211,6 @@ export function RoomScene() {
       />
       {crowd.map((member, index) => {
         const [x, , z] = tileWorld(member.tile.x, member.tile.y, layout.width, layout.height);
-        const nation = nationalitiesById[member.local.origin];
         return (
           <group
             key={member.local.id}

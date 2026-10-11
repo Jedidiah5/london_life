@@ -2,7 +2,6 @@
 
 import { Flag } from "@/components/Flag";
 import { useState } from "react";
-import { nationalitiesById } from "@/lib/content";
 import { NEED_LABELS } from "@/lib/sim/constants";
 import { NEED_KEYS, type NeedKey } from "@/lib/sim/types";
 import { useGame } from "@/lib/store/useGame";

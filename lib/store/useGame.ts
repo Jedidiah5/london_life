@@ -136,6 +136,10 @@ function nextActionId(): string {
 
 const QUEUE_LIMIT = 3;
 
+function homeItems(state: { location: string; inventory: InventoryItem[] }): InventoryItem[] {
+  return state.location === "home" ? state.inventory : [];
+}
+
 function targetTiles(id: string, location: string, homeId: string, inventory: InventoryItem[]): Tile[] | null {
   const layout = roomLayout(location, homeId, null);
   const fixture = layout.fixtures.find((entry) => entry.id === id);
@@ -270,7 +274,7 @@ export const useGame = create<GameState>()(
         if (state.action || state.shift) return "You're busy";
         const layout = roomLayout(state.location, state.homeId, null);
         if (!tileInside(tile, layout.width, layout.height)) return null;
-        const blocked = blockingTiles(layout, state.inventory);
+        const blocked = blockingTiles(layout, homeItems(state));
         if (blocked.has(`${tile.x},${tile.y}`)) return null;
         const path = findPath(state.tile, tile, blocked, layout.width, layout.height);
         if (!path) return "Can't get there";
@@ -290,7 +294,7 @@ export const useGame = create<GameState>()(
         if (blocked) return blocked;
         const state = get();
         const quality = target
-          ? (targetMenu(target, roomLayout(state.location, state.homeId, null), state.inventory)?.quality ?? 1)
+          ? (targetMenu(target, roomLayout(state.location, state.homeId, null), homeItems(state))?.quality ?? 1)
           : 1;
         const next = makeAction(def, quality, nextActionId(), target);
         const busy = Boolean(state.action || state.pending || state.queue.length > 0 || state.path.length > 0);
@@ -299,13 +303,13 @@ export const useGame = create<GameState>()(
           else set({ queue: [...state.queue, next] });
           return null;
         }
-        const tiles = targetTiles(target, state.location, state.homeId, state.inventory);
+        const tiles = targetTiles(target, state.location, state.homeId, homeItems(state));
         if (!tiles) {
           set({ action: next });
           return null;
         }
         const layout = roomLayout(state.location, state.homeId, null);
-        const blockedTiles = blockingTiles(layout, state.inventory);
+        const blockedTiles = blockingTiles(layout, homeItems(state));
         const stand = nearestStand(tiles, state.tile, blockedTiles, layout.width, layout.height);
         if (!stand || (stand.x === state.tile.x && stand.y === state.tile.y)) {
           set({ action: next, path: [] });

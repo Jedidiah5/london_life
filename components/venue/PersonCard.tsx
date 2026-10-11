@@ -53,7 +53,8 @@ export function PersonCard() {
           useGame.getState().addMoodlet({ id: "same_roots", label: "Met someone from home", emoji: "🫂", value: 8 });
         }
       } else {
-        setSaid(`${nation?.greeting ?? "Hello!"} ${local.lines[0] ?? ""}`);
+        const hello = nation?.greeting ?? "Hello";
+        setSaid(`${/[!?.]$/.test(hello) ? hello : `${hello}!`} ${local.lines[0] ?? ""}`);
         if (first) useGame.getState().bumpNeeds({ social: 10 });
       }
     };

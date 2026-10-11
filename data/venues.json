@@ -24,7 +24,7 @@
     "width": 7, "height": 7, "model": "building-d", "floor": "#a07c5b", "wall": "#3d4a52",
     "flavour": ["Someone is pitching 'Uber for houseplants' very loudly.", "The barista has a moustache older than the café.", "Wi-Fi password is on a chalkboard: 'disrupt2026'.", "A man in a gilet takes a Zoom call standing up."],
     "fixtures": [
-      {"id":"counter","model":"kitchenCoffeeMachine","itemId":"coffee_machine","x":1,"y":0,"rotation":0,"menu":"coffee_counter","blocks":true,"label":"Counter","emoji":"☕"},
+      {"id":"counter","model":"kitchenSink","itemId":"coffee_machine","x":1,"y":0,"rotation":0,"menu":"coffee_counter","blocks":true,"label":"Counter","emoji":"☕"},
       {"id":"laptops","model":"desk","itemId":"desk","x":4,"y":2,"rotation":0,"menu":"coffee_laptops","blocks":true,"label":"Laptop tables","emoji":"💻"},
       {"id":"meetup","model":"loungeSofaLong","itemId":"sofa_long","x":1,"y":5,"rotation":0,"menu":"coffee_meetup","blocks":true,"label":"Meetup corner","emoji":"🎤"},
       {"id":"plant","model":"plantSmall1","itemId":"small_plant","x":6,"y":6,"rotation":0,"menu":null,"blocks":false},

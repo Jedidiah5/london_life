@@ -1,7 +1,7 @@
 "use client";
 
 import { useGLTF } from "@react-three/drei";
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import { Box3, Color, Mesh, MeshStandardMaterial, Vector3, type Object3D } from "three";
 
 export function fitObject(source: Object3D, targetWidth: number, tint?: string, maxHeight = Infinity): Object3D {
@@ -31,17 +31,22 @@ export function fitObject(source: Object3D, targetWidth: number, tint?: string, 
   return clone;
 }
 
-export function FittedModel({
-  url,
-  targetWidth,
-  tint,
-  maxHeight,
-}: {
+type FittedProps = {
   url: string;
   targetWidth: number;
   tint?: string;
   maxHeight?: number;
-}) {
+};
+
+export function FittedModel(props: FittedProps) {
+  return (
+    <Suspense fallback={null}>
+      <LoadedModel {...props} />
+    </Suspense>
+  );
+}
+
+function LoadedModel({ url, targetWidth, tint, maxHeight }: FittedProps) {
   const gltf = useGLTF(url);
   const object = useMemo(
     () => fitObject(gltf.scene, targetWidth, tint, maxHeight),

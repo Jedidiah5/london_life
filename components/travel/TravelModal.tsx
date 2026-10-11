@@ -2,7 +2,7 @@
 
 import { Flag } from "@/components/Flag";
 import { useMemo, useState } from "react";
-import { menusById, nationalitiesById, roomLayout, venuesById, zoneOf } from "@/lib/content";
+import { menusById, roomLayout, venuesById, zoneOf } from "@/lib/content";
 import { crowdFor } from "@/lib/crowd";
 import { travelTo } from "@/lib/net/rpc";
 import { formatPence } from "@/lib/sim/money";
