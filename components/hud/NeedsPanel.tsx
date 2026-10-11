@@ -1,5 +1,6 @@
 "use client";
 
+import { Flag } from "@/components/Flag";
 import { useState } from "react";
 import { nationalitiesById } from "@/lib/content";
 import { NEED_LABELS } from "@/lib/sim/constants";
@@ -29,7 +30,6 @@ export function NeedsPanel() {
   const queue = useGame((state) => state.queue);
   const pending = useGame((state) => state.pending);
   const [open, setOpen] = useState(false);
-  const flag = nationalitiesById[appearance.origin]?.flag ?? "";
   const doing = action ?? pending;
 
   return (
@@ -41,7 +41,9 @@ export function NeedsPanel() {
         style={{ background: `radial-gradient(circle at 50% 38%, ${appearance.skin} 0 38%, ${appearance.top} 39%)` }}
         aria-label="Needs"
       >
-        <span className="absolute -bottom-1 -right-1 rounded-full bg-white px-1 text-sm shadow">{flag}</span>
+        <span className="absolute -bottom-1 -right-1 flex rounded-full bg-white p-1 shadow">
+          <Flag origin={appearance.origin} />
+        </span>
       </button>
       <div className="rounded-2xl bg-white/95 p-1.5 text-[#1b2838] shadow-lg">
         {doing ? (

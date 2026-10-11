@@ -10,6 +10,7 @@ import { useUi } from "@/lib/store/useUi";
 import { SimLoop } from "./SimLoop";
 
 const GameCanvas = dynamic(() => import("@/components/canvas/GameCanvas"), { ssr: false });
+const RideScene = dynamic(() => import("@/components/travel/RideScene").then((mod) => mod.RideScene), { ssr: false });
 
 export function PlayClient() {
   const [ready, setReady] = useState(false);
@@ -46,6 +47,7 @@ export function PlayClient() {
     <div className="relative h-dvh w-full overflow-hidden bg-[#8ea4b8]">
       <GameCanvas />
       <Hud />
+      <RideScene />
       <SimLoop />
     </div>
   );

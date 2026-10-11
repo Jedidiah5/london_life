@@ -48,6 +48,7 @@ export const SHIFTS_PER_LEVEL = 3;
 export const ARRIVAL_EVENT_CHANCE = 0.4;
 export const MISSING_HOME_DAYS = 3;
 export const HOME_SPEED_MAX = 3;
+export const BIG_PURCHASE_PENCE = 10_000;
 
 export const NEED_LABELS: Record<NeedKey, string> = {
   hunger: "Hunger",

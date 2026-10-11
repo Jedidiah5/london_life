@@ -14,6 +14,7 @@ import type {
   Anim,
   CatalogueItem,
   EventDef,
+  EventOutcome,
   Fixture,
   GoalDef,
   HomeDef,
@@ -140,14 +141,18 @@ export const venuesById: Record<string, VenueDef> = Object.fromEntries(
 
 export const goals: GoalDef[] = goalsJson;
 
+type RawOutcome = { text: string; moodlet?: EventOutcome["moodlet"]; needs?: Record<string, number> };
+
+function outcomeOf(raw: RawOutcome): EventOutcome {
+  return { text: raw.text, moodlet: raw.moodlet, needs: raw.needs ? asEffects(raw.needs) : undefined };
+}
+
 export const events: EventDef[] = eventsJson.map((event) => ({
   ...event,
   choices: event.choices.map((choice) => ({
     ...choice,
-    success: { ...choice.success, needs: choice.success.needs ? asEffects(choice.success.needs) : undefined },
-    fail: choice.fail
-      ? { ...choice.fail, needs: choice.fail.needs ? asEffects(choice.fail.needs) : undefined }
-      : undefined,
+    success: outcomeOf(choice.success),
+    fail: choice.fail ? outcomeOf(choice.fail) : undefined,
   })),
 }));
 

@@ -3,13 +3,14 @@
 import { useEffect, useRef } from "react";
 import { checkpointNeeds } from "@/lib/net/rpc";
 import { joinWorld, leaveWorld, rememberTrack } from "@/lib/net/realtime";
+import { supabaseConfigured } from "@/lib/net/supabase";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
 
 export function SimLoop() {
   const simId = useGame((state) => state.simId);
   const location = useGame((state) => state.location);
-  const cloud = useGame((state) => state.cloud);
+  const created = useGame((state) => state.created);
   const name = useGame((state) => state.name);
   const appearance = useGame((state) => state.appearance);
   const last = useRef(0);
@@ -27,25 +28,25 @@ export function SimLoop() {
   }, []);
 
   useEffect(() => {
-    if (!cloud) return;
+    if (!created) return;
     const id = window.setInterval(() => {
       void checkpointNeeds();
     }, 30_000);
     void checkpointNeeds();
     return () => window.clearInterval(id);
-  }, [cloud]);
+  }, [created]);
 
   useEffect(() => {
     const tile = useGame.getState().tile;
     const track = { simId: simId ?? "local", name, appearance, x: tile.x, y: tile.y };
     rememberTrack(track);
-    if (!cloud || !simId) return;
+    if (!supabaseConfigured() || !simId) return;
     const channelLocation = location === "home" ? `home-${simId}` : location;
     void joinWorld(track, channelLocation);
     return () => {
       void leaveWorld();
     };
-  }, [cloud, simId, location, name, appearance]);
+  }, [simId, location, name, appearance]);
 
   return null;
 }

@@ -32,10 +32,7 @@ function applyCommon(row: Row) {
 }
 
 export async function createCharacter(input: CreateInput): Promise<string | null> {
-  if (supabaseConfigured()) {
-    const sessionError = await ensureSession();
-    if (sessionError) return sessionError;
-  }
+  await ensureSession();
   const created = await call("create_sim", {
     p_username: input.username,
     p_name: input.name,
@@ -51,10 +48,7 @@ export async function createCharacter(input: CreateInput): Promise<string | null
 }
 
 export async function refreshState(): Promise<string | null> {
-  if (supabaseConfigured()) {
-    const sessionError = await ensureSession();
-    if (sessionError) return sessionError;
-  }
+  await ensureSession();
   const result = await call("get_state");
   if (result.error) return result.error;
   const snapshot = parseState(result.data);

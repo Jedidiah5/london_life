@@ -1,5 +1,6 @@
 "use client";
 
+import { Flag } from "@/components/Flag";
 import { useState } from "react";
 import { locals, nationalitiesById } from "@/lib/content";
 import { addFriend, greet, sendGift } from "@/lib/net/rpc";
@@ -62,7 +63,7 @@ export function PersonCard() {
           <Face look={local.look} />
           <div className="min-w-0 flex-1">
             <h2 className="text-base font-bold">
-              {nation?.flag} {local.name}
+              <Flag origin={local.origin} size="md" /> {local.name}
             </h2>
             <p className="text-[12px] text-[#5c6b7a]">
               Londoner · roots in {nation?.label ?? "somewhere"}
@@ -100,7 +101,7 @@ export function PersonCard() {
               useGame.getState().bumpNeeds({ social: 4 });
             }}
           >
-            {mine?.flag} Say “{mine?.greeting}”
+            {mine ? <Flag origin={mine.id} /> : null} Say “{mine?.greeting}”
           </button>
         </div>
       </section>
@@ -117,7 +118,7 @@ export function PersonCard() {
         <Face look={player.appearance} />
         <div className="min-w-0 flex-1">
           <h2 className="text-base font-bold">
-            {nation?.flag} {player.name}
+            {nation ? <Flag origin={nation.id} size="md" /> : null} {player.name}
           </h2>
           <p className="flex items-center gap-1 text-[12px] text-[#22924f]">
             <span className="h-1.5 w-1.5 rounded-full bg-[#3ccf6e]" /> Real player · here now

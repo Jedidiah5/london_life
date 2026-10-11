@@ -1,5 +1,6 @@
 "use client";
 
+import { Flag } from "@/components/Flag";
 import { nationalitiesById } from "@/lib/content";
 import { clockParts } from "@/lib/sim/clock";
 import { useGame } from "@/lib/store/useGame";
@@ -87,7 +88,7 @@ export function PhoneOverlay() {
                     onClick={() => useUi.getState().openPhone(entry.id)}
                   >
                     <span className={`grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br text-2xl shadow-lg ${entry.colour}`}>
-                      {entry.id === "callhome" ? (nationalitiesById[origin]?.flag ?? entry.emoji) : entry.emoji}
+                      {entry.id === "callhome" && nationalitiesById[origin] ? <Flag origin={origin} size="md" /> : entry.emoji}
                     </span>
                     <span className="text-[10px] font-semibold drop-shadow">{entry.label}</span>
                     {entry.id === "callhome" && missing ? (

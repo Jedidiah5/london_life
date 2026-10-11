@@ -24,6 +24,7 @@ test("goals run in order and need their stat", () => {
 
 const nigeria: Nationality = {
   id: "nigeria",
+  iso: "ng",
   label: "Nigeria",
   demonym: "Nigerian",
   flag: "🇳🇬",

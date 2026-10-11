@@ -1,5 +1,6 @@
 "use client";
 
+import { Flag } from "@/components/Flag";
 import { useMemo, useState } from "react";
 import { menusById, nationalitiesById, roomLayout, venuesById, zoneOf } from "@/lib/content";
 import { crowdFor } from "@/lib/crowd";
@@ -69,7 +70,7 @@ export function TravelModal() {
           <div className="mt-1 flex gap-1 overflow-x-auto">
             {crowd.map((member) => (
               <span key={member.local.id} className="flex shrink-0 items-center gap-1 rounded-full border border-[#ece7de] px-2 py-0.5 text-[11px]">
-                {nationalitiesById[member.local.origin]?.flag} {member.local.name}
+                <Flag origin={member.local.origin} /> {member.local.name}
               </span>
             ))}
           </div>

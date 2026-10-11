@@ -1,5 +1,6 @@
 "use client";
 
+import { Flag } from "@/components/Flag";
 import { useEffect, useMemo, useState } from "react";
 import { menusById, nationalitiesById, roomLayout, venuesById } from "@/lib/content";
 import { crowdFor } from "@/lib/crowd";
@@ -104,7 +105,7 @@ export function VenuePanel() {
                   className="h-4 w-4 rounded-full border border-white"
                   style={{ background: `radial-gradient(circle at 50% 40%, ${member.local.look.skin} 0 45%, ${member.local.look.top} 46%)` }}
                 />
-                {nationalitiesById[member.local.origin]?.flag} {member.local.name}
+                <Flag origin={member.local.origin} /> {member.local.name}
               </button>
             ))}
             {here.map((player) => (

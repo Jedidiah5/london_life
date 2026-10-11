@@ -1,5 +1,6 @@
 "use client";
 
+import { Flag } from "@/components/Flag";
 import { Html } from "@react-three/drei";
 import { useMemo } from "react";
 import { catalogueById, goals, menusById, nationalitiesById, roomLayout, venuesById } from "@/lib/content";
@@ -69,7 +70,7 @@ export function RoomScene() {
   const goal = nextGoal(goals, goalsDone);
   const highlight = atHome && !visit ? goal?.highlight : undefined;
   const seat = seatFor(action, layout, inventory);
-  const flag = nationalitiesById[appearance.origin]?.flag ?? "";
+  const flag = appearance.origin;
 
   const tap = (target: string) => {
     if (visit) return;
@@ -123,7 +124,14 @@ export function RoomScene() {
           </mesh>
         );
       })}
-      {wall ? <Walls width={layout.width} height={layout.height} colour={wall} /> : <ParkEdge width={layout.width} height={layout.height} />}
+      {wall ? (
+        <>
+          <Walls width={layout.width} height={layout.height} colour={wall} />
+          <Street width={layout.width} height={layout.height} />
+        </>
+      ) : (
+        <ParkEdge width={layout.width} height={layout.height} />
+      )}
       {layout.fixtures.map((fixture) => {
         const item = catalogueById[fixture.itemId];
         const footprint = item?.footprint ?? [1, 1];
@@ -234,7 +242,7 @@ export function RoomScene() {
                 className="flex items-center gap-1 whitespace-nowrap rounded-full bg-[#1b2838]/85 px-2 py-0.5 text-[10px] font-semibold text-white"
               >
                 <span className="h-1.5 w-1.5 rounded-full bg-[#9aa5b1]" />
-                {nation?.flag} {member.local.name}
+                <Flag origin={member.local.origin} /> {member.local.name}
               </button>
             </Html>
           </group>
@@ -267,7 +275,7 @@ export function RoomScene() {
                   className="flex items-center gap-1 whitespace-nowrap rounded-full bg-[#1b2838]/85 px-2 py-0.5 text-[10px] font-semibold text-white"
                 >
                   <span className="h-1.5 w-1.5 rounded-full bg-[#3ccf6e]" />
-                  {nation?.flag} {player.name}
+                  {nation ? <Flag origin={nation.id} /> : null} {player.name}
                 </button>
                 {player.emote && player.emoteUntil > Date.now() ? (
                   <div className="mt-1 rounded-xl bg-white px-2 py-1 text-[10px] text-[#1b2838] shadow">{player.emote}</div>
@@ -316,7 +324,7 @@ function SelfTag({
         ) : null}
         <div className="flex items-center gap-1 whitespace-nowrap rounded-full bg-[#1b2838]/85 px-2 py-0.5 text-[10px] font-semibold text-white">
           <span className="h-1.5 w-1.5 rounded-full bg-[#3ccf6e]" />
-          {flag} {name}
+          {flag ? <Flag origin={flag} /> : null} {name}
         </div>
       </div>
     </Html>

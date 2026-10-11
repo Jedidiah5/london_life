@@ -1,9 +1,10 @@
 "use client";
 
+import { Flag } from "@/components/Flag";
 import { useState } from "react";
 import { nationalitiesById } from "@/lib/content";
 import { resetSandbox } from "@/lib/net/rpc";
-import { supabaseConfigured } from "@/lib/net/supabase";
+import { offlineBecause, supabaseConfigured } from "@/lib/net/supabase";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
 
@@ -20,7 +21,7 @@ export function Settings() {
       <div className="rounded-2xl bg-white p-3 shadow-sm">
         <p className="font-bold">@{username}</p>
         <p>
-          {nation?.flag} {appearance.londonBorn ? `London-born, ${nation?.demonym} roots` : `From ${nation?.label}`}
+          {nation ? <Flag origin={nation.id} /> : null} {appearance.londonBorn ? `London-born, ${nation?.demonym} roots` : `From ${nation?.label}`}
         </p>
         <p>{traits.join(" · ")}</p>
         <p className="capitalize">Dream: {aspiration.replaceAll("_", " ")}</p>
@@ -32,6 +33,7 @@ export function Settings() {
             ? "Money, skills and jobs live on the server."
             : "A local server in this browser runs the same rules as the cloud. Add Supabase keys in .env.local to play with others."}
         </p>
+        {offlineBecause() ? <p className="mt-1 text-[11px] text-[#e5484d]">Supabase said: {offlineBecause()}</p> : null}
       </div>
       {!online ? (
         confirm ? (

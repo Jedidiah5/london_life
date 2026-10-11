@@ -1,4 +1,5 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import { defaultAppearance, normaliseAppearance } from "@/lib/sim/appearance";
 import { SHARD_SIZE } from "@/lib/sim/constants";
 import type { Appearance, Tile } from "@/lib/sim/types";
 import { usePresence, type RemotePlayer } from "@/lib/store/usePresence";
@@ -24,7 +25,7 @@ function asTrack(value: unknown): TrackPayload | null {
   const appearance = row.appearance;
   if (typeof row.simId !== "string" || typeof row.name !== "string") return null;
   if (!appearance || typeof appearance !== "object") return null;
-  const look = appearance as Appearance;
+  const look = normaliseAppearance(appearance);
   return {
     simId: row.simId,
     name: row.name,
@@ -181,16 +182,7 @@ function currentTrack(tile: Tile): TrackPayload {
   return {
     simId: trackCache?.simId ?? "",
     name: trackCache?.name ?? "",
-    appearance: trackCache?.appearance ?? {
-      body: "a",
-      skin: "#e0ac7a",
-      hair: "short",
-      hairColor: "#1c1c1c",
-      top: "#1f4b99",
-      bottom: "#243044",
-      shoes: "#1a1a1a",
-      style: "casual",
-    },
+    appearance: trackCache?.appearance ?? defaultAppearance(),
     x: tile.x,
     y: tile.y,
   };

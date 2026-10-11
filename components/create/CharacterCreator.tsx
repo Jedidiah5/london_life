@@ -1,5 +1,6 @@
 "use client";
 
+import { Flag } from "@/components/Flag";
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import { nationalities, nationalitiesById } from "@/lib/content";
@@ -140,7 +141,7 @@ export function CharacterCreator() {
         <div className="relative h-56 overflow-hidden rounded-3xl bg-white/60 shadow-inner">
           <AvatarPreview look={look} anim={previewAnim} />
           <div className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-sm font-semibold shadow">
-            {nation?.flag} {name || "You"}
+            {nation ? <Flag origin={nation.id} /> : null} {name || "You"}
           </div>
           <div className="absolute bottom-3 right-3 flex gap-1">
             {(["stand", "dance", "eat"] as const).map((anim) => (
@@ -180,7 +181,7 @@ export function CharacterCreator() {
                     look.origin === entry.id ? "bg-[#1b2838] text-white" : "bg-white"
                   }`}
                 >
-                  <span className="text-2xl">{entry.flag}</span>
+                  <Flag origin={entry.id} size="md" />
                   {entry.label}
                 </button>
               ))}

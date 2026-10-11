@@ -1,5 +1,6 @@
 "use client";
 
+import { Flag } from "@/components/Flag";
 import { useState } from "react";
 import { nationalitiesById } from "@/lib/content";
 import { performAction } from "@/lib/net/rpc";
@@ -23,7 +24,7 @@ export function CallHome() {
 
   return (
     <div className="flex h-full flex-col items-center gap-3 pt-2 text-center">
-      <div className="text-6xl">{nation.flag}</div>
+      <Flag origin={nation.id} size="lg" className="rounded-md" />
       <div>
         <p className="text-lg font-extrabold">
           {who} · {nation.label}

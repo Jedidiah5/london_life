@@ -3,8 +3,12 @@
 import { BuyMode } from "@/components/buy/BuyMode";
 import { PhoneOverlay } from "@/components/phone/PhoneOverlay";
 import { TravelModal } from "@/components/travel/TravelModal";
+import { EventModal } from "@/components/venue/EventModal";
+import { PersonCard } from "@/components/venue/PersonCard";
+import { VenuePanel } from "@/components/venue/VenuePanel";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
+import { ActionSheet } from "./ActionSheet";
 import { BottomNav } from "./BottomNav";
 import { GoalCards } from "./GoalCards";
 import { NeedsPanel } from "./NeedsPanel";
@@ -13,7 +17,6 @@ import { TopBar } from "./TopBar";
 
 export function Hud() {
   const visit = useUi((state) => state.visit);
-  const cloud = useGame((state) => state.cloud);
   return (
     <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       <div className="space-y-2">
@@ -22,15 +25,10 @@ export function Hud() {
           <GoalCards />
           <Toasts />
         </div>
-        {!cloud ? (
-          <div className="pointer-events-none text-[11px] text-[#1b2838]">
-            On this device only. Add Supabase in .env.local to save money.
-          </div>
-        ) : null}
         {visit ? (
           <button
             type="button"
-            className="pointer-events-auto rounded-full bg-[#1b2838] px-3 py-1 text-xs text-[#f4efe6]"
+            className="pointer-events-auto rounded-full bg-[#1b2838] px-3 py-1 text-xs text-white"
             onClick={() => {
               useUi.getState().setVisit(null);
               useGame.getState().setReadOnly(false);
@@ -40,16 +38,17 @@ export function Hud() {
           </button>
         ) : null}
       </div>
-      <div className="space-y-2">
+      <div className="mx-auto w-full max-w-md space-y-2">
+        <ActionSheet />
+        <PersonCard />
+        <VenuePanel />
         <TravelModal />
         <BuyMode />
         <PhoneOverlay />
-        <div className="flex items-end justify-between gap-2">
-          <NeedsPanel />
-          <div className="w-44" />
-        </div>
+        <NeedsPanel />
         <BottomNav />
       </div>
+      <EventModal />
     </div>
   );
 }

@@ -219,6 +219,7 @@ export interface EventDef {
 
 export interface Nationality {
   id: string;
+  iso: string;
   label: string;
   demonym: string;
   flag: string;
