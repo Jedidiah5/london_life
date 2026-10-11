@@ -1,33 +1,61 @@
 "use client";
 
-import { useGame } from "@/lib/store/useGame";
+import { useState } from "react";
+import { nationalitiesById } from "@/lib/content";
+import { resetSandbox } from "@/lib/net/rpc";
 import { supabaseConfigured } from "@/lib/net/supabase";
+import { useGame } from "@/lib/store/useGame";
+import { useUi } from "@/lib/store/useUi";
 
 export function Settings() {
   const username = useGame((state) => state.username);
   const aspiration = useGame((state) => state.aspiration);
   const traits = useGame((state) => state.traits);
-  const cloud = useGame((state) => state.cloud);
-  const speed = useGame((state) => state.speed);
+  const appearance = useGame((state) => state.appearance);
+  const [confirm, setConfirm] = useState(false);
+  const online = supabaseConfigured();
+  const nation = nationalitiesById[appearance.origin];
   return (
     <div className="space-y-2 text-xs">
-      <p className="font-semibold">@{username}</p>
-      <p>{traits.join(" · ")}</p>
-      <p className="capitalize">{aspiration.replaceAll("_", " ")}</p>
-      <p>{cloud ? "Cloud save is on. Money lives on the server." : "This browser is the only copy of your day."}</p>
-      <p>{supabaseConfigured() ? "Supabase keys are set." : "Add the Supabase URL and anon key to .env.local, then run the SQL in supabase/migrations."}</p>
-      <div className="flex gap-1">
-        {([1, 2, 3] as const).map((value) => (
-          <button
-            key={value}
-            type="button"
-            className={`rounded-full px-2 py-1 ${speed === value ? "bg-[#c8102e] text-white" : "bg-white"}`}
-            onClick={() => useGame.getState().setSpeed(value)}
-          >
-            {value}× at home
-          </button>
-        ))}
+      <div className="rounded-2xl bg-white p-3 shadow-sm">
+        <p className="font-bold">@{username}</p>
+        <p>
+          {nation?.flag} {appearance.londonBorn ? `London-born, ${nation?.demonym} roots` : `From ${nation?.label}`}
+        </p>
+        <p>{traits.join(" · ")}</p>
+        <p className="capitalize">Dream: {aspiration.replaceAll("_", " ")}</p>
       </div>
+      <div className="rounded-2xl bg-white p-3 shadow-sm">
+        <p className="font-bold">{online ? "☁️ Online city" : "📴 Offline mode"}</p>
+        <p className="text-[#5c6b7a]">
+          {online
+            ? "Money, skills and jobs live on the server."
+            : "A local server in this browser runs the same rules as the cloud. Add Supabase keys in .env.local to play with others."}
+        </p>
+      </div>
+      {!online ? (
+        confirm ? (
+          <div className="flex gap-1">
+            <button
+              type="button"
+              className="flex-1 rounded-full bg-[#e5484d] py-2 font-bold text-white"
+              onClick={() => {
+                resetSandbox();
+                useUi.getState().setNav("home");
+              }}
+            >
+              Yes, start over
+            </button>
+            <button type="button" className="rounded-full bg-white px-4 py-2 font-semibold shadow-sm" onClick={() => setConfirm(false)}>
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="w-full rounded-full bg-white py-2 font-semibold text-[#e5484d] shadow-sm" onClick={() => setConfirm(true)}>
+            Start a new life
+          </button>
+        )
+      ) : null}
     </div>
   );
 }
