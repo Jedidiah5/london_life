@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { CharacterCreator } from "@/components/create/CharacterCreator";
 import { Hud } from "@/components/hud/Hud";
 import { refreshState } from "@/lib/net/rpc";
-import { supabaseConfigured } from "@/lib/net/supabase";
 import { useGame } from "@/lib/store/useGame";
+import { useUi } from "@/lib/store/useUi";
 import { SimLoop } from "./SimLoop";
 
 const GameCanvas = dynamic(() => import("@/components/canvas/GameCanvas"), { ssr: false });
@@ -23,9 +23,8 @@ export function PlayClient() {
       } else {
         await useGame.persist.rehydrate();
       }
-      if (supabaseConfigured()) {
-        await refreshState();
-      }
+      const error = await refreshState();
+      if (error) useUi.getState().pushToast(error, "bad");
       if (alive) setReady(true);
     })();
     return () => {

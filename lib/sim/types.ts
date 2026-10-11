@@ -234,7 +234,7 @@ export interface LocalDef {
   name: string;
   origin: string;
   venues: string[];
-  look: Partial<Appearance>;
+  look: Appearance;
   lines: string[];
 }
 
