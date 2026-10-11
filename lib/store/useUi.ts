@@ -44,6 +44,7 @@ interface UiState {
   nav: NavKey;
   phoneApp: PhoneApp | null;
   yaw: number;
+  pitch: number;
   zoom: number;
   toasts: Toast[];
   travelTo: string | null;
@@ -59,6 +60,7 @@ interface UiState {
   setNav: (nav: NavKey) => void;
   openPhone: (app: PhoneApp | null) => void;
   rotateYaw: () => void;
+  orbit: (yaw: number, pitch: number) => void;
   setZoom: (zoom: number) => void;
   pushToast: (text: string, tone?: Toast["tone"]) => void;
   dismissToast: (id: string) => void;
@@ -77,12 +79,17 @@ interface UiState {
 
 let toastSeq = 0;
 
+export const DEFAULT_PITCH = 0.86;
+export const PITCH_MIN = 0.45;
+export const PITCH_MAX = 1.35;
+
 export const useUi = create<UiState>()(
   persist(
     (set) => ({
       nav: "home",
       phoneApp: null,
       yaw: 0,
+      pitch: DEFAULT_PITCH,
       zoom: 52,
       toasts: [],
       travelTo: null,
@@ -98,7 +105,8 @@ export const useUi = create<UiState>()(
       setNav: (nav) =>
         set({ nav, phoneApp: null, travelTo: null, sheet: null, person: null, selectedCatalogueId: null, movingId: null, ghost: null }),
       openPhone: (phoneApp) => set({ phoneApp, nav: "phone", sheet: null, person: null }),
-      rotateYaw: () => set((state) => ({ yaw: (state.yaw + 1) % 4 })),
+      rotateYaw: () => set((state) => ({ yaw: Math.round(state.yaw) + 1 })),
+      orbit: (yaw, pitch) => set({ yaw, pitch: Math.min(PITCH_MAX, Math.max(PITCH_MIN, pitch)) }),
       setZoom: (zoom) => set({ zoom: Math.min(90, Math.max(24, zoom)) }),
       pushToast: (text, tone = "info") => {
         toastSeq += 1;
@@ -126,7 +134,7 @@ export const useUi = create<UiState>()(
     }),
     {
       name: "london-life-ui",
-      partialize: (state) => ({ yaw: state.yaw, zoom: state.zoom, muted: state.muted }),
+      partialize: (state) => ({ yaw: state.yaw, pitch: state.pitch, zoom: state.zoom, muted: state.muted }),
     },
   ),
 );

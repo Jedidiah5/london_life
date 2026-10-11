@@ -9,6 +9,8 @@ export function fitObject(source: Object3D, targetWidth: number, tint?: string, 
   clone.traverse((node) => {
     const mesh = node as Mesh;
     if (!mesh.isMesh) return;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
     const sourceMaterial = mesh.material;
     if (Array.isArray(sourceMaterial)) return;
     const material = sourceMaterial.clone();

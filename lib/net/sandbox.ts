@@ -14,6 +14,7 @@ import {
   OYSTER_START_PENCE,
   ASPIRATIONS,
   HOME_SPEED_MAX,
+  SLEEP_SPEED,
 } from "@/lib/sim/constants";
 import { goalReady, nextGoal } from "@/lib/sim/goals";
 import { wageMultiplier } from "@/lib/sim/mood";
@@ -238,7 +239,7 @@ export function createSandbox(storage: SandboxStorage, now: () => number = Date.
       const sim = mine(db);
       const wall = Math.max(0, (now() - sim.updated_at) / 1000);
       const claimed = Math.round(num(args.p_game_time));
-      const trusted = Math.min(Math.max(claimed, sim.game_time), sim.game_time + Math.floor(wall * HOME_SPEED_MAX + 2));
+      const trusted = Math.min(Math.max(claimed, sim.game_time), sim.game_time + Math.floor(wall * SLEEP_SPEED + 2));
       const hours = Math.max(trusted - sim.game_time, 0) / 60;
       const naturalGain = Math.min(80, (Math.max(wall, 1) / 15) * 25);
       const wanted = (args.p_needs ?? {}) as Record<string, unknown>;

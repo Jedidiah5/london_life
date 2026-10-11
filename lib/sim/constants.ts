@@ -1,13 +1,15 @@
 import type { NeedKey } from "./types";
 
 export const NEED_DECAY_PER_HOUR: Record<NeedKey, number> = {
-  hunger: 4,
-  energy: 3,
-  hygiene: 2.5,
-  bladder: 5,
-  fun: 3,
-  social: 2,
+  hunger: 2,
+  energy: 1.5,
+  hygiene: 1.25,
+  bladder: 2.5,
+  fun: 1.5,
+  social: 1,
 };
+/** Share of normal decay while asleep. Energy never drains in bed. */
+export const SLEEP_DECAY_SHARE = 0.5;
 
 export const NEED_WARNING = 25;
 
@@ -48,6 +50,8 @@ export const SHIFTS_PER_LEVEL = 3;
 export const ARRIVAL_EVENT_CHANCE = 0.4;
 export const MISSING_HOME_DAYS = 3;
 export const HOME_SPEED_MAX = 3;
+/** The clock fast-forwards while you sleep. The server trusts the clock up to this multiple of wall time. */
+export const SLEEP_SPEED = 10;
 export const BIG_PURCHASE_PENCE = 10_000;
 
 export const NEED_LABELS: Record<NeedKey, string> = {

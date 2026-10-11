@@ -2,7 +2,9 @@
 
 import { Flag } from "@/components/Flag";
 import { Html } from "@react-three/drei";
-import { useMemo } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
+import type { Mesh } from "three";
 import { catalogueById, goals, menusById, nationalitiesById, roomLayout, venuesById } from "@/lib/content";
 import { crowdFor } from "@/lib/crowd";
 import { itemWorld, tileWorld, worldToTile } from "@/lib/sim/grid";
@@ -118,7 +120,7 @@ export function RoomScene() {
         const y = Math.floor(index / layout.width);
         const [wx, , wz] = tileWorld(x, y, layout.width, layout.height);
         return (
-          <mesh key={`${x}-${y}`} position={[wx, 0.01, wz]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
+          <mesh key={`${x}-${y}`} position={[wx, 0.01, wz]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null} receiveShadow>
             <planeGeometry args={[0.97, 0.97]} />
             <meshStandardMaterial color={(x + y) % 2 === 0 ? shadeHex(floor, 0.05) : shadeHex(floor, -0.02)} />
           </mesh>
@@ -330,31 +332,90 @@ function SelfTag({
   );
 }
 
+const WALL_HEIGHT = 1.6;
+const WALL_LOW = 0.32;
+const WALL_THICK = 0.14;
+
 function Walls({ width, height, colour }: { width: number; height: number; colour: string }) {
   const halfW = width / 2;
   const halfH = height / 2;
+  const sides = [
+    { key: "back", normal: [0, -1], position: [0, -halfH - WALL_THICK / 2], size: [width + WALL_THICK * 2, WALL_THICK], window: true },
+    { key: "front", normal: [0, 1], position: [0, halfH + WALL_THICK / 2], size: [width + WALL_THICK * 2, WALL_THICK], window: false },
+    { key: "left", normal: [-1, 0], position: [-halfW - WALL_THICK / 2, 0], size: [WALL_THICK, height], window: false },
+    { key: "right", normal: [1, 0], position: [halfW + WALL_THICK / 2, 0], size: [WALL_THICK, height], window: true },
+  ] as const;
   return (
     <group>
-      <mesh position={[0, 0.7, -halfH - 0.06]} raycast={() => null}>
-        <boxGeometry args={[width + 0.12, 1.4, 0.12]} />
+      {sides.map((side, index) => (
+        <WallSide
+          key={side.key}
+          normal={side.normal}
+          position={side.position}
+          size={side.size}
+          colour={index % 2 === 0 ? colour : shadeHex(colour, -0.06)}
+          window={side.window}
+        />
+      ))}
+    </group>
+  );
+}
+
+function WallSide({
+  normal,
+  position,
+  size,
+  colour,
+  window: hasWindow,
+}: {
+  normal: readonly [number, number];
+  position: readonly [number, number];
+  size: readonly [number, number];
+  colour: string;
+  window: boolean;
+}) {
+  const body = useRef<Mesh>(null);
+  const cap = useRef<Mesh>(null);
+  const pane = useRef<Mesh>(null);
+  const current = useRef(WALL_HEIGHT);
+  const camera = useThree((state) => state.camera);
+
+  useFrame((_, delta) => {
+    const facing = camera.position.x * normal[0] + camera.position.z * normal[1];
+    const reach = Math.hypot(camera.position.x, camera.position.z);
+    const target = facing > reach * 0.25 ? WALL_LOW : WALL_HEIGHT;
+    current.current += (target - current.current) * (1 - Math.exp(-delta * 10));
+    const h = current.current;
+    if (body.current) {
+      body.current.scale.y = h;
+      body.current.position.y = h / 2;
+    }
+    if (cap.current) cap.current.position.y = h + 0.02;
+    if (pane.current) pane.current.visible = h > WALL_HEIGHT * 0.8;
+  });
+
+  const along = size[0] > size[1];
+  const paneWidth = Math.min(1.6, (along ? size[0] : size[1]) * 0.3);
+  return (
+    <group position={[position[0], 0, position[1]]}>
+      <mesh ref={body} raycast={() => null} receiveShadow>
+        <boxGeometry args={[size[0], 1, size[1]]} />
         <meshStandardMaterial color={colour} />
       </mesh>
-      <mesh position={[-halfW - 0.06, 0.7, 0]} raycast={() => null}>
-        <boxGeometry args={[0.12, 1.4, height]} />
-        <meshStandardMaterial color={shadeHex(colour, -0.05)} />
+      <mesh ref={cap} raycast={() => null}>
+        <boxGeometry args={[size[0] + 0.02, 0.04, size[1] + 0.02]} />
+        <meshStandardMaterial color="#efe9de" />
       </mesh>
-      <mesh position={[0, 0.05, -halfH + 0.01]} raycast={() => null}>
-        <boxGeometry args={[width, 0.1, 0.04]} />
-        <meshStandardMaterial color={shadeHex(colour, -0.2)} />
+      <mesh position={[-normal[0] * 0.075, 0.06, -normal[1] * 0.075]} raycast={() => null}>
+        <boxGeometry args={[along ? size[0] - 0.3 : 0.02, 0.12, along ? 0.02 : size[1]]} />
+        <meshStandardMaterial color={shadeHex(colour, -0.25)} />
       </mesh>
-      <mesh position={[-halfW + 0.01, 0.05, 0]} raycast={() => null}>
-        <boxGeometry args={[0.04, 0.1, height]} />
-        <meshStandardMaterial color={shadeHex(colour, -0.2)} />
-      </mesh>
-      <mesh position={[halfW * 0.3, 0.85, -halfH + 0.01]} raycast={() => null}>
-        <boxGeometry args={[Math.min(1.6, width * 0.3), 0.6, 0.02]} />
-        <meshStandardMaterial color="#b8d4ea" emissive="#6f8fa8" emissiveIntensity={0.25} />
-      </mesh>
+      {hasWindow ? (
+        <mesh ref={pane} position={[-normal[0] * 0.08, 0.95, -normal[1] * 0.08]} raycast={() => null}>
+          <boxGeometry args={[along ? paneWidth : 0.02, 0.6, along ? 0.02 : paneWidth]} />
+          <meshStandardMaterial color="#b8d4ea" emissive="#6f8fa8" emissiveIntensity={0.25} />
+        </mesh>
+      ) : null}
     </group>
   );
 }

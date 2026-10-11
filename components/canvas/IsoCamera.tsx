@@ -2,13 +2,18 @@
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
-import { OrthographicCamera, Vector3 } from "three";
+import { PerspectiveCamera, Vector3 } from "three";
 import { roomLayout } from "@/lib/content";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
 
 const DEFAULT_ZOOM = 52;
-const ORIGIN = new Vector3(0, 0, 0);
+/** Pixels of horizontal drag for a quarter turn. */
+const DRAG_PER_QUARTER = 240;
+/** Pixels of vertical drag per radian of tilt. */
+const DRAG_PER_RADIAN = 320;
+const TAP_SLOP = 6;
+const TARGET = new Vector3();
 
 export function IsoCamera() {
   const camera = useThree((state) => state.camera);
@@ -17,54 +22,110 @@ export function IsoCamera() {
   const location = useGame((state) => state.location);
   const homeId = useGame((state) => state.homeId);
   const visit = useUi((state) => state.visit);
-  const drag = useRef<{ x: number; yaw: number } | null>(null);
+  const view = useRef<{ yaw: number; pitch: number; zoom: number } | null>(null);
   const layout = roomLayout(location, homeId, visit?.homeId ?? null);
-  const span = (layout.width + layout.height) * 0.707;
-  const fit = Math.min((size.width * 0.82) / span, (size.height * 0.5) / (span * 0.5 + 1.6));
+  const roomSpan = Math.hypot(layout.width, layout.height) + 1.5;
 
   useEffect(() => {
     const element = gl.domElement;
+    const pointers = new Map<number, { x: number; y: number }>();
+    let drag: { x: number; y: number; yaw: number; pitch: number; moved: boolean } | null = null;
+    let pinch: { distance: number; zoom: number } | null = null;
+    let swallowClick = false;
+
+    const spread = () => {
+      const [a, b] = [...pointers.values()];
+      return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
+    };
     const down = (event: PointerEvent) => {
-      drag.current = { x: event.clientX, yaw: useUi.getState().yaw };
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (pointers.size === 2) {
+        pinch = { distance: spread(), zoom: useUi.getState().zoom };
+        drag = null;
+        return;
+      }
+      const { yaw, pitch } = useUi.getState();
+      drag = { x: event.clientX, y: event.clientY, yaw, pitch, moved: false };
     };
     const move = (event: PointerEvent) => {
-      if (!drag.current) return;
-      const dx = event.clientX - drag.current.x;
-      if (Math.abs(dx) < 70) return;
-      const steps = dx > 0 ? 1 : -1;
-      useUi.setState({ yaw: (drag.current.yaw + steps + 4) % 4 });
-      drag.current = { x: event.clientX, yaw: useUi.getState().yaw };
+      if (pointers.has(event.pointerId)) pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (pinch && pointers.size === 2) {
+        const now = spread();
+        if (pinch.distance > 0) useUi.getState().setZoom(pinch.zoom * (now / pinch.distance));
+        swallowClick = true;
+        return;
+      }
+      if (!drag) return;
+      const dx = event.clientX - drag.x;
+      const dy = event.clientY - drag.y;
+      if (!drag.moved && Math.hypot(dx, dy) < TAP_SLOP) return;
+      drag.moved = true;
+      swallowClick = true;
+      useUi.getState().orbit(drag.yaw - dx / DRAG_PER_QUARTER, drag.pitch + dy / DRAG_PER_RADIAN);
     };
-    const up = () => {
-      drag.current = null;
+    const up = (event: PointerEvent) => {
+      pointers.delete(event.pointerId);
+      if (pointers.size < 2) pinch = null;
+      if (pointers.size === 0) drag = null;
+      if (swallowClick) window.setTimeout(() => (swallowClick = false), 0);
+    };
+    const click = (event: MouseEvent) => {
+      if (!swallowClick) return;
+      event.stopPropagation();
+      event.preventDefault();
+      swallowClick = false;
     };
     const wheel = (event: WheelEvent) => {
       event.preventDefault();
       const current = useUi.getState().zoom;
-      useUi.getState().setZoom(current + (event.deltaY > 0 ? -3 : 3));
+      useUi.getState().setZoom(current * (event.deltaY > 0 ? 0.92 : 1.08));
     };
+    element.style.touchAction = "none";
     element.addEventListener("pointerdown", down);
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+    window.addEventListener("click", click, true);
     element.addEventListener("wheel", wheel, { passive: false });
     return () => {
       element.removeEventListener("pointerdown", down);
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+      window.removeEventListener("click", click, true);
       element.removeEventListener("wheel", wheel);
     };
   }, [gl]);
 
-  useFrame(() => {
-    const { yaw, zoom, nav } = useUi.getState();
-    const angle = (yaw * Math.PI) / 2 + Math.PI / 4;
-    const distance = nav === "map" ? 28 : 16;
-    camera.position.set(Math.cos(angle) * distance, distance * 0.82, Math.sin(angle) * distance);
-    camera.lookAt(ORIGIN);
-    if (camera instanceof OrthographicCamera) {
-      camera.zoom = nav === "map" ? Math.min(size.width / 34, size.height / 22) : fit * (zoom / DEFAULT_ZOOM);
-      camera.updateProjectionMatrix();
-    }
+  useFrame((_, delta) => {
+    const ui = useUi.getState();
+    const current = (view.current ??= { yaw: ui.yaw, pitch: ui.pitch, zoom: ui.zoom });
+    const ease = 1 - Math.exp(-delta * 12);
+    current.yaw += (ui.yaw - current.yaw) * ease;
+    current.pitch += (ui.pitch - current.pitch) * ease;
+    current.zoom += (ui.zoom - current.zoom) * ease;
+    if (!(camera instanceof PerspectiveCamera)) return;
+
+    const map = ui.nav === "map";
+    const span = map ? 34 : roomSpan;
+    const pitch = map ? Math.max(current.pitch, 0.95) : current.pitch;
+    const vertical = (camera.fov * Math.PI) / 180;
+    const horizontal = 2 * Math.atan(Math.tan(vertical / 2) * (size.width / Math.max(size.height, 1)));
+    const fitWidth = span / 2 / Math.tan(horizontal / 2) / 0.92;
+    const fitHeight = ((span / 2) * Math.sin(pitch) + 1.4 * Math.cos(pitch)) / Math.tan(vertical / 2) / 0.62;
+    const distance = Math.max(fitWidth, fitHeight) * (map ? 1 : DEFAULT_ZOOM / current.zoom);
+
+    const angle = (current.yaw * Math.PI) / 2 + Math.PI / 4;
+    TARGET.set(0, map ? 0 : 0.35, 0);
+    camera.position.set(
+      Math.cos(angle) * Math.cos(pitch) * distance,
+      TARGET.y + Math.sin(pitch) * distance,
+      Math.sin(angle) * Math.cos(pitch) * distance,
+    );
+    camera.lookAt(TARGET);
+    camera.near = Math.max(0.1, distance * 0.05);
+    camera.far = distance * 6;
+    camera.updateProjectionMatrix();
   });
 
   return null;

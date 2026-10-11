@@ -18,9 +18,9 @@ export default function GameCanvas() {
   return (
     <Canvas
       className="h-full w-full"
-      orthographic
+      shadows
       dpr={[1, 1.6]}
-      camera={{ position: [12, 10, 12], zoom: 46, near: 0.1, far: 200 }}
+      camera={{ position: [12, 10, 12], fov: 30, near: 0.1, far: 300 }}
       gl={{ antialias: true, alpha: false }}
       onPointerMissed={() => undefined}
     >
@@ -44,7 +44,22 @@ function SceneLights() {
   return (
     <>
       <ambientLight intensity={night ? (indoorVenue ? 0.55 : 0.28) : 0.72} />
-      <directionalLight position={[6, 10, 4]} intensity={night ? 0.35 : 1.15} color={night ? "#9bb7d4" : "#fff4e0"} />
+      <hemisphereLight args={["#fff8ec", "#8a7a66", night ? 0.15 : 0.35]} />
+      <directionalLight
+        position={[6, 12, 4]}
+        intensity={night ? 0.35 : 1.25}
+        color={night ? "#9bb7d4" : "#fff4e0"}
+        castShadow={nav !== "map"}
+        shadow-mapSize={[1024, 1024]}
+        shadow-bias={-0.0004}
+        shadow-normalBias={0.03}
+        shadow-camera-left={-10}
+        shadow-camera-right={10}
+        shadow-camera-top={10}
+        shadow-camera-bottom={-10}
+        shadow-camera-near={1}
+        shadow-camera-far={40}
+      />
       {night ? <pointLight position={[0, 1.8, 0]} intensity={indoorVenue ? 8 : 4} distance={indoorVenue ? 14 : 8} color="#ffb15a" /> : null}
     </>
   );

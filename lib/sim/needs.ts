@@ -1,4 +1,4 @@
-import { NEED_DECAY_PER_HOUR, NEED_WARNING } from "./constants";
+import { NEED_DECAY_PER_HOUR, NEED_WARNING, SLEEP_DECAY_SHARE } from "./constants";
 import { NEED_KEYS, type NeedKey, type Needs } from "./types";
 
 export function clampNeed(value: number): number {
@@ -16,12 +16,13 @@ export function fullNeeds(value = 80): Needs {
   };
 }
 
-export function decayNeeds(needs: Needs, gameHours: number, working: boolean): Needs {
+export function decayNeeds(needs: Needs, gameHours: number, working: boolean, sleeping = false): Needs {
   const hours = Math.max(0, gameHours);
   const next = { ...needs };
   for (const key of NEED_KEYS) {
     let rate = NEED_DECAY_PER_HOUR[key];
     if (key === "energy" && working) rate *= 2;
+    if (sleeping) rate = key === "energy" ? 0 : rate * SLEEP_DECAY_SHARE;
     next[key] = clampNeed(needs[key] - rate * hours);
   }
   return next;

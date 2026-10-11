@@ -1,8 +1,7 @@
-import { MINUTES_PER_DAY, MINUTES_PER_WEEK, SUNDAY_OFFSET } from "./constants";
-import type { Speed } from "./types";
+import { MINUTES_PER_DAY, MINUTES_PER_WEEK, SLEEP_SPEED, SUNDAY_OFFSET } from "./constants";
 
-export function advanceClock(gameMinutes: number, realSeconds: number, speed: Speed): number {
-  const safeSpeed: Speed = speed === 2 || speed === 3 ? speed : 1;
+export function advanceClock(gameMinutes: number, realSeconds: number, speed: number): number {
+  const safeSpeed = Number.isFinite(speed) ? Math.min(SLEEP_SPEED, Math.max(1, speed)) : 1;
   return gameMinutes + Math.max(0, realSeconds) * safeSpeed;
 }
 

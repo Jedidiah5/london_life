@@ -134,7 +134,7 @@ declare
   clamped numeric;
   used numeric;
   allow numeric;
-  rates jsonb := '{"hunger":4,"energy":3,"hygiene":2.5,"bladder":5,"fun":3,"social":2}';
+  rates jsonb := '{"hunger":2,"energy":1.5,"hygiene":1.25,"bladder":2.5,"fun":1.5,"social":1}';
   next_needs jsonb := '{}'::jsonb;
   next_allowance jsonb := '{}'::jsonb;
 begin
@@ -143,7 +143,7 @@ begin
   if not found then raise exception 'No sim'; end if;
 
   wall_seconds := greatest(extract(epoch from (clock_timestamp() - row.updated_at)), 0);
-  trusted := least(greatest(p_game_time, row.game_time), row.game_time + floor(wall_seconds * 3 + 2)::bigint);
+  trusted := least(greatest(p_game_time, row.game_time), row.game_time + floor(wall_seconds * 10 + 2)::bigint);
   elapsed_hours := greatest(trusted - row.game_time, 0)::numeric / 60.0;
   natural_gain := least(80, (greatest(wall_seconds, 1) / 15.0) * 25);
 

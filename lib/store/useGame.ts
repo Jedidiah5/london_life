@@ -6,7 +6,7 @@ import { actionsById, catalogueById, emptySkills, roomLayout, targetMenu } from 
 import { makeAction, tickAction } from "@/lib/sim/actions";
 import { defaultAppearance, normaliseAppearance } from "@/lib/sim/appearance";
 import { advanceClock } from "@/lib/sim/clock";
-import { NEED_LABELS, OYSTER_START_PENCE, STARTING_PENCE, START_GAME_MINUTES } from "@/lib/sim/constants";
+import { NEED_LABELS, OYSTER_START_PENCE, SLEEP_SPEED, STARTING_PENCE, START_GAME_MINUTES } from "@/lib/sim/constants";
 import { missingHome } from "@/lib/sim/home";
 import { activeMoodlets } from "@/lib/sim/mood";
 import { decayNeeds, fullNeeds, warningsFor } from "@/lib/sim/needs";
@@ -236,10 +236,11 @@ export const useGame = create<GameState>()(
       tick: (realSeconds) => {
         const state = get();
         if (!state.created || realSeconds <= 0) return [];
-        const speed: Speed = state.location === "home" && !state.readOnly && !state.shift ? state.speed : 1;
-        const elapsed = advanceClock(0, realSeconds, speed);
+        const sleeping = !state.shift && !state.readOnly && state.action?.anim === "sleep";
+        const homeSpeed = state.location === "home" && !state.readOnly && !state.shift ? state.speed : 1;
+        const elapsed = advanceClock(0, realSeconds, sleeping ? SLEEP_SPEED : homeSpeed);
         const gameMinutes = state.gameMinutes + elapsed;
-        let needs = decayNeeds(state.needs, elapsed / 60, Boolean(state.shift));
+        let needs = decayNeeds(state.needs, elapsed / 60, Boolean(state.shift), sleeping);
         let action = state.action;
         let queue = state.queue;
         if (action) {
