@@ -207,7 +207,7 @@ export function createSandbox(storage: SandboxStorage, now: () => number = Date.
           aspiration,
           balance_pence: STARTING_PENCE,
           home_id: "boxroom_z4",
-          needs: { hunger: 60, energy: 80, hygiene: 55, bladder: 80, fun: 70, social: 60 },
+          needs: { hunger: 80, energy: 80, hygiene: 80, bladder: 80, fun: 70, social: 60 },
           skills: Object.fromEntries(SKILL_KEYS.map((key) => [key, 0])),
           location: "home",
           game_time: 480,

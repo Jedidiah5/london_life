@@ -89,7 +89,8 @@ test("checkpoints only accept need gains the server has seen paid for", () => {
     p_game_time: 485,
     p_heating: true,
   });
-  assert.ok(((cheat.needs as Record<string, number>).hygiene ?? 0) < 70);
+  assert.ok(((cheat.needs as Record<string, number>).hygiene ?? 0) < 90);
+  assert.ok(((cheat.needs as Record<string, number>).social ?? 0) < 70);
   ok("perform_action", { p_action: "long_shower" });
   advance(5);
   const honest = ok("checkpoint_needs", {
