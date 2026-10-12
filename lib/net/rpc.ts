@@ -4,13 +4,29 @@ import { formatPence } from "@/lib/sim/money";
 import type { InventoryItem, TravelMode } from "@/lib/sim/types";
 import type { CreateInput } from "@/lib/store/useGame";
 import { useGame } from "@/lib/store/useGame";
-import { careerOf, inventoryRow, num, parseCheckpoint, parseState, record, shiftOf, skillsOf, statsOf, str } from "./parse";
+import {
+  careerOf,
+  finishesOf,
+  inventoryRow,
+  num,
+  ownedFinishesOf,
+  parseCheckpoint,
+  parseState,
+  record,
+  shiftOf,
+  skillsOf,
+  statsOf,
+  str,
+} from "./parse";
 import { getSandbox } from "./sandbox";
 import { ensureSession, getSupabase, supabaseConfigured } from "./supabase";
 
 type Row = Record<string, unknown>;
 
-async function call(fn: string, args: Row = {}): Promise<{ data: Row | null; error: string | null }> {
+async function call(
+  fn: string,
+  args: Row = {},
+): Promise<{ data: Row | null; error: string | null }> {
   if (!supabaseConfigured()) {
     const result = getSandbox().rpc(fn, args);
     return { data: record(result.data), error: result.error };
@@ -25,14 +41,19 @@ async function call(fn: string, args: Row = {}): Promise<{ data: Row | null; err
 function applyCommon(row: Row) {
   const game = useGame.getState();
   if (typeof row.balance_pence === "number") {
-    game.applyMoney(row.balance_pence, typeof row.oyster_pence === "number" ? row.oyster_pence : undefined);
+    game.applyMoney(
+      row.balance_pence,
+      typeof row.oyster_pence === "number" ? row.oyster_pence : undefined,
+    );
   }
   if (row.stats) game.setStats(statsOf(row.stats));
   if (row.skills) game.setSkills(skillsOf(row.skills));
   if ("career" in row) game.setCareer(careerOf(row.career));
 }
 
-export async function createCharacter(input: CreateInput): Promise<string | null> {
+export async function createCharacter(
+  input: CreateInput,
+): Promise<string | null> {
   await ensureSession();
   const created = await call("create_sim", {
     p_username: input.username,
@@ -75,25 +96,41 @@ export async function checkpointNeeds(): Promise<void> {
 }
 
 /** Server charges and checks first; only then does the Sim walk over and do it. */
-export async function performAction(actionId: string, target: string | null): Promise<string | null> {
+export async function performAction(
+  actionId: string,
+  target: string | null,
+): Promise<string | null> {
   const def = actionsById[actionId];
   if (!def) return "Not on the menu";
   const blocked = useGame.getState().canQueue();
   if (blocked) return blocked;
-  const result = await call("perform_action", { p_action: actionId, p_target: target });
+  const result = await call("perform_action", {
+    p_action: actionId,
+    p_target: target,
+  });
   if (result.error || !result.data) return result.error ?? "Could not do that";
   applyCommon(result.data);
   if (def.costPence > 0) {
-    useGame.getState().applyMoney(num(result.data.balance_pence, useGame.getState().balancePence), undefined, {
-      id: `act-${Date.now()}`,
-      amountPence: -def.costPence,
-      kind: "purchase",
-      ref: def.id,
-      createdAt: new Date().toISOString(),
-    });
+    useGame
+      .getState()
+      .applyMoney(
+        num(result.data.balance_pence, useGame.getState().balancePence),
+        undefined,
+        {
+          id: `act-${Date.now()}`,
+          amountPence: -def.costPence,
+          kind: "purchase",
+          ref: def.id,
+          createdAt: new Date().toISOString(),
+        },
+      );
   }
-  if (actionId === "call_home") useGame.getState().setLastCall(num(result.data.last_call_minute));
-  const shown = heritageLabel(def, nationalitiesById[useGame.getState().appearance.origin]);
+  if (actionId === "call_home")
+    useGame.getState().setLastCall(num(result.data.last_call_minute));
+  const shown = heritageLabel(
+    def,
+    nationalitiesById[useGame.getState().appearance.origin],
+  );
   return useGame.getState().queueAction({ ...def, ...shown }, target);
 }
 
@@ -102,7 +139,10 @@ export async function claimGoal(goalId: string): Promise<number | string> {
   if (result.error || !result.data) return result.error ?? "Not yet";
   applyCommon(result.data);
   const done = result.data.goals_done;
-  if (Array.isArray(done)) useGame.getState().setGoalsDone(done.filter((goal) => typeof goal === "string"));
+  if (Array.isArray(done))
+    useGame
+      .getState()
+      .setGoalsDone(done.filter((goal) => typeof goal === "string"));
   return num(result.data.reward_pence);
 }
 
@@ -115,12 +155,16 @@ export async function applyJob(jobId: string): Promise<string | null> {
 
 export async function greet(target: string): Promise<string | null> {
   const result = await call("greet", { p_target: target });
-  if (result.error || !result.data) return result.error ?? "They didn't hear you";
+  if (result.error || !result.data)
+    return result.error ?? "They didn't hear you";
   applyCommon(result.data);
   return null;
 }
 
-export async function buyItem(itemId: string, colour: string): Promise<InventoryItem | string> {
+export async function buyItem(
+  itemId: string,
+  colour: string,
+): Promise<InventoryItem | string> {
   const result = await call("buy_item", { p_item: itemId, p_colour: colour });
   if (result.error || !result.data) return result.error ?? "Could not buy that";
   applyCommon(result.data);
@@ -140,6 +184,19 @@ export async function placeItem(item: InventoryItem): Promise<string | null> {
   if (result.error) return result.error;
   if (result.data) applyCommon(result.data);
   useGame.getState().upsertInventory({ ...item, placed: true });
+  return null;
+}
+
+export async function buyFinish(finishId: string): Promise<string | null> {
+  const result = await call("buy_finish", { p_finish: finishId });
+  if (result.error || !result.data) return result.error ?? "Could not do that";
+  applyCommon(result.data);
+  useGame
+    .getState()
+    .setFinishes(
+      finishesOf(result.data.finishes),
+      ownedFinishesOf(result.data.owned_finishes),
+    );
   return null;
 }
 
@@ -182,7 +239,8 @@ export interface ShiftResult {
 
 export async function finishShift(): Promise<ShiftResult | string> {
   const result = await call("finish_shift");
-  if (result.error || !result.data) return result.error ?? "Wages are not ready";
+  if (result.error || !result.data)
+    return result.error ?? "Wages are not ready";
   const row = result.data;
   const wage = num(row.wage_pence);
   applyCommon(row);
@@ -194,22 +252,37 @@ export async function finishShift(): Promise<ShiftResult | string> {
     createdAt: new Date().toISOString(),
   });
   const energy = record(row.needs)?.energy;
-  if (typeof energy === "number") useGame.getState().setNeeds({ ...useGame.getState().needs, energy });
+  if (typeof energy === "number")
+    useGame.getState().setNeeds({ ...useGame.getState().needs, energy });
   useGame.getState().setShift(null);
-  return { wage: formatPence(wage), promoted: row.promoted === true, title: str(row.title) };
+  return {
+    wage: formatPence(wage),
+    promoted: row.promoted === true,
+    title: str(row.title),
+  };
 }
 
-export async function travelTo(destination: string, mode: TravelMode): Promise<string | null> {
-  const result = await call("travel", { p_destination: destination, p_mode: mode });
+export async function travelTo(
+  destination: string,
+  mode: TravelMode,
+): Promise<string | null> {
+  const result = await call("travel", {
+    p_destination: destination,
+    p_mode: mode,
+  });
   if (result.error || !result.data) return result.error ?? "Could not travel";
   applyCommon(result.data);
   useGame.getState().setLocation(destination);
   const energy = result.data.needs_energy;
-  if (typeof energy === "number") useGame.getState().setNeeds({ ...useGame.getState().needs, energy });
+  if (typeof energy === "number")
+    useGame.getState().setNeeds({ ...useGame.getState().needs, energy });
   return null;
 }
 
-export async function sendGift(simId: string, pence: number): Promise<string | null> {
+export async function sendGift(
+  simId: string,
+  pence: number,
+): Promise<string | null> {
   const result = await call("send_gift", { p_to: simId, p_pence: pence });
   if (result.error || !result.data) return result.error ?? "Gift failed";
   applyCommon(result.data);

@@ -111,6 +111,19 @@ export interface CatalogueItem {
   effect: number;
 }
 
+export type FinishKind = "wall" | "floor";
+
+export interface FinishDef {
+  id: string;
+  kind: FinishKind;
+  name: string;
+  colour: string;
+  pricePence: number;
+}
+
+/** The paint and floor a home has on now. */
+export type Finishes = Record<FinishKind, string>;
+
 export interface InventoryItem {
   id: string;
   itemId: string;

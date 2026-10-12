@@ -26,8 +26,14 @@ export function coveredTiles(
   return tiles;
 }
 
-export function tilesInRoom(tiles: Tile[], width: number, height: number): boolean {
-  return tiles.every((tile) => tile.x >= 0 && tile.y >= 0 && tile.x < width && tile.y < height);
+export function tilesInRoom(
+  tiles: Tile[],
+  width: number,
+  height: number,
+): boolean {
+  return tiles.every(
+    (tile) => tile.x >= 0 && tile.y >= 0 && tile.x < width && tile.y < height,
+  );
 }
 
 export function canPlace(
@@ -42,6 +48,97 @@ export function canPlace(
   const tiles = coveredTiles(origin, footprint, rotation);
   if (!tilesInRoom(tiles, width, height)) return false;
   return tiles.every((tile) => !blocked.has(tileKey(tile)));
+}
+
+export type PlacementProblem =
+  "wall" | "outside" | "taken" | "standing" | "boxed";
+
+function unreachableCount(
+  start: Tile,
+  blocked: Set<string>,
+  width: number,
+  height: number,
+): number {
+  let free = 0;
+  for (let x = 0; x < width; x += 1) {
+    for (let y = 0; y < height; y += 1)
+      if (!blocked.has(tileKey({ x, y }))) free += 1;
+  }
+  if (blocked.has(tileKey(start))) return 0;
+  const seen = new Set<string>([tileKey(start)]);
+  const stack: Tile[] = [start];
+  while (stack.length > 0) {
+    const tile = stack.pop();
+    if (!tile) break;
+    for (const next of [
+      { x: tile.x + 1, y: tile.y },
+      { x: tile.x - 1, y: tile.y },
+      { x: tile.x, y: tile.y + 1 },
+      { x: tile.x, y: tile.y - 1 },
+    ]) {
+      const key = tileKey(next);
+      if (
+        next.x < 0 ||
+        next.y < 0 ||
+        next.x >= width ||
+        next.y >= height ||
+        seen.has(key) ||
+        blocked.has(key)
+      )
+        continue;
+      seen.add(key);
+      stack.push(next);
+    }
+  }
+  return free - seen.size;
+}
+
+/**
+ * Why an item cannot go here, or null if it can. `sim` is where the player stands;
+ * pass null for items that do not block movement.
+ */
+export function placementProblem(
+  origin: Tile,
+  footprint: [number, number] | "wall",
+  rotation: number,
+  blocked: Set<string>,
+  width: number,
+  height: number,
+  sim: Tile | null,
+): PlacementProblem | null {
+  if (footprint === "wall" && origin.y !== 0) return "wall";
+  const tiles = coveredTiles(origin, footprint, rotation);
+  if (!tilesInRoom(tiles, width, height)) return "outside";
+  if (tiles.some((tile) => blocked.has(tileKey(tile)))) return "taken";
+  if (!sim) return null;
+  if (tiles.some((tile) => tile.x === sim.x && tile.y === sim.y))
+    return "standing";
+  const after = new Set(blocked);
+  for (const tile of tiles) after.add(tileKey(tile));
+  if (
+    unreachableCount(sim, after, width, height) >
+    unreachableCount(sim, blocked, width, height)
+  )
+    return "boxed";
+  return null;
+}
+
+/** Keep an item's origin so its whole footprint stays inside the room. */
+export function clampOrigin(
+  origin: Tile,
+  footprint: [number, number] | "wall",
+  rotation: number,
+  width: number,
+  height: number,
+): Tile {
+  const [w, h] = rotatedFootprint(footprint, rotation);
+  return {
+    x: Math.min(Math.max(0, origin.x), Math.max(0, width - w)),
+    y:
+      footprint === "wall"
+        ? 0
+        : Math.min(Math.max(0, origin.y), Math.max(0, height - h)),
+  };
 }
 
 /** The legal spot closest to the middle of the room, for dropping in a new item. */
@@ -59,8 +156,14 @@ export function firstFreeSpot(
   for (let x = 0; x < width; x += 1) {
     for (let y = 0; y < height; y += 1) origins.push({ x, y });
   }
-  origins.sort((a, b) => Math.hypot(a.x - cx, a.y - cy) - Math.hypot(b.x - cx, b.y - cy));
-  return origins.find((origin) => canPlace(origin, footprint, rotation, blocked, width, height)) ?? null;
+  origins.sort(
+    (a, b) => Math.hypot(a.x - cx, a.y - cy) - Math.hypot(b.x - cx, b.y - cy),
+  );
+  return (
+    origins.find((origin) =>
+      canPlace(origin, footprint, rotation, blocked, width, height),
+    ) ?? null
+  );
 }
 
 export function nearestStand(
@@ -79,12 +182,15 @@ export function nearestStand(
       { x: 0, y: -1 },
     ]) {
       const tile = { x: target.x + dir.x, y: target.y + dir.y };
-      if (tile.x < 0 || tile.y < 0 || tile.x >= width || tile.y >= height) continue;
+      if (tile.x < 0 || tile.y < 0 || tile.x >= width || tile.y >= height)
+        continue;
       if (blocked.has(tileKey(tile))) continue;
       options.push(tile);
     }
   }
-  const alreadyThere = options.find((option) => option.x === from.x && option.y === from.y);
+  const alreadyThere = options.find(
+    (option) => option.x === from.x && option.y === from.y,
+  );
   if (alreadyThere) return alreadyThere;
   options.sort((a, b) => {
     const ad = Math.abs(a.x - from.x) + Math.abs(a.y - from.y);

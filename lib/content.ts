@@ -1,6 +1,7 @@
 import actionsJson from "@/data/actions.json";
 import catalogueJson from "@/data/catalogue.json";
 import eventsJson from "@/data/events.json";
+import finishesJson from "@/data/finishes.json";
 import goalsJson from "@/data/goals.json";
 import homesJson from "@/data/homes.json";
 import jobsJson from "@/data/jobs.json";
@@ -15,6 +16,8 @@ import type {
   CatalogueItem,
   EventDef,
   EventOutcome,
+  FinishDef,
+  Finishes,
   Fixture,
   GoalDef,
   HomeDef,
@@ -28,7 +31,16 @@ import type {
 } from "@/lib/sim/types";
 import { NEED_KEYS } from "@/lib/sim/types";
 
-const ANIMS: readonly Anim[] = ["stand", "walk", "sit", "sleep", "eat", "shower", "dance", "work"];
+const ANIMS: readonly Anim[] = [
+  "stand",
+  "walk",
+  "sit",
+  "sleep",
+  "eat",
+  "shower",
+  "dance",
+  "work",
+];
 
 function asAnim(value: unknown): Anim {
   return ANIMS.find((anim) => anim === value) ?? "stand";
@@ -96,7 +108,11 @@ export const actionsById: Record<string, ActionDef> = Object.fromEntries(
 export const menusById: Record<string, MenuDef> = Object.fromEntries(
   Object.entries(actionsJson.menus).map(([id, menu]) => [
     id,
-    { id, ...menu, actions: menu.actions.filter((actionId) => actionId in actionsById) },
+    {
+      id,
+      ...menu,
+      actions: menu.actions.filter((actionId) => actionId in actionsById),
+    },
   ]),
 );
 
@@ -118,16 +134,35 @@ export const catalogueById: Record<string, CatalogueItem> = Object.fromEntries(
   catalogue.map((item) => [item.id, item]),
 );
 
+export const finishes: FinishDef[] = finishesJson.map((finish) => ({
+  ...finish,
+  kind: finish.kind === "wall" ? "wall" : "floor",
+}));
+
+export const finishesById: Record<string, FinishDef> = Object.fromEntries(
+  finishes.map((finish) => [finish.id, finish]),
+);
+
+/** Every home starts with these; they cost nothing. */
+export const DEFAULT_FINISHES: Finishes = {
+  wall: "magnolia",
+  floor: "oak_laminate",
+};
+
 export const jobs: JobDef[] = jobsJson;
 
-export const jobsById: Record<string, JobDef> = Object.fromEntries(jobs.map((job) => [job.id, job]));
+export const jobsById: Record<string, JobDef> = Object.fromEntries(
+  jobs.map((job) => [job.id, job]),
+);
 
 export const homes: HomeDef[] = homesJson.map((home) => ({
   ...home,
   fixtures: home.fixtures.map((fixture) => asFixture(fixture)),
 }));
 
-export const homesById: Record<string, HomeDef> = Object.fromEntries(homes.map((home) => [home.id, home]));
+export const homesById: Record<string, HomeDef> = Object.fromEntries(
+  homes.map((home) => [home.id, home]),
+);
 
 export const venues: VenueDef[] = venuesJson.map((venue) => ({
   ...venue,
@@ -141,10 +176,18 @@ export const venuesById: Record<string, VenueDef> = Object.fromEntries(
 
 export const goals: GoalDef[] = goalsJson;
 
-type RawOutcome = { text: string; moodlet?: EventOutcome["moodlet"]; needs?: Record<string, number> };
+type RawOutcome = {
+  text: string;
+  moodlet?: EventOutcome["moodlet"];
+  needs?: Record<string, number>;
+};
 
 function outcomeOf(raw: RawOutcome): EventOutcome {
-  return { text: raw.text, moodlet: raw.moodlet, needs: raw.needs ? asEffects(raw.needs) : undefined };
+  return {
+    text: raw.text,
+    moodlet: raw.moodlet,
+    needs: raw.needs ? asEffects(raw.needs) : undefined,
+  };
 }
 
 export const events: EventDef[] = eventsJson.map((event) => ({
@@ -158,13 +201,16 @@ export const events: EventDef[] = eventsJson.map((event) => ({
 
 export const nationalities: Nationality[] = nationalitiesJson;
 
-export const nationalitiesById: Record<string, Nationality> = Object.fromEntries(
-  nationalities.map((nation) => [nation.id, nation]),
-);
+export const nationalitiesById: Record<string, Nationality> =
+  Object.fromEntries(nationalities.map((nation) => [nation.id, nation]));
 
 export const locals: LocalDef[] = localsJson.map((local) => ({
   ...local,
-  look: normaliseAppearance({ ...local.look, origin: local.origin, londonBorn: false }),
+  look: normaliseAppearance({
+    ...local.look,
+    origin: local.origin,
+    londonBorn: false,
+  }),
 }));
 
 export function localsAt(venueId: string): LocalDef[] {
@@ -187,19 +233,40 @@ export interface RoomLayout {
   fixtures: Fixture[];
 }
 
-const FALLBACK_LAYOUT: RoomLayout = { id: "boxroom_z4", width: 5, height: 5, fixtures: [] };
+const FALLBACK_LAYOUT: RoomLayout = {
+  id: "boxroom_z4",
+  width: 5,
+  height: 5,
+  fixtures: [],
+};
 
 function homeLayout(homeId: string): RoomLayout {
   const home = homesById[homeId] ?? homesById.boxroom_z4;
-  return home ? { id: home.id, width: home.width, height: home.height, fixtures: home.fixtures } : FALLBACK_LAYOUT;
+  return home
+    ? {
+        id: home.id,
+        width: home.width,
+        height: home.height,
+        fixtures: home.fixtures,
+      }
+    : FALLBACK_LAYOUT;
 }
 
-export function roomLayout(location: string, homeId: string, visitHomeId: string | null): RoomLayout {
+export function roomLayout(
+  location: string,
+  homeId: string,
+  visitHomeId: string | null,
+): RoomLayout {
   if (visitHomeId) return homeLayout(visitHomeId);
   if (location === "home") return homeLayout(homeId);
   const venue = venuesById[location];
   if (!venue) return FALLBACK_LAYOUT;
-  return { id: venue.id, width: venue.width, height: venue.height, fixtures: venue.fixtures };
+  return {
+    id: venue.id,
+    width: venue.width,
+    height: venue.height,
+    fixtures: venue.fixtures,
+  };
 }
 
 /** Which menu a tapped target opens: a fixture id or an owned inventory id. */
@@ -212,7 +279,11 @@ export function targetMenu(
   if (fixture) {
     const menu = fixture.menu ? menusById[fixture.menu] : undefined;
     if (!menu) return null;
-    return { menu, quality: catalogueById[fixture.itemId]?.effect ?? 1, label: fixture.label ?? menu.title };
+    return {
+      menu,
+      quality: catalogueById[fixture.itemId]?.effect ?? 1,
+      label: fixture.label ?? menu.title,
+    };
   }
   const owned = inventory.find((item) => item.id === targetId && item.placed);
   const item = owned ? catalogueById[owned.itemId] : undefined;
@@ -221,7 +292,12 @@ export function targetMenu(
   return { menu, quality: item.effect, label: item.name };
 }
 
-export const CITY_DRESSING: { model: string; x: number; z: number; rotation: number }[] = [
+export const CITY_DRESSING: {
+  model: string;
+  x: number;
+  z: number;
+  rotation: number;
+}[] = [
   { model: "building-b", x: -16, z: 10, rotation: 0 },
   { model: "building-c", x: -16, z: 4, rotation: 1 },
   { model: "building-e", x: 16, z: 10, rotation: 0 },

@@ -5,7 +5,15 @@ import { persist } from "zustand/middleware";
 import type { Appearance, InventoryItem, TravelMode } from "@/lib/sim/types";
 
 export type NavKey = "home" | "buy" | "map" | "phone";
-export type PhoneApp = "jobs" | "bank" | "messages" | "friends" | "settings" | "callhome" | "help" | "skills";
+export type PhoneApp =
+  | "jobs"
+  | "bank"
+  | "messages"
+  | "friends"
+  | "settings"
+  | "callhome"
+  | "help"
+  | "skills";
 
 export interface GhostPlacement {
   itemId: string;
@@ -53,6 +61,10 @@ interface UiState {
   ghost: GhostPlacement | null;
   /** A big purchase is waiting for the player to say yes. */
   confirmingBuy: boolean;
+  /** Buy mode tucks the catalogue away after placing so the room can be seen. */
+  catalogueHidden: boolean;
+  /** A paint or floor shown on the room before paying for it. */
+  tryFinish: string | null;
   visit: VisitState | null;
   sheet: string | null;
   person: PersonRef | null;
@@ -72,6 +84,8 @@ interface UiState {
   setGhost: (ghost: GhostPlacement | null) => void;
   rotateGhost: () => void;
   setConfirmingBuy: (confirmingBuy: boolean) => void;
+  setCatalogueHidden: (catalogueHidden: boolean) => void;
+  setTryFinish: (tryFinish: string | null) => void;
   cancelPlacement: () => void;
   setVisit: (visit: VisitState | null) => void;
   openSheet: (target: string | null) => void;
@@ -101,6 +115,8 @@ export const useUi = create<UiState>()(
       movingId: null,
       ghost: null,
       confirmingBuy: false,
+      catalogueHidden: false,
+      tryFinish: null,
       visit: null,
       sheet: null,
       person: null,
@@ -118,30 +134,75 @@ export const useUi = create<UiState>()(
           movingId: null,
           ghost: null,
           confirmingBuy: false,
+          catalogueHidden: false,
+          tryFinish: null,
         }),
-      openPhone: (phoneApp) => set({ phoneApp, nav: "phone", sheet: null, person: null }),
+      openPhone: (phoneApp) =>
+        set({ phoneApp, nav: "phone", sheet: null, person: null }),
       rotateYaw: () => set((state) => ({ yaw: Math.round(state.yaw) + 1 })),
-      orbit: (yaw, pitch) => set({ yaw, pitch: Math.min(PITCH_MAX, Math.max(PITCH_MIN, pitch)) }),
+      orbit: (yaw, pitch) =>
+        set({ yaw, pitch: Math.min(PITCH_MAX, Math.max(PITCH_MIN, pitch)) }),
       setZoom: (zoom) => set({ zoom: Math.min(90, Math.max(24, zoom)) }),
       pushToast: (text, tone = "info") => {
         toastSeq += 1;
         const id = `toast-${toastSeq}`;
-        set((state) => ({ toasts: [...state.toasts.slice(-3), { id, text, tone }] }));
+        set((state) => ({
+          toasts: [...state.toasts.slice(-3), { id, text, tone }],
+        }));
         if (typeof window !== "undefined") {
           window.setTimeout(() => {
-            set((state) => ({ toasts: state.toasts.filter((toast) => toast.id !== id) }));
+            set((state) => ({
+              toasts: state.toasts.filter((toast) => toast.id !== id),
+            }));
           }, 3400);
         }
       },
-      dismissToast: (id) => set((state) => ({ toasts: state.toasts.filter((toast) => toast.id !== id) })),
+      dismissToast: (id) =>
+        set((state) => ({
+          toasts: state.toasts.filter((toast) => toast.id !== id),
+        })),
       setTravelTo: (travelTo) => set({ travelTo }),
-      selectCatalogue: (selectedCatalogueId) => set({ selectedCatalogueId, movingId: null, ghost: null, confirmingBuy: false }),
-      setMoving: (movingId) => set({ movingId, selectedCatalogueId: null, ghost: null, confirmingBuy: false }),
+      selectCatalogue: (selectedCatalogueId) =>
+        set({
+          selectedCatalogueId,
+          movingId: null,
+          ghost: null,
+          confirmingBuy: false,
+        }),
+      setMoving: (movingId) =>
+        set({
+          movingId,
+          selectedCatalogueId: null,
+          ghost: null,
+          confirmingBuy: false,
+        }),
       setGhost: (ghost) => set({ ghost }),
       rotateGhost: () =>
-        set((state) => (state.ghost ? { ghost: { ...state.ghost, rotation: (state.ghost.rotation + 1) % 4 } } : {})),
+        set((state) =>
+          state.ghost
+            ? {
+                ghost: {
+                  ...state.ghost,
+                  rotation: (state.ghost.rotation + 1) % 4,
+                },
+              }
+            : {},
+        ),
       setConfirmingBuy: (confirmingBuy) => set({ confirmingBuy }),
-      cancelPlacement: () => set({ ghost: null, selectedCatalogueId: null, movingId: null, confirmingBuy: false }),
+      setCatalogueHidden: (catalogueHidden) =>
+        set(
+          catalogueHidden
+            ? { catalogueHidden, tryFinish: null }
+            : { catalogueHidden },
+        ),
+      setTryFinish: (tryFinish) => set({ tryFinish }),
+      cancelPlacement: () =>
+        set({
+          ghost: null,
+          selectedCatalogueId: null,
+          movingId: null,
+          confirmingBuy: false,
+        }),
       setVisit: (visit) => set({ visit, nav: "home" }),
       openSheet: (sheet) => set({ sheet, person: null }),
       openPerson: (person) => set({ person, sheet: null }),
@@ -151,7 +212,12 @@ export const useUi = create<UiState>()(
     }),
     {
       name: "london-life-ui",
-      partialize: (state) => ({ yaw: state.yaw, pitch: state.pitch, zoom: state.zoom, muted: state.muted }),
+      partialize: (state) => ({
+        yaw: state.yaw,
+        pitch: state.pitch,
+        zoom: state.zoom,
+        muted: state.muted,
+      }),
     },
   ),
 );

@@ -48,13 +48,16 @@ export const usePresence = create<PresenceState>((set) => ({
   setOnline: (online) => set({ online }),
   upsert: (player) =>
     set((state) => {
-      const index = state.here.findIndex((entry) => entry.simId === player.simId);
+      const index = state.here.findIndex(
+        (entry) => entry.simId === player.simId,
+      );
       if (index === -1) return { here: [...state.here, player] };
       const here = state.here.slice();
       here[index] = { ...here[index], ...player };
       return { here };
     }),
-  pushChat: (line) => set((state) => ({ chat: [...state.chat.slice(-40), line] })),
+  pushChat: (line) =>
+    set((state) => ({ chat: [...state.chat.slice(-40), line] })),
   setInvite: (invite) => set({ invite }),
   clear: () => set({ here: [], invite: null }),
 }));

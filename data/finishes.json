@@ -1,0 +1,20 @@
+[
+  { "id": "magnolia", "kind": "wall", "name": "Landlord Magnolia", "colour": "#efe7da", "pricePence": 0 },
+  { "id": "elephant_grey", "kind": "wall", "name": "Elephant's Breath", "colour": "#cfc6bb", "pricePence": 4500 },
+  { "id": "sage_green", "kind": "wall", "name": "Allotment Sage", "colour": "#b9c8a7", "pricePence": 4500 },
+  { "id": "duck_egg", "kind": "wall", "name": "Duck Egg", "colour": "#bcd7d3", "pricePence": 5000 },
+  { "id": "terracotta", "kind": "wall", "name": "Brixton Terracotta", "colour": "#d48a6a", "pricePence": 6000 },
+  { "id": "pillar_red", "kind": "wall", "name": "Pillar Box Red", "colour": "#c8423b", "pricePence": 7500 },
+  { "id": "hackney_navy", "kind": "wall", "name": "Hackney Navy", "colour": "#2f3d5c", "pricePence": 7500 },
+  { "id": "mustard", "kind": "wall", "name": "Colman's Mustard", "colour": "#e0b34a", "pricePence": 6500 },
+  { "id": "blush_pink", "kind": "wall", "name": "Notting Hill Blush", "colour": "#efc4c0", "pricePence": 6500 },
+  { "id": "exposed_brick", "kind": "wall", "name": "Warehouse Brick", "colour": "#a85b45", "pricePence": 25000 },
+  { "id": "oak_laminate", "kind": "floor", "name": "Rental Laminate", "colour": "#c4a574", "pricePence": 0 },
+  { "id": "grey_carpet", "kind": "floor", "name": "Office Carpet", "colour": "#9c9a96", "pricePence": 9000 },
+  { "id": "pale_ash", "kind": "floor", "name": "Scandi Ash", "colour": "#e2d2b3", "pricePence": 18000 },
+  { "id": "walnut", "kind": "floor", "name": "Walnut Boards", "colour": "#7a5236", "pricePence": 24000 },
+  { "id": "terrazzo", "kind": "floor", "name": "Shoreditch Terrazzo", "colour": "#d9d4cc", "pricePence": 32000 },
+  { "id": "parquet", "kind": "floor", "name": "Mayfair Parquet", "colour": "#a8743f", "pricePence": 45000 },
+  { "id": "victorian_tile", "kind": "floor", "name": "Victorian Tile", "colour": "#b4685a", "pricePence": 38000 },
+  { "id": "marble", "kind": "floor", "name": "Knightsbridge Marble", "colour": "#f1efe9", "pricePence": 120000 }
+]

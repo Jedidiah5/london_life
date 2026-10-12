@@ -4,7 +4,10 @@ let client: SupabaseClient | null = null;
 let offlineReason: string | null = null;
 
 function hasKeys(): boolean {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  );
 }
 
 export function supabaseConfigured(): boolean {
@@ -34,6 +37,7 @@ export async function ensureSession(): Promise<void> {
       offlineReason = signed.error?.message ?? "Anonymous sign-in failed";
     }
   } catch (error) {
-    offlineReason = error instanceof Error ? error.message : "Could not reach Supabase";
+    offlineReason =
+      error instanceof Error ? error.message : "Could not reach Supabase";
   }
 }
