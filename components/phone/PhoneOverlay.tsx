@@ -2,9 +2,9 @@
 
 import { Flag } from "@/components/Flag";
 import { nationalitiesById } from "@/lib/content";
-import { clockParts } from "@/lib/sim/clock";
 import { useGame } from "@/lib/store/useGame";
 import { useUi, type PhoneApp } from "@/lib/store/useUi";
+import { useLondonTime } from "@/lib/useNow";
 import { Bank } from "./apps/Bank";
 import { CallHome } from "./apps/CallHome";
 import { Friends } from "./apps/Friends";
@@ -13,8 +13,6 @@ import { Jobs } from "./apps/Jobs";
 import { Messages } from "./apps/Messages";
 import { Settings } from "./apps/Settings";
 import { Skills } from "./apps/Skills";
-
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 const APPS: { id: PhoneApp; label: string; emoji: string; colour: string }[] = [
   { id: "jobs", label: "Jobs", emoji: "💼", colour: "from-[#f5a524] to-[#e07b00]" },
@@ -33,14 +31,22 @@ export function PhoneOverlay() {
   const gameMinutes = useGame((state) => state.gameMinutes);
   const origin = useGame((state) => state.appearance.origin);
   const lastCall = useGame((state) => state.lastCallMinute);
+  const clock = useLondonTime();
   if (nav !== "phone") return null;
-  const clock = clockParts(gameMinutes);
-  const time = `${String(clock.hour).padStart(2, "0")}:${String(clock.minute).padStart(2, "0")}`;
+  const time = clock.time;
   const current = APPS.find((entry) => entry.id === app);
   const missing = gameMinutes - lastCall > 1440 * 2;
 
   return (
-    <div className="pointer-events-auto mx-auto w-full max-w-[320px]">
+    <div className="pointer-events-auto relative mx-auto w-full max-w-[320px]">
+      <button
+        type="button"
+        aria-label="Close phone"
+        className="absolute -right-3 -top-3 z-10 grid h-9 w-9 place-items-center rounded-full bg-white text-lg font-bold text-[#1b2838] shadow-lg ring-1 ring-black/10"
+        onClick={() => useUi.getState().setNav("home")}
+      >
+        ✕
+      </button>
       <div className="rounded-[42px] bg-[#111] p-2.5 shadow-2xl">
         <div className="relative h-[min(560px,62vh)] overflow-hidden rounded-[34px] bg-gradient-to-br from-[#2b3a67] via-[#7a3e6b] to-[#e07b39] text-white">
           <div className="flex items-center justify-between px-5 pt-2 text-[11px] font-semibold">
@@ -75,7 +81,7 @@ export function PhoneOverlay() {
               <div className="text-center">
                 <div className="text-6xl font-thin tracking-tight">{time}</div>
                 <div className="text-sm font-medium opacity-90">
-                  {DAYS[(clock.day - 1) % 7]} · Day {clock.day}
+                  {clock.longWeekday} · {clock.date}
                 </div>
                 <div className="mt-1 text-[11px] opacity-80">🌧️ 11°C · London</div>
               </div>

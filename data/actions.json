@@ -12,6 +12,8 @@
     "books": {"title":"Bookcase","emoji":"📚","blurb":"Mostly unread. Very decorative.","actions":["read"]},
     "sofa": {"title":"Sofa","emoji":"🛋️","blurb":"Comfier than the bed. Don't tell the bed.","actions":["sofa_nap","phone_stream","stare_out"]},
     "microwave": {"title":"Microwave","emoji":"📟","blurb":"Ping. Dinner is served.","actions":["noodles","leftovers"]},
+    "cooker": {"title":"Cooker","emoji":"🍳","blurb":"Two of the four rings work. Choose wisely.","actions":["fry_up","taste_of_home","beans_on_toast"]},
+    "counter": {"title":"Worktop","emoji":"🫖","blurb":"The kettle is the hardest-working thing in this flat.","actions":["cuppa","leftovers"]},
 
     "camden_food": {"title":"Food stalls","emoji":"🍜","blurb":"Every country's food, one long queue.","actions":["jerk_box","bao","churros","food_from_home_market"]},
     "camden_rails": {"title":"Vintage rails","emoji":"🧥","blurb":"Everything is 'archive'. Everything is £40.","actions":["try_jacket","band_tee"]},
@@ -54,6 +56,7 @@
     "noodles": {"label":"Instant noodles","emoji":"🍜","minutes":4,"costPence":40,"effects":{"hunger":22},"anim":"eat"},
     "cuppa": {"label":"Cup of tea","emoji":"🫖","minutes":4,"costPence":0,"effects":{"energy":6,"fun":4},"anim":"eat"},
     "taste_of_home": {"label":"Cook a taste of home","emoji":"🏡","minutes":20,"costPence":300,"effects":{"hunger":55,"fun":15},"anim":"eat","heritage":true,"skill":"cooking","xp":0.2},
+    "fry_up": {"label":"Cook a fry-up","emoji":"🍳","minutes":15,"costPence":250,"effects":{"hunger":50,"fun":5},"anim":"eat","skill":"cooking","xp":0.15},
     "leftovers": {"label":"Eat yesterday's leftovers","emoji":"🥡","minutes":6,"costPence":0,"effects":{"hunger":15},"anim":"eat"},
     "home_coffee": {"label":"Make a coffee","emoji":"☕","minutes":4,"costPence":30,"effects":{"energy":14},"anim":"eat"},
     "watch_telly": {"label":"Watch telly","emoji":"📺","minutes":20,"costPence":0,"effects":{"fun":28},"anim":"sit","scales":true},

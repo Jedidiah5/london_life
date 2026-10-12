@@ -8,13 +8,14 @@ import { broadcastChat } from "@/lib/net/realtime";
 import { useGame } from "@/lib/store/useGame";
 import { usePresence } from "@/lib/store/usePresence";
 import { useUi } from "@/lib/store/useUi";
+import { useLondonTime } from "@/lib/useNow";
 
 const QUICK = ["Mind the gap", "Cheers!", "Lovely weather 🌧️", "Anyone for a pint?"];
 
 export function VenuePanel() {
   const location = useGame((state) => state.location);
   const homeId = useGame((state) => state.homeId);
-  const hour = useGame((state) => Math.floor(state.gameMinutes / 60));
+  const hour = useLondonTime().hour;
   const origin = useGame((state) => state.appearance.origin);
   const here = usePresence((state) => state.here);
   const chat = usePresence((state) => state.chat);

@@ -10,7 +10,9 @@
     "fixtures": [
       {"id":"loo","model":"toilet","itemId":"toilet","x":4,"y":0,"rotation":0,"menu":"loo","blocks":true,"label":"Shared loo"},
       {"id":"shower","model":"shower","itemId":"shower","x":4,"y":1,"rotation":0,"menu":"shower","blocks":true,"label":"Shared shower"},
-      {"id":"fridge","model":"kitchenFridge","itemId":"fridge","x":0,"y":4,"rotation":0,"menu":"kitchen","blocks":true,"label":"Shared fridge"}
+      {"id":"fridge","model":"kitchenFridge","itemId":"fridge","x":0,"y":4,"rotation":2,"menu":"kitchen","blocks":true,"label":"Shared fridge"},
+      {"id":"sink","model":"kitchenSink","itemId":"sink","x":1,"y":4,"rotation":2,"menu":null,"blocks":true,"label":"Sink"},
+      {"id":"cooker","model":"kitchenCooker","itemId":"cooker","x":2,"y":4,"rotation":2,"menu":"cooker","blocks":true,"label":"Cooker"}
     ]
   },
   {
@@ -24,7 +26,10 @@
     "fixtures": [
       {"id":"loo","model":"toilet","itemId":"toilet","x":6,"y":0,"rotation":0,"menu":"loo","blocks":true,"label":"Loo"},
       {"id":"shower","model":"shower","itemId":"shower","x":6,"y":1,"rotation":0,"menu":"shower","blocks":true,"label":"Shower"},
-      {"id":"fridge","model":"kitchenFridge","itemId":"fridge","x":0,"y":6,"rotation":0,"menu":"kitchen","blocks":true,"label":"Fridge"}
+      {"id":"fridge","model":"kitchenFridge","itemId":"fridge","x":0,"y":6,"rotation":2,"menu":"kitchen","blocks":true,"label":"Fridge"},
+      {"id":"counter","model":"kitchenCounter","itemId":"counter","x":1,"y":6,"rotation":2,"menu":"counter","blocks":true,"label":"Worktop"},
+      {"id":"sink","model":"kitchenSink","itemId":"sink","x":2,"y":6,"rotation":2,"menu":null,"blocks":true,"label":"Sink"},
+      {"id":"cooker","model":"kitchenCooker","itemId":"cooker","x":3,"y":6,"rotation":2,"menu":"cooker","blocks":true,"label":"Cooker"}
     ]
   },
   {
@@ -38,7 +43,10 @@
     "fixtures": [
       {"id":"loo","model":"toilet","itemId":"toilet","x":8,"y":0,"rotation":0,"menu":"loo","blocks":true,"label":"Loo"},
       {"id":"shower","model":"shower","itemId":"shower","x":8,"y":1,"rotation":0,"menu":"shower","blocks":true,"label":"Shower"},
-      {"id":"fridge","model":"kitchenFridge","itemId":"fridge","x":0,"y":8,"rotation":0,"menu":"kitchen","blocks":true,"label":"Fridge"}
+      {"id":"fridge","model":"kitchenFridge","itemId":"fridge","x":0,"y":8,"rotation":2,"menu":"kitchen","blocks":true,"label":"Fridge"},
+      {"id":"counter","model":"kitchenCounter","itemId":"counter","x":1,"y":8,"rotation":2,"menu":"counter","blocks":true,"label":"Worktop"},
+      {"id":"sink","model":"kitchenSink","itemId":"sink","x":2,"y":8,"rotation":2,"menu":null,"blocks":true,"label":"Sink"},
+      {"id":"cooker","model":"kitchenCooker","itemId":"cooker","x":3,"y":8,"rotation":2,"menu":"cooker","blocks":true,"label":"Cooker"}
     ]
   },
   {
@@ -52,7 +60,10 @@
     "fixtures": [
       {"id":"loo","model":"toilet","itemId":"toilet","x":11,"y":0,"rotation":0,"menu":"loo","blocks":true,"label":"Loo"},
       {"id":"shower","model":"shower","itemId":"shower","x":11,"y":1,"rotation":0,"menu":"shower","blocks":true,"label":"Rain shower"},
-      {"id":"fridge","model":"kitchenFridge","itemId":"fridge","x":0,"y":11,"rotation":0,"menu":"kitchen","blocks":true,"label":"Smart fridge"}
+      {"id":"fridge","model":"kitchenFridge","itemId":"fridge","x":0,"y":11,"rotation":2,"menu":"kitchen","blocks":true,"label":"Smart fridge"},
+      {"id":"counter","model":"kitchenCounter","itemId":"counter","x":1,"y":11,"rotation":2,"menu":"counter","blocks":true,"label":"Island worktop"},
+      {"id":"sink","model":"kitchenSink","itemId":"sink","x":2,"y":11,"rotation":2,"menu":null,"blocks":true,"label":"Sink"},
+      {"id":"cooker","model":"kitchenCooker","itemId":"cooker","x":3,"y":11,"rotation":2,"menu":"cooker","blocks":true,"label":"Range cooker"}
     ]
   },
   {
@@ -66,7 +77,10 @@
     "fixtures": [
       {"id":"loo","model":"toilet","itemId":"toilet","x":11,"y":0,"rotation":0,"menu":"loo","blocks":true,"label":"Loo"},
       {"id":"shower","model":"shower","itemId":"shower","x":11,"y":1,"rotation":0,"menu":"shower","blocks":true,"label":"Shower"},
-      {"id":"fridge","model":"kitchenFridge","itemId":"fridge","x":0,"y":11,"rotation":0,"menu":"kitchen","blocks":true,"label":"Fridge"}
+      {"id":"fridge","model":"kitchenFridge","itemId":"fridge","x":0,"y":11,"rotation":2,"menu":"kitchen","blocks":true,"label":"Fridge"},
+      {"id":"counter","model":"kitchenCounter","itemId":"counter","x":1,"y":11,"rotation":2,"menu":"counter","blocks":true,"label":"Worktop"},
+      {"id":"sink","model":"kitchenSink","itemId":"sink","x":2,"y":11,"rotation":2,"menu":null,"blocks":true,"label":"Butler sink"},
+      {"id":"cooker","model":"kitchenCooker","itemId":"cooker","x":3,"y":11,"rotation":2,"menu":"cooker","blocks":true,"label":"Aga"}
     ]
   },
   {
@@ -79,7 +93,8 @@
     "buyPence": null,
     "fixtures": [
       {"id":"loo","model":"toilet","itemId":"toilet","x":4,"y":0,"rotation":0,"menu":"loo","blocks":true,"label":"Someone's loo"},
-      {"id":"fridge","model":"kitchenFridge","itemId":"fridge","x":0,"y":4,"rotation":0,"menu":"kitchen","blocks":true,"label":"Someone's fridge"}
+      {"id":"fridge","model":"kitchenFridge","itemId":"fridge","x":0,"y":4,"rotation":2,"menu":"kitchen","blocks":true,"label":"Someone's fridge"},
+      {"id":"cooker","model":"kitchenCooker","itemId":"cooker","x":1,"y":4,"rotation":2,"menu":"cooker","blocks":true,"label":"Someone's hob"}
     ]
   }
 ]

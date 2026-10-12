@@ -10,6 +10,7 @@ import { travelQuote } from "@/lib/sim/travel";
 import type { TravelMode } from "@/lib/sim/types";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
+import { useLondonTime } from "@/lib/useNow";
 
 const MODES: { mode: TravelMode; emoji: string; name: string }[] = [
   { mode: "tube", emoji: "🚇", name: "Tube" },
@@ -24,7 +25,7 @@ export function TravelModal() {
   const homeId = useGame((state) => state.homeId);
   const oyster = useGame((state) => state.oysterPence);
   const balance = useGame((state) => state.balancePence);
-  const hour = useGame((state) => Math.floor(state.gameMinutes / 60));
+  const hour = useLondonTime().hour;
   const [mode, setMode] = useState<TravelMode>("tube");
   const [busy, setBusy] = useState(false);
   const venue = target ? venuesById[target] : undefined;

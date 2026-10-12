@@ -4,8 +4,6 @@ export type NeedKey = (typeof NEED_KEYS)[number];
 
 export type Needs = Record<NeedKey, number>;
 
-export type Speed = 1 | 2 | 3;
-
 export type MoodBand = "Miserable" | "Low" | "Fine" | "Happy" | "Buzzing";
 
 export type Anim = "stand" | "walk" | "sit" | "sleep" | "eat" | "shower" | "dance" | "work";

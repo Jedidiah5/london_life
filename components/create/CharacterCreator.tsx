@@ -341,7 +341,7 @@ export function CharacterCreator() {
               </div>
             </div>
             <div className="rounded-2xl bg-white/80 p-3 text-[12px] text-[#3a4a5a] shadow-sm">
-              You start with <b>£400</b> and a box room in Zone 4. Rent is <b>£180</b>, due Sunday. It is already raining.
+              You start with <b>£400</b> and a box room in Zone 4. Rent is <b>£180</b> a week. Check the Bank app for when it&apos;s due. It is already raining.
             </div>
             {error ? <p className="text-sm font-semibold text-[#c8102e]">{error}</p> : null}
             <div className="mt-auto flex gap-2">

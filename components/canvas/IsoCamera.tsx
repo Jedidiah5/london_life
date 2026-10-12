@@ -4,7 +4,6 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import { PerspectiveCamera, Vector3 } from "three";
 import { roomLayout } from "@/lib/content";
-import { tileWorld } from "@/lib/sim/grid";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
 
@@ -13,7 +12,10 @@ const DEFAULT_ZOOM = 52;
 const DRAG_PER_QUARTER = 240;
 /** Pixels of vertical drag per radian of tilt. */
 const DRAG_PER_RADIAN = 320;
-const TAP_SLOP = 6;
+/** Pixels a press may wander and still count as a tap rather than a drag. */
+const TAP_SLOP = 12;
+/** How far, as a share of the room size, the view slides in buy mode so the catalogue does not cover the room. */
+const BUY_LIFT = 0.38;
 const TARGET = new Vector3();
 
 export function IsoCamera() {
@@ -23,7 +25,7 @@ export function IsoCamera() {
   const location = useGame((state) => state.location);
   const homeId = useGame((state) => state.homeId);
   const visit = useUi((state) => state.visit);
-  const view = useRef<{ yaw: number; pitch: number; zoom: number } | null>(null);
+  const view = useRef<{ yaw: number; pitch: number; zoom: number; lift: number } | null>(null);
   const layout = roomLayout(location, homeId, visit?.homeId ?? null);
   const roomSpan = Math.hypot(layout.width, layout.height) + 0.4;
 
@@ -106,7 +108,7 @@ export function IsoCamera() {
 
   useFrame((_, delta) => {
     const ui = useUi.getState();
-    const current = (view.current ??= { yaw: ui.yaw, pitch: ui.pitch, zoom: ui.zoom });
+    const current = (view.current ??= { yaw: ui.yaw, pitch: ui.pitch, zoom: ui.zoom, lift: 0 });
     const ease = 1 - Math.exp(-delta * 12);
     current.yaw += (ui.yaw - current.yaw) * ease;
     current.pitch += (ui.pitch - current.pitch) * ease;
@@ -114,23 +116,23 @@ export function IsoCamera() {
     if (!(camera instanceof PerspectiveCamera)) return;
 
     const map = ui.nav === "map";
+    const buying = ui.nav === "buy";
+    current.lift += ((buying ? BUY_LIFT : 0) - current.lift) * ease;
     const span = map ? 34 : roomSpan;
-    const pitch = map ? Math.max(current.pitch, 0.95) : current.pitch;
+    const pitch = map ? Math.max(current.pitch, 0.95) : buying ? Math.max(current.pitch, 1.05) : current.pitch;
     const vertical = (camera.fov * Math.PI) / 180;
     const horizontal = 2 * Math.atan(Math.tan(vertical / 2) * (size.width / Math.max(size.height, 1)));
     const fitWidth = span / 2 / Math.tan(horizontal / 2) / 0.98;
     const fitHeight = ((span / 2) * Math.sin(pitch) + 0.8 * Math.cos(pitch)) / Math.tan(vertical / 2) / 0.8;
-    const distance = Math.max(fitWidth, fitHeight) * (map ? 1 : DEFAULT_ZOOM / current.zoom);
+    const distance = Math.max(fitWidth, fitHeight) * (map ? 1 : buying ? 1.3 : DEFAULT_ZOOM / current.zoom);
 
     const angle = (current.yaw * Math.PI) / 2 + Math.PI / 4;
-    const follow = map ? 0 : Math.min(1, Math.max(0, (current.zoom - DEFAULT_ZOOM) / 30));
-    const tile = useGame.getState().tile;
-    const [px, , pz] = tileWorld(tile.x, tile.y, layout.width, layout.height);
-    TARGET.set(px * follow, map ? 0 : 0.35 + follow * 0.25, pz * follow);
+    const slide = current.lift * span;
+    TARGET.set(Math.cos(angle) * slide, map ? 0 : 0.35, Math.sin(angle) * slide);
     camera.position.set(
-      Math.cos(angle) * Math.cos(pitch) * distance,
+      TARGET.x + Math.cos(angle) * Math.cos(pitch) * distance,
       TARGET.y + Math.sin(pitch) * distance,
-      Math.sin(angle) * Math.cos(pitch) * distance,
+      TARGET.z + Math.sin(angle) * Math.cos(pitch) * distance,
     );
     camera.lookAt(TARGET);
     camera.near = Math.max(0.1, distance * 0.05);

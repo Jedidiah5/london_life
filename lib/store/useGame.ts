@@ -24,7 +24,6 @@ import type {
   Moodlet,
   Needs,
   SimAction,
-  Speed,
   Tile,
 } from "@/lib/sim/types";
 
@@ -79,7 +78,6 @@ interface GameState {
   homeId: string;
   location: string;
   gameMinutes: number;
-  speed: Speed;
   heatingOn: boolean;
   inventory: InventoryItem[];
   tile: Tile;
@@ -106,7 +104,6 @@ interface GameState {
   queueAction: (def: ActionDef, target: string | null) => string | null;
   canQueue: () => string | null;
   arrive: () => void;
-  setSpeed: (speed: Speed) => void;
   setHeatingLocal: (on: boolean) => void;
   applyCheckpoint: (patch: Partial<ServerSnapshot> & { needs: Needs; gameMinutes: number }) => void;
   applyMoney: (balancePence: number, oysterPence?: number, entry?: LedgerEntry) => void;
@@ -168,7 +165,6 @@ const blank = {
   homeId: "boxroom_z4",
   location: "home",
   gameMinutes: START_GAME_MINUTES,
-  speed: 1 as Speed,
   heatingOn: true,
   inventory: [],
   tile: { x: 2, y: 2 },
@@ -237,8 +233,7 @@ export const useGame = create<GameState>()(
         const state = get();
         if (!state.created || realSeconds <= 0) return [];
         const sleeping = !state.shift && !state.readOnly && state.action?.anim === "sleep";
-        const homeSpeed = state.location === "home" && !state.readOnly && !state.shift ? state.speed : 1;
-        const elapsed = advanceClock(0, realSeconds, sleeping ? SLEEP_SPEED : homeSpeed);
+        const elapsed = advanceClock(0, realSeconds, sleeping ? SLEEP_SPEED : 1);
         const gameMinutes = state.gameMinutes + elapsed;
         let needs = decayNeeds(state.needs, elapsed / 60, Boolean(state.shift), sleeping);
         let action = state.action;
@@ -335,7 +330,6 @@ export const useGame = create<GameState>()(
         }
         set({ tile: next, path: [], action: state.action ?? state.pending, pending: null });
       },
-      setSpeed: (speed) => set({ speed }),
       setHeatingLocal: (heatingOn) => set({ heatingOn }),
       applyCheckpoint: (patch) =>
         set((state) => ({
@@ -427,7 +421,6 @@ export const useGame = create<GameState>()(
         homeId: state.homeId,
         location: state.location,
         gameMinutes: state.gameMinutes,
-        speed: state.speed,
         heatingOn: state.heatingOn,
         inventory: state.inventory,
         tile: state.tile,

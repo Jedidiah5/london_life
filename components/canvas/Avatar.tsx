@@ -2,7 +2,7 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
-import { DoubleSide, type Group, type Mesh } from "three";
+import { DoubleSide, Vector2, type Group, type Mesh } from "three";
 import type { Anim, Appearance } from "@/lib/sim/types";
 import { shadeHex as shade } from "./colour";
 
@@ -18,7 +18,7 @@ function Hair({ look }: { look: Appearance }) {
   const covered = look.headwear === "hijab" || look.headwear === "turban" || look.headwear === "headwrap";
   if (covered || look.hairStyle === "bald") return null;
   const cap = (scale = 1.06, squash = 0.62) => (
-    <mesh position={[0, HEAD_Y + 0.015, -0.005]} scale={[scale, squash * scale + 0.38, scale]}>
+    <mesh position={[0, HEAD_Y + 0.012, -0.012]} rotation={[-0.38, 0, 0]} scale={[scale, squash * scale + 0.38, scale]}>
       <sphereGeometry args={[HEAD_R, 18, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
       <Mat color={c} />
     </mesh>
@@ -32,8 +32,8 @@ function Hair({ look }: { look: Appearance }) {
       return cap(1.08, 0.75);
     case "afro":
       return (
-        <mesh position={[0, HEAD_Y + 0.06, -0.02]}>
-          <sphereGeometry args={[0.19, 18, 14]} />
+        <mesh position={[0, HEAD_Y + 0.055, -0.045]} scale={[1.05, 0.95, 0.9]}>
+          <sphereGeometry args={[0.155, 20, 16]} />
           <Mat color={c} rough={0.95} />
         </mesh>
       );
@@ -208,11 +208,11 @@ function Face({ look }: { look: Appearance }) {
     <group>
       {[-1, 1].map((side) => (
         <group key={side}>
-          <mesh position={[side * 0.04, HEAD_Y + 0.012, z]} scale={[1, 1.25, 0.6]}>
-            <sphereGeometry args={[0.014, 10, 8]} />
+          <mesh position={[side * 0.04, HEAD_Y + 0.012, z]} scale={[1, 1.1, 0.5]}>
+            <sphereGeometry args={[0.011, 10, 8]} />
             <meshStandardMaterial color="#1a1412" roughness={0.25} />
           </mesh>
-          <mesh position={[side * 0.044, HEAD_Y + 0.045, z - 0.004]} rotation={[0, 0, side * -0.12]}>
+          <mesh position={[side * 0.042, HEAD_Y + 0.04, z - 0.006]} rotation={[0, 0, Math.PI / 2 + side * 0.15]}>
             <capsuleGeometry args={[0.005, 0.026, 2, 6]} />
             <Mat color={brow} />
           </mesh>
@@ -236,7 +236,7 @@ function Face({ look }: { look: Appearance }) {
 
 function Outfit({ look, width }: { look: Appearance; width: number }) {
   const top = look.top;
-  const front = 0.068;
+  const front = 0.058;
   switch (look.topStyle) {
     case "dress":
       return (
@@ -265,8 +265,8 @@ function Outfit({ look, width }: { look: Appearance; width: number }) {
             <sphereGeometry args={[0.06, 12, 8]} />
             <Mat color={shade(top, -0.06)} />
           </mesh>
-          <mesh position={[0, 0.53, front]}>
-            <boxGeometry args={[width * 0.55, 0.07, 0.012]} />
+          <mesh position={[0, 0.54, front - 0.007]}>
+            <boxGeometry args={[width * 0.5, 0.065, 0.012]} />
             <Mat color={shade(top, -0.08)} />
           </mesh>
           {[-0.02, 0.02].map((x) => (
@@ -311,21 +311,50 @@ function Outfit({ look, width }: { look: Appearance; width: number }) {
   }
 }
 
-function Limb({
-  radius,
-  length,
-  color,
-  centre,
-}: {
-  radius: number;
-  length: number;
-  color: string;
-  centre: number;
-}) {
+/** A tapered limb hanging down from its joint, with a rounded end so the next segment blends in. */
+function Limb({ top, bottom, length, color }: { top: number; bottom: number; length: number; color: string }) {
   return (
-    <mesh position={[0, centre, 0]} castShadow>
-      <capsuleGeometry args={[radius, length, 4, 12]} />
-      <Mat color={color} rough={0.7} />
+    <group>
+      <mesh position={[0, -length / 2, 0]}>
+        <cylinderGeometry args={[top, bottom, length, 14, 1, true]} />
+        <Mat color={color} rough={0.7} />
+      </mesh>
+      <mesh position={[0, -length, 0]}>
+        <sphereGeometry args={[bottom, 14, 10]} />
+        <Mat color={color} rough={0.7} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Radius-by-height profiles, turned on a lathe and flattened front to back. */
+const TORSO_PROFILE: [number, number][] = [
+  [0.07, 0.49],
+  [0.074, 0.53],
+  [0.07, 0.57],
+  [0.078, 0.63],
+  [0.088, 0.68],
+  [0.09, 0.71],
+  [0.078, 0.74],
+  [0.05, 0.765],
+  [0.032, 0.775],
+  [0.001, 0.778],
+];
+const PELVIS_PROFILE: [number, number][] = [
+  [0.001, 0.4],
+  [0.05, 0.405],
+  [0.075, 0.43],
+  [0.08, 0.46],
+  [0.074, 0.5],
+  [0.07, 0.52],
+];
+
+function Lathe({ profile, color, width, depth = 0.68 }: { profile: [number, number][]; color: string; width: number; depth?: number }) {
+  const points = useMemo(() => profile.map(([r, y]) => new Vector2(r, y)), [profile]);
+  return (
+    <mesh scale={[width / 0.18, 1, depth]}>
+      <latheGeometry args={[points, 24]} />
+      <Mat color={color} rough={0.75} />
     </mesh>
   );
 }
@@ -343,7 +372,7 @@ export function Avatar({ look, anim, seed = 0 }: { look: Appearance; anim: Anim;
   const rightKnee = useRef<Group>(null);
   const width = look.build === "slim" ? 0.19 : look.build === "broad" ? 0.26 : 0.22;
   const legGap = width * 0.22;
-  const armX = width / 2 + 0.022;
+  const armX = width / 2 + 0.006;
   const style = look.topStyle;
   const upperArm = style === "dress" ? look.skin : look.top;
   const foreArm = style === "dress" || style === "tee" ? look.skin : look.top;
@@ -374,8 +403,8 @@ export function Avatar({ look, anim, seed = 0 }: { look: Appearance; anim: Anim;
     root.rotation.set(0, 0, 0);
     torso.rotation.set(0, 0, 0);
     torso.scale.set(1, 1, 1);
-    la.rotation.set(0, 0, -0.1);
-    ra.rotation.set(0, 0, 0.1);
+    la.rotation.set(0, 0, -0.13);
+    ra.rotation.set(0, 0, 0.13);
     le.rotation.set(-0.15, 0, 0);
     re.rotation.set(-0.15, 0, 0);
     ll.rotation.set(0, 0, 0);
@@ -454,18 +483,18 @@ export function Avatar({ look, anim, seed = 0 }: { look: Appearance; anim: Anim;
         break;
       default:
         torso.scale.y = 1 + Math.sin(t * 2) * 0.008;
-        la.rotation.z = -0.1 - Math.sin(t * 2) * 0.02;
-        ra.rotation.z = 0.1 + Math.sin(t * 2) * 0.02;
+        la.rotation.z = -0.13 - Math.sin(t * 2) * 0.02;
+        ra.rotation.z = 0.13 + Math.sin(t * 2) * 0.02;
     }
   });
 
   const leg = (side: number, legRef: React.RefObject<Group | null>, kneeRef: React.RefObject<Group | null>) => (
     <group ref={legRef} position={[side * legGap, HIP_Y, 0]}>
-      <Limb radius={0.047} length={0.13} centre={-0.11} color={style === "dress" ? look.skin : look.bottom} />
+      <Limb top={0.05} bottom={0.04} length={0.225} color={style === "dress" ? look.skin : look.bottom} />
       <group ref={kneeRef} position={[0, -0.225, 0]}>
-        <Limb radius={0.039} length={0.14} centre={-0.1} color={shin} />
-        <mesh position={[0, -0.205, 0.03]} scale={[1, 0.55, 1.9]}>
-          <sphereGeometry args={[0.045, 14, 10]} />
+        <Limb top={0.04} bottom={0.03} length={0.2} color={shin} />
+        <mesh position={[0, -0.212, 0.032]} scale={[0.95, 0.5, 1.9]}>
+          <sphereGeometry args={[0.045, 16, 10]} />
           <Mat color={look.shoes} rough={0.45} />
         </mesh>
       </group>
@@ -474,15 +503,15 @@ export function Avatar({ look, anim, seed = 0 }: { look: Appearance; anim: Anim;
 
   const arm = (side: number, armRef: React.RefObject<Group | null>, elbowRef: React.RefObject<Group | null>) => (
     <group ref={armRef} position={[side * armX, SHOULDER_Y, 0]}>
-      <mesh scale={[1, 0.9, 1]}>
-        <sphereGeometry args={[0.042, 12, 10]} />
+      <mesh>
+        <sphereGeometry args={[0.036, 14, 10]} />
         <Mat color={upperArm} />
       </mesh>
-      <Limb radius={0.035} length={0.11} centre={-0.085} color={upperArm} />
+      <Limb top={0.036} bottom={0.029} length={0.175} color={upperArm} />
       <group ref={elbowRef} position={[0, -0.175, 0]}>
-        <Limb radius={0.03} length={0.11} centre={-0.08} color={foreArm} />
-        <mesh position={[0, -0.168, 0.004]} scale={[0.75, 1.15, 0.6]}>
-          <sphereGeometry args={[0.034, 12, 10]} />
+        <Limb top={0.029} bottom={0.023} length={0.15} color={foreArm} />
+        <mesh position={[0, -0.172, 0.004]} scale={[0.72, 1.15, 0.55]}>
+          <sphereGeometry args={[0.032, 12, 10]} />
           <Mat color={look.skin} rough={0.6} />
         </mesh>
       </group>
@@ -494,14 +523,8 @@ export function Avatar({ look, anim, seed = 0 }: { look: Appearance; anim: Anim;
       {leg(-1, leftLeg, leftKnee)}
       {leg(1, rightLeg, rightKnee)}
       <group ref={chest}>
-        <mesh position={[0, 0.475, 0]} scale={[(width * 0.92) / 0.15, 0.75, 0.88]}>
-          <sphereGeometry args={[0.075, 16, 12]} />
-          <Mat color={hips} />
-        </mesh>
-        <mesh position={[0, 0.6, 0]} scale={[width / 0.15, 1, 0.88]}>
-          <capsuleGeometry args={[0.075, 0.17, 6, 16]} />
-          <Mat color={look.top} />
-        </mesh>
+        <Lathe profile={PELVIS_PROFILE} color={hips} width={width * 0.95} />
+        <Lathe profile={TORSO_PROFILE} color={look.top} width={width} />
         <Outfit look={look} width={width} />
         {arm(-1, leftArm, leftElbow)}
         {arm(1, rightArm, rightElbow)}
@@ -516,7 +539,7 @@ export function Avatar({ look, anim, seed = 0 }: { look: Appearance; anim: Anim;
           </mesh>
           <Face look={look} />
           {look.beard ? (
-            <mesh position={[0, HEAD_Y - 0.055, 0.03]} scale={[0.95, 0.75, 0.9]}>
+            <mesh position={[0, HEAD_Y - 0.06, 0.022]} scale={[0.92, 0.6, 0.85]}>
               <sphereGeometry args={[0.1, 16, 10, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2]} />
               <Mat color={look.hairColor} rough={0.95} />
             </mesh>

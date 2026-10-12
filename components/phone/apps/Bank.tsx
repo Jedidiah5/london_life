@@ -4,6 +4,7 @@ import { homesById } from "@/lib/content";
 import { setHeating, topUpOyster } from "@/lib/net/rpc";
 import { weeksOwed } from "@/lib/sim/clock";
 import { OYSTER_TOP_UPS } from "@/lib/sim/constants";
+import { formatSpan } from "@/lib/sim/londonClock";
 import { formatPence } from "@/lib/sim/money";
 import { weeklyBills } from "@/lib/sim/upkeep";
 import { useGame } from "@/lib/store/useGame";
@@ -32,8 +33,8 @@ export function Bank() {
   const last = useGame((state) => state.lastUpkeepMinute);
   const home = homesById[homeId];
   const due = weeksOwed(last, gameMinutes);
-  const nextSunday = 1440 * 6 + Math.max(0, Math.ceil((gameMinutes - 1440 * 6) / 10080)) * 10080;
-  const hoursLeft = Math.max(0, Math.floor((nextSunday - gameMinutes) / 60));
+  const nextRent = 1440 * 6 + Math.max(0, Math.ceil((gameMinutes - 1440 * 6) / 10080)) * 10080;
+  const rentIn = formatSpan(nextRent - gameMinutes);
 
   return (
     <div className="space-y-2 text-xs">
@@ -46,7 +47,7 @@ export function Bank() {
         <div className="font-bold">🏠 {home?.name}</div>
         <div>Weekly bills {formatPence(weeklyBills(home?.rentPence ?? 0, heating, sofa))}</div>
         <div className="text-[#5c6b7a]">
-          {due > 0 ? `${due} week${due === 1 ? "" : "s"} due now` : `Rent comes out Sunday 00:00 · ${hoursLeft}h to go`}
+          {due > 0 ? `${due} week${due === 1 ? "" : "s"} due now` : `Rent comes out in ${rentIn} of play`}
         </div>
         {misses > 0 ? <div className="font-bold text-[#e5484d]">Missed rent {misses}× — two and you&apos;re on a sofa</div> : null}
       </div>

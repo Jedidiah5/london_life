@@ -4,7 +4,7 @@ import { normaliseAppearance } from "./appearance";
 import { jobLocked, levelAfter, shiftWage, titleFor } from "./career";
 import { checkChance, fillTemplate, pickEvent } from "./events";
 import { goalReady, nextGoal } from "./goals";
-import { missingHome, timeBackHome } from "./home";
+import { missingHome } from "./home";
 import type { EventDef, GoalDef, JobDef, Nationality } from "./types";
 
 const goals: GoalDef[] = [
@@ -78,11 +78,7 @@ test("careers level up every three shifts and pay more", () => {
   assert.equal(jobLocked(barista, { coding: 2 }), false);
 });
 
-test("home clock shifts by the country's offset", () => {
-  assert.equal(timeBackHome(8 * 60, 1).label, "Mon 09:00");
-  assert.equal(timeBackHome(23 * 60, 8).label, "Tue 07:00");
-  assert.equal(timeBackHome(23 * 60, 8).dayDelta, 1);
-  assert.equal(timeBackHome(2 * 60, -5).label, "Sun 21:00");
+test("you miss home after three game days without a call", () => {
   assert.equal(missingHome(0, 3 * 1440 - 1), false);
   assert.equal(missingHome(0, 3 * 1440), true);
 });

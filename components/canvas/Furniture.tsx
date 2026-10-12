@@ -4,6 +4,7 @@ import { catalogueById } from "@/lib/content";
 import { itemWorld } from "@/lib/sim/grid";
 import { rotatedFootprint } from "@/lib/sim/placement";
 import { FittedModel } from "./fitted";
+import { BuiltInPiece, isBuiltIn } from "./KitchenUnits";
 
 export const MODEL_HEIGHTS: Record<string, number> = {
   bedSingle: 0.6,
@@ -19,6 +20,8 @@ export const MODEL_HEIGHTS: Record<string, number> = {
   desk: 0.75,
   hoodModern: 0.5,
   kitchenCoffeeMachine: 0.35,
+  kitchenCooker: 0.9,
+  kitchenCounter: 0.9,
   kitchenFridge: 1.5,
   kitchenMicrowave: 0.3,
   kitchenSink: 0.9,
@@ -76,7 +79,11 @@ export function FurniturePiece({
   const height = MODEL_HEIGHTS[file] ?? 1.5;
   return (
     <group position={position} rotation={[0, (rotation * Math.PI) / 2, 0]}>
-      <FittedModel url={`/models/furniture/${file}.glb`} targetWidth={Math.max(width, depth) * 0.92} tint={colour} maxHeight={height} />
+      {isBuiltIn(file) ? (
+        <BuiltInPiece model={file} />
+      ) : (
+        <FittedModel url={`/models/furniture/${file}.glb`} targetWidth={Math.max(width, depth) * 0.92} tint={colour} maxHeight={height} />
+      )}
       {onClick ? (
         <mesh
           position={[0, Math.max(0.1, height) / 2, 0]}

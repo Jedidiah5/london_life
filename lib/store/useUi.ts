@@ -51,6 +51,8 @@ interface UiState {
   selectedCatalogueId: string | null;
   movingId: string | null;
   ghost: GhostPlacement | null;
+  /** A big purchase is waiting for the player to say yes. */
+  confirmingBuy: boolean;
   visit: VisitState | null;
   sheet: string | null;
   person: PersonRef | null;
@@ -69,6 +71,8 @@ interface UiState {
   setMoving: (inventoryId: string | null) => void;
   setGhost: (ghost: GhostPlacement | null) => void;
   rotateGhost: () => void;
+  setConfirmingBuy: (confirmingBuy: boolean) => void;
+  cancelPlacement: () => void;
   setVisit: (visit: VisitState | null) => void;
   openSheet: (target: string | null) => void;
   openPerson: (person: PersonRef | null) => void;
@@ -96,6 +100,7 @@ export const useUi = create<UiState>()(
       selectedCatalogueId: null,
       movingId: null,
       ghost: null,
+      confirmingBuy: false,
       visit: null,
       sheet: null,
       person: null,
@@ -103,7 +108,17 @@ export const useUi = create<UiState>()(
       ride: null,
       muted: false,
       setNav: (nav) =>
-        set({ nav, phoneApp: null, travelTo: null, sheet: null, person: null, selectedCatalogueId: null, movingId: null, ghost: null }),
+        set({
+          nav,
+          phoneApp: null,
+          travelTo: null,
+          sheet: null,
+          person: null,
+          selectedCatalogueId: null,
+          movingId: null,
+          ghost: null,
+          confirmingBuy: false,
+        }),
       openPhone: (phoneApp) => set({ phoneApp, nav: "phone", sheet: null, person: null }),
       rotateYaw: () => set((state) => ({ yaw: Math.round(state.yaw) + 1 })),
       orbit: (yaw, pitch) => set({ yaw, pitch: Math.min(PITCH_MAX, Math.max(PITCH_MIN, pitch)) }),
@@ -120,11 +135,13 @@ export const useUi = create<UiState>()(
       },
       dismissToast: (id) => set((state) => ({ toasts: state.toasts.filter((toast) => toast.id !== id) })),
       setTravelTo: (travelTo) => set({ travelTo }),
-      selectCatalogue: (selectedCatalogueId) => set({ selectedCatalogueId, movingId: null, ghost: null }),
-      setMoving: (movingId) => set({ movingId, selectedCatalogueId: null, ghost: null }),
+      selectCatalogue: (selectedCatalogueId) => set({ selectedCatalogueId, movingId: null, ghost: null, confirmingBuy: false }),
+      setMoving: (movingId) => set({ movingId, selectedCatalogueId: null, ghost: null, confirmingBuy: false }),
       setGhost: (ghost) => set({ ghost }),
       rotateGhost: () =>
         set((state) => (state.ghost ? { ghost: { ...state.ghost, rotation: (state.ghost.rotation + 1) % 4 } } : {})),
+      setConfirmingBuy: (confirmingBuy) => set({ confirmingBuy }),
+      cancelPlacement: () => set({ ghost: null, selectedCatalogueId: null, movingId: null, confirmingBuy: false }),
       setVisit: (visit) => set({ visit, nav: "home" }),
       openSheet: (sheet) => set({ sheet, person: null }),
       openPerson: (person) => set({ person, sheet: null }),

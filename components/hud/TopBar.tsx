@@ -1,15 +1,13 @@
 "use client";
 
-import { clockParts, isNight } from "@/lib/sim/clock";
-import { SLEEP_SPEED } from "@/lib/sim/constants";
+import { isNight } from "@/lib/sim/clock";
 import { formatPence } from "@/lib/sim/money";
 import { moodBand, moodScore } from "@/lib/sim/mood";
 import type { MoodBand } from "@/lib/sim/types";
 import { useGame } from "@/lib/store/useGame";
 import { usePresence } from "@/lib/store/usePresence";
 import { useUi } from "@/lib/store/useUi";
-
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+import { useLondonTime } from "@/lib/useNow";
 
 const MOOD_EMOJI: Record<MoodBand, string> = {
   Miserable: "😫",
@@ -25,28 +23,22 @@ export function TopBar() {
   const moodlets = useGame((state) => state.moodlets);
   const heatingOn = useGame((state) => state.heatingOn);
   const balance = useGame((state) => state.balancePence);
-  const speed = useGame((state) => state.speed);
-  const location = useGame((state) => state.location);
-  const shift = useGame((state) => state.shift);
   const sleeping = useGame((state) => !state.shift && !state.readOnly && state.action?.anim === "sleep");
   const online = usePresence((state) => state.online);
   const here = usePresence((state) => state.here.length);
   const muted = useUi((state) => state.muted);
-  const clock = clockParts(gameMinutes);
-  const day = DAYS[(clock.day - 1) % 7] ?? "Mon";
+  const clock = useLondonTime();
   const score = moodScore(needs, moodlets, gameMinutes, heatingOn);
   const band = moodBand(score);
-  const atHome = location === "home" && !shift;
-  const time = `${String(clock.hour).padStart(2, "0")}:${String(clock.minute).padStart(2, "0")}`;
 
   return (
     <header className="pointer-events-auto mx-auto flex w-full max-w-3xl items-center gap-1.5 overflow-x-auto rounded-full bg-white/95 px-2 py-1.5 text-[#1b2838] shadow-lg">
-      <Pill>
+      <Pill title="Live London time">
         <span className="text-base">{isNight(clock.hour) ? "🌙" : "☀️"}</span>
         <span className="font-bold">
-          {day} {time}
+          {clock.weekday} {clock.time}
         </span>
-        <span className="hidden text-[10px] text-[#5c6b7a] sm:inline">Week {Math.floor((clock.day - 1) / 7) + 1}</span>
+        <span className="hidden text-[10px] text-[#5c6b7a] sm:inline">{clock.date}</span>
       </Pill>
       <Pill title={`Mood ${Math.round(score)}`}>
         <span className="text-base">{MOOD_EMOJI[band]}</span>
@@ -57,24 +49,10 @@ export function TopBar() {
         <span className="font-semibold">{Math.max(online, here + 1)}</span>
         <span className="text-[10px] text-[#5c6b7a]">online</span>
       </Pill>
-      {atHome && !sleeping ? (
-        <div className="flex shrink-0 gap-0.5 rounded-full bg-[#f1ede6] p-0.5">
-          {([1, 2, 3] as const).map((value) => (
-            <button
-              key={value}
-              type="button"
-              className={`rounded-full px-2 py-0.5 text-[13px] font-bold ${speed === value ? "bg-[#1b2838] text-white" : ""}`}
-              onClick={() => useGame.getState().setSpeed(value)}
-            >
-              {value === 1 ? "▶" : value === 2 ? "▶▶" : "▶▶▶"}
-            </button>
-          ))}
-        </div>
-      ) : null}
       {sleeping ? (
         <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-[#1b2838] px-3 py-1 text-[12px] text-white">
           <span className="text-base">💤</span>
-          <span className="font-semibold">Sleeping · ×{SLEEP_SPEED}</span>
+          <span className="font-semibold">Sleeping</span>
         </div>
       ) : null}
       <div className="flex-1" />

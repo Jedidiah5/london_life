@@ -3,9 +3,10 @@
 import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
 import { venuesById } from "@/lib/content";
-import { clockParts, isNight } from "@/lib/sim/clock";
+import { isNight } from "@/lib/sim/clock";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
+import { useLondonTime } from "@/lib/useNow";
 import { CityScene } from "./CityScene";
 import { IsoCamera } from "./IsoCamera";
 import { Rain } from "./Rain";
@@ -43,7 +44,7 @@ function SceneSwitch() {
 }
 
 function SceneLights() {
-  const hour = clockParts(useGame((state) => state.gameMinutes)).hour;
+  const hour = useLondonTime().hour;
   const location = useGame((state) => state.location);
   const nav = useUi((state) => state.nav);
   const night = isNight(hour);

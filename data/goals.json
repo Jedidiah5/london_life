@@ -6,5 +6,5 @@
   {"id":"travel","title":"See the city","hint":"Map → pick a place → Go","emoji":"🗺️","stat":"travel","count":1,"rewardPence":1000,"highlight":"map"},
   {"id":"say_hello","title":"Say hello","hint":"At a venue, tap someone and wave","emoji":"👋","stat":"hello","count":1,"rewardPence":1000,"highlight":"people"},
   {"id":"work_shift","title":"Work a shift","hint":"Go to your job, then Phone → Jobs → Start","emoji":"⏱️","stat":"shift","count":1,"rewardPence":2000,"highlight":"phone"},
-  {"id":"pay_rent","title":"Survive to Sunday","hint":"Rent comes out at midnight on Sunday","emoji":"🏠","stat":"rent","count":1,"rewardPence":2000,"highlight":"bank"}
+  {"id":"pay_rent","title":"Survive to rent day","hint":"The Bank app counts down to rent","emoji":"🏠","stat":"rent","count":1,"rewardPence":2000,"highlight":"bank"}
 ]

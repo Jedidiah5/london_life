@@ -13,10 +13,14 @@ import type { InventoryItem, SimAction } from "@/lib/sim/types";
 import { useGame } from "@/lib/store/useGame";
 import { usePresence } from "@/lib/store/usePresence";
 import { useUi } from "@/lib/store/useUi";
+import { useLondonTime } from "@/lib/useNow";
 import { PlacementGhost } from "@/components/buy/PlacementGhost";
 import { Character, type Seat } from "./Character";
 import { FurniturePiece } from "./Furniture";
 import { shadeHex } from "./colour";
+
+const KITCHEN_TILE_LIGHT = "#ece8e0";
+const KITCHEN_TILE_DARK = "#9fb3bf";
 
 const SEAT_MENUS: Record<string, { anim: SimAction["anim"]; y: number }> = {
   bed: { anim: "sleep", y: 0.2 },
@@ -53,9 +57,11 @@ export function RoomScene() {
   const name = useGame((state) => state.name);
   const action = useGame((state) => state.action);
   const goalsDone = useGame((state) => state.goalsDone);
-  const hour = useGame((state) => Math.floor(state.gameMinutes / 60));
+  const hour = useLondonTime().hour;
   const visit = useUi((state) => state.visit);
   const nav = useUi((state) => state.nav);
+  const movingId = useUi((state) => state.movingId);
+  const ghostShown = useUi((state) => state.ghost !== null);
   const here = usePresence((state) => state.here);
   const layout = roomLayout(location, homeId, visit?.homeId ?? null);
   const venue = visit ? undefined : venuesById[location];
@@ -69,6 +75,16 @@ export function RoomScene() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [atHome, location, hour, layout.id],
   );
+  const kitchenTiles = useMemo(() => {
+    const tiles = new Set<string>();
+    if (!atHome) return tiles;
+    for (const fixture of layout.fixtures) {
+      if (!fixture.model.startsWith("kitchen")) continue;
+      tiles.add(`${fixture.x},${fixture.y}`);
+      tiles.add(`${fixture.x},${fixture.y - 1}`);
+    }
+    return tiles;
+  }, [atHome, layout.fixtures]);
   const goal = nextGoal(goals, goalsDone);
   const highlight = atHome && !visit ? goal?.highlight : undefined;
   const seat = seatFor(action, layout, inventory);
@@ -119,10 +135,18 @@ export function RoomScene() {
         const x = index % layout.width;
         const y = Math.floor(index / layout.width);
         const [wx, , wz] = tileWorld(x, y, layout.width, layout.height);
+        const even = (x + y) % 2 === 0;
+        const colour = kitchenTiles.has(`${x},${y}`)
+          ? even
+            ? KITCHEN_TILE_LIGHT
+            : KITCHEN_TILE_DARK
+          : even
+            ? shadeHex(floor, 0.05)
+            : shadeHex(floor, -0.02);
         return (
           <mesh key={`${x}-${y}`} position={[wx, 0.01, wz]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null} receiveShadow>
             <planeGeometry args={[0.97, 0.97]} />
-            <meshStandardMaterial color={(x + y) % 2 === 0 ? shadeHex(floor, 0.05) : shadeHex(floor, -0.02)} />
+            <meshStandardMaterial color={colour} />
           </mesh>
         );
       })}
@@ -168,7 +192,7 @@ export function RoomScene() {
           </group>
         );
       })}
-      {pieces.map((item) => (
+      {pieces.filter((item) => !(movingId === item.id && ghostShown)).map((item) => (
         <FurniturePiece
           key={item.id}
           itemId={item.itemId}
@@ -181,8 +205,9 @@ export function RoomScene() {
           onClick={() => {
             if (visit) return;
             if (useUi.getState().nav === "buy") {
-              useUi.getState().setMoving(item.id);
-              useUi.getState().pushToast("Tap a tile to move it, or sell it");
+              const ui = useUi.getState();
+              ui.setMoving(item.id);
+              ui.setGhost({ itemId: item.itemId, x: item.x, y: item.y, rotation: item.rotation, colour: item.colour });
               return;
             }
             if (catalogueById[item.itemId]?.menu) tap(item.id);

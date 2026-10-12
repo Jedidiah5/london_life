@@ -44,6 +44,25 @@ export function canPlace(
   return tiles.every((tile) => !blocked.has(tileKey(tile)));
 }
 
+/** The legal spot closest to the middle of the room, for dropping in a new item. */
+export function firstFreeSpot(
+  footprint: [number, number] | "wall",
+  rotation: number,
+  blocked: Set<string>,
+  width: number,
+  height: number,
+): Tile | null {
+  const [w, h] = rotatedFootprint(footprint, rotation);
+  const cx = (width - w) / 2;
+  const cy = (height - h) / 2;
+  const origins: Tile[] = [];
+  for (let x = 0; x < width; x += 1) {
+    for (let y = 0; y < height; y += 1) origins.push({ x, y });
+  }
+  origins.sort((a, b) => Math.hypot(a.x - cx, a.y - cy) - Math.hypot(b.x - cx, b.y - cy));
+  return origins.find((origin) => canPlace(origin, footprint, rotation, blocked, width, height)) ?? null;
+}
+
 export function nearestStand(
   targets: Tile[],
   from: Tile,

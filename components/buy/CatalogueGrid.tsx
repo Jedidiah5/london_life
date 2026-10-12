@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { catalogue } from "@/lib/content";
+import { catalogue, roomLayout } from "@/lib/content";
 import { CATALOGUE_CATEGORIES } from "@/lib/sim/constants";
 import { formatPence } from "@/lib/sim/money";
+import { firstFreeSpot } from "@/lib/sim/placement";
+import { blockingTiles } from "@/lib/sim/room";
 import type { CatalogueItem } from "@/lib/sim/types";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
@@ -75,7 +77,7 @@ export function CatalogueGrid() {
           </button>
         ))}
       </div>
-      <div className="grid max-h-[30vh] grid-cols-3 gap-2 overflow-y-auto pr-1">
+      <div className={`grid grid-cols-3 gap-2 overflow-y-auto pr-1 ${selected ? "max-h-[22vh]" : "max-h-[30vh]"}`}>
         {items.map((item) => {
           const [w, d] = footprintOf(item);
           const active = selected === item.id;
@@ -88,11 +90,18 @@ export function CatalogueGrid() {
                 active ? "ring-2 ring-[#3ccf6e]" : "hover:bg-[#eef1f4]"
               }`}
               onClick={() => {
+                const game = useGame.getState();
+                const layout = roomLayout(game.location, game.homeId, null);
+                const spot = firstFreeSpot(item.footprint, 0, blockingTiles(layout, game.inventory), layout.width, layout.height);
                 useUi.getState().selectCatalogue(item.id);
+                if (!spot) {
+                  useUi.getState().pushToast("No room for that. Sell something first", "bad");
+                  return;
+                }
                 useUi.getState().setGhost({
                   itemId: item.id,
-                  x: 1,
-                  y: 2,
+                  x: spot.x,
+                  y: spot.y,
                   rotation: 0,
                   colour: item.colours[0] ?? "#f4f1ea",
                 });

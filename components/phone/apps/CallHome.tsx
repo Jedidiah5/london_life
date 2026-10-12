@@ -4,22 +4,25 @@ import { Flag } from "@/components/Flag";
 import { useState } from "react";
 import { nationalitiesById } from "@/lib/content";
 import { performAction } from "@/lib/net/rpc";
-import { isAwakeHour, timeBackHome } from "@/lib/sim/home";
+import { isAwakeHour } from "@/lib/sim/home";
+import { formatSpan, timeAtOffset } from "@/lib/sim/londonClock";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
+import { useNow } from "@/lib/useNow";
 
 export function CallHome() {
   const origin = useGame((state) => state.appearance.origin);
   const londonBorn = useGame((state) => state.appearance.londonBorn);
   const gameMinutes = useGame((state) => state.gameMinutes);
   const lastCall = useGame((state) => state.lastCallMinute);
+  const now = useNow();
   const [line, setLine] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const nation = nationalitiesById[origin];
   if (!nation) return null;
-  const there = timeBackHome(gameMinutes, nation.utcOffset);
+  const there = timeAtOffset(now, nation.utcOffset);
   const awake = isAwakeHour(there.hour);
-  const days = Math.floor((gameMinutes - lastCall) / 1440);
+  const sinceCall = gameMinutes - lastCall;
   const who = londonBorn && nation.id !== "england" ? "Mum" : "Home";
 
   return (
@@ -34,7 +37,7 @@ export function CallHome() {
           {awake ? "" : " · they're probably asleep"}
         </p>
         <p className="mt-1 text-[11px] text-[#9aa5b1]">
-          {days === 0 ? "You called today" : `Last call ${days} day${days === 1 ? "" : "s"} ago`}
+          {sinceCall < 60 ? "You just called" : `Last call ${formatSpan(sinceCall)} of play ago`}
         </p>
       </div>
       {line ? <p className="rounded-2xl bg-white p-3 text-[13px] shadow-sm">“{line}”</p> : null}
@@ -59,7 +62,7 @@ export function CallHome() {
       >
         📞
       </button>
-      <p className="pb-2 text-[10px] text-[#9aa5b1]">Go three days without calling and you&apos;ll start missing home.</p>
+      <p className="pb-2 text-[10px] text-[#9aa5b1]">Go about an hour of play without calling and you&apos;ll start missing home.</p>
     </div>
   );
 }
