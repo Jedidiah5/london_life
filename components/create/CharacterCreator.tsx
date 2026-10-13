@@ -2,7 +2,8 @@
 
 import { Flag } from "@/components/Flag";
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { sessionUsername } from "@/lib/net/auth";
 import { nationalities, nationalitiesById } from "@/lib/content";
 import { createCharacter } from "@/lib/net/rpc";
 import { defaultAppearance } from "@/lib/sim/appearance";
@@ -72,6 +73,16 @@ export function CharacterCreator() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [previewAnim, setPreviewAnim] = useState<Anim>("stand");
+  // Signed-up players already picked a username, so start from that.
+  useEffect(() => {
+    let alive = true;
+    void sessionUsername().then((chosen) => {
+      if (alive && chosen) setUsername((current) => current || chosen);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
   const nation = nationalitiesById[look.origin];
   const set = (patch: Partial<Appearance>) => setLook((current) => ({ ...current, ...patch }));
   const matches = useMemo(() => {

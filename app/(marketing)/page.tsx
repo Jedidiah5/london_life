@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LiveClock } from "@/components/marketing/LiveClock";
+import { Roundel } from "@/components/marketing/Roundel";
 
 const TICKER = [
   "Northern line: minor delays",
@@ -62,23 +63,6 @@ const PLACES = [
   ["🚇", "Oval station"],
   ["🏠", "Your flat"],
 ];
-
-function Roundel({
-  className = "",
-  ring = "#c8102e",
-  bar = "#1b2838",
-}: {
-  className?: string;
-  ring?: string;
-  bar?: string;
-}) {
-  return (
-    <svg viewBox="0 0 100 100" aria-hidden="true" className={className}>
-      <circle cx="50" cy="50" r="34" fill="none" stroke={ring} strokeWidth="14" />
-      <rect x="4" y="40" width="92" height="20" rx="2" fill={bar} />
-    </svg>
-  );
-}
 
 function PlayButton({ className = "", children = "Play free" }: { className?: string; children?: React.ReactNode }) {
   return (
@@ -182,11 +166,14 @@ export default function HomePage() {
             <span className="hidden text-xs font-semibold text-[#5c6b7a] sm:inline">
               Zone 4 · <LiveClock />
             </span>
+            <Link href="/login" className="rounded-full px-3 py-2 text-sm font-bold transition hover:bg-black/5">
+              Log in
+            </Link>
             <Link
-              href="/play"
+              href="/signup"
               className="rounded-full bg-[#1b2838] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#c8102e]"
             >
-              Play
+              Sign up
             </Link>
           </div>
         </div>
@@ -216,14 +203,14 @@ export default function HomePage() {
               </p>
               <div className="mt-9 flex flex-wrap items-center gap-4">
                 <PlayButton className="text-lg" />
-                <a href="#features" className="px-2 py-3 text-sm font-bold text-[#f4efe6]/80 underline-offset-4 hover:underline">
-                  See how it works
-                </a>
+                <Link href="/signup" className="px-2 py-3 text-sm font-bold text-[#f4efe6]/80 underline-offset-4 hover:underline">
+                  Create an account
+                </Link>
               </div>
               <ul className="mt-10 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-[#f4efe6]/60">
                 <li>✓ No download</li>
                 <li>✓ Works on your phone</li>
-                <li>✓ Sign-up not needed</li>
+                <li>✓ Try it as a guest</li>
               </ul>
             </div>
             <PhoneMock />
