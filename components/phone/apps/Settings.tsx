@@ -21,7 +21,8 @@ export function Settings() {
       <div className="rounded-2xl bg-white p-3 shadow-sm">
         <p className="font-bold">@{username}</p>
         <p>
-          {nation ? <Flag origin={nation.id} /> : null} {appearance.londonBorn ? `London-born, ${nation?.demonym} roots` : `From ${nation?.label}`}
+          {nation ? <Flag origin={nation.id} /> : null}{" "}
+          {appearance.londonBorn ? `London-born, ${nation?.demonym} roots` : `From ${nation?.label}`}
         </p>
         <p>{traits.join(" · ")}</p>
         <p className="capitalize">Dream: {aspiration.replaceAll("_", " ")}</p>
@@ -48,12 +49,20 @@ export function Settings() {
             >
               Yes, start over
             </button>
-            <button type="button" className="rounded-full bg-white px-4 py-2 font-semibold shadow-sm" onClick={() => setConfirm(false)}>
+            <button
+              type="button"
+              className="rounded-full bg-white px-4 py-2 font-semibold shadow-sm"
+              onClick={() => setConfirm(false)}
+            >
               Cancel
             </button>
           </div>
         ) : (
-          <button type="button" className="w-full rounded-full bg-white py-2 font-semibold text-[#e5484d] shadow-sm" onClick={() => setConfirm(true)}>
+          <button
+            type="button"
+            className="w-full rounded-full bg-white py-2 font-semibold text-[#e5484d] shadow-sm"
+            onClick={() => setConfirm(true)}
+          >
             Start a new life
           </button>
         )

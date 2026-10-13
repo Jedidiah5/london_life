@@ -8,6 +8,7 @@ import { PersonCard } from "@/components/venue/PersonCard";
 import { VenuePanel } from "@/components/venue/VenuePanel";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
+import { ActionChip } from "./ActionChip";
 import { ActionSheet } from "./ActionSheet";
 import { BottomNav } from "./BottomNav";
 import { GoalCards } from "./GoalCards";
@@ -24,7 +25,10 @@ export function Hud() {
       <div className="space-y-2">
         <TopBar />
         <div className="flex items-start justify-between gap-2">
-          <GoalCards />
+          <div className="space-y-2">
+            <GoalCards />
+            <ActionChip />
+          </div>
           <Toasts />
         </div>
         {visit ? (

@@ -29,7 +29,9 @@ export function ActionSheet() {
   return (
     <section className="pointer-events-auto mx-auto w-full max-w-md rounded-3xl bg-white p-3 text-[#1b2838] shadow-2xl">
       <div className="mb-2 flex items-start gap-3">
-        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#f1ede6] text-2xl">{found.menu.emoji}</div>
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#f1ede6] text-2xl">
+          {found.menu.emoji}
+        </div>
         <div className="min-w-0 flex-1">
           <h2 className="text-base font-bold leading-tight">{found.label}</h2>
           <p className="text-[12px] text-[#5c6b7a]">{found.menu.blurb}</p>
@@ -55,7 +57,9 @@ export function ActionSheet() {
               type="button"
               disabled={Boolean(blocked) || busy !== null}
               className={`flex items-center gap-2 rounded-2xl border p-2 text-left transition ${
-                blocked ? "border-[#f0e9e9] bg-[#faf8f8] opacity-70" : "border-[#ece7de] bg-[#fbfaf7] active:scale-[0.98]"
+                blocked
+                  ? "border-[#f0e9e9] bg-[#faf8f8] opacity-70"
+                  : "border-[#ece7de] bg-[#fbfaf7] active:scale-[0.98]"
               } ${def.heritage ? "ring-1 ring-[#e8a317]" : ""}`}
               onClick={() => {
                 setBusy(actionId);
@@ -70,11 +74,17 @@ export function ActionSheet() {
                 });
               }}
             >
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-xl shadow-sm">{shown.emoji}</span>
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-xl shadow-sm">
+                {shown.emoji}
+              </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13px] font-semibold">{busy === actionId ? "…" : shown.label}</span>
+                <span className="block truncate text-[13px] font-semibold">
+                  {busy === actionId ? "…" : shown.label}
+                </span>
                 <span className="mt-0.5 flex flex-wrap items-center gap-1">
-                  <span className="rounded-full bg-[#f1ede6] px-1.5 py-0.5 text-[10px] font-semibold">⏱ {def.minutes}m</span>
+                  <span className="rounded-full bg-[#f1ede6] px-1.5 py-0.5 text-[10px] font-semibold">
+                    ⏱ {def.minutes}m
+                  </span>
                   <span
                     className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
                       def.costPence === 0 ? "bg-[#e9f9ef] text-[#22924f]" : "bg-[#fff4d6] text-[#8a5a00]"
@@ -99,7 +109,9 @@ export function ActionSheet() {
                     </span>
                   ) : null}
                 </span>
-                {blocked ? <span className="mt-0.5 block text-[10px] font-bold text-[#e5484d]">🔒 {blocked}</span> : null}
+                {blocked ? (
+                  <span className="mt-0.5 block text-[10px] font-bold text-[#e5484d]">🔒 {blocked}</span>
+                ) : null}
               </span>
             </button>
           );

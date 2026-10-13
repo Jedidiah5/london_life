@@ -20,8 +20,8 @@ export function Friends() {
       <div className="space-y-2 rounded-2xl bg-white p-3 text-[12px] shadow-sm">
         <p className="font-bold">👥 Friends live in the online city</p>
         <p className="text-[#5c6b7a]">
-          You&apos;re playing offline, so the people you meet are London locals. Wave at them at venues. Add Supabase keys to
-          meet real players, send gifts and visit flats.
+          You&apos;re playing offline, so the people you meet are London locals. Wave at them at venues. Add Supabase
+          keys to meet real players, send gifts and visit flats.
         </p>
       </div>
     );

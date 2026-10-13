@@ -39,14 +39,16 @@ export function PhoneOverlay() {
 
   return (
     <div className="pointer-events-auto relative mx-auto w-full max-w-[320px]">
-      <button
-        type="button"
-        aria-label="Close phone"
-        className="absolute -right-3 -top-3 z-10 grid h-9 w-9 place-items-center rounded-full bg-white text-lg font-bold text-[#1b2838] shadow-lg ring-1 ring-black/10"
-        onClick={() => useUi.getState().setNav("home")}
-      >
-        ✕
-      </button>
+      <div className="mb-2 flex justify-end">
+        <button
+          type="button"
+          aria-label="Close phone"
+          className="flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-[12px] font-bold text-[#1b2838] shadow-lg ring-1 ring-black/10"
+          onClick={() => useUi.getState().setNav("home")}
+        >
+          ✕ Close
+        </button>
+      </div>
       <div className="rounded-[42px] bg-[#111] p-2.5 shadow-2xl">
         <div className="relative h-[min(560px,62vh)] overflow-hidden rounded-[34px] bg-gradient-to-br from-[#2b3a67] via-[#7a3e6b] to-[#e07b39] text-white">
           <div className="flex items-center justify-between px-5 pt-2 text-[11px] font-semibold">
@@ -57,7 +59,11 @@ export function PhoneOverlay() {
           {current ? (
             <div className="absolute inset-x-0 bottom-0 top-8 flex flex-col bg-[#f6f4ef] text-[#1b2838]">
               <div className="flex items-center gap-2 border-b border-[#ece7de] px-3 py-2">
-                <button type="button" className="text-sm font-bold text-[#2459c7]" onClick={() => useUi.getState().openPhone(null)}>
+                <button
+                  type="button"
+                  className="text-sm font-bold text-[#2459c7]"
+                  onClick={() => useUi.getState().openPhone(null)}
+                >
                   ‹ Home
                 </button>
                 <span className="flex-1 text-center text-sm font-bold">
@@ -83,7 +89,7 @@ export function PhoneOverlay() {
                 <div className="text-sm font-medium opacity-90">
                   {clock.longWeekday} · {clock.date}
                 </div>
-                <div className="mt-1 text-[11px] opacity-80">🌧️ 11°C · London</div>
+                <div className="mt-1 text-[11px] font-semibold opacity-80">📍 London</div>
               </div>
               <div className="mt-8 grid grid-cols-4 gap-x-2 gap-y-4">
                 {APPS.map((entry) => (
@@ -93,8 +99,14 @@ export function PhoneOverlay() {
                     className="relative flex flex-col items-center gap-1"
                     onClick={() => useUi.getState().openPhone(entry.id)}
                   >
-                    <span className={`grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br text-2xl shadow-lg ${entry.colour}`}>
-                      {entry.id === "callhome" && nationalitiesById[origin] ? <Flag origin={origin} size="md" /> : entry.emoji}
+                    <span
+                      className={`grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br text-2xl shadow-lg ${entry.colour}`}
+                    >
+                      {entry.id === "callhome" && nationalitiesById[origin] ? (
+                        <Flag origin={origin} size="md" />
+                      ) : (
+                        entry.emoji
+                      )}
                     </span>
                     <span className="text-[10px] font-semibold drop-shadow">{entry.label}</span>
                     {entry.id === "callhome" && missing ? (

@@ -108,6 +108,8 @@ interface GameState {
   /** Queue an action the server has already accepted. Walks to the target first. */
   queueAction: (def: ActionDef, target: string | null) => string | null;
   canQueue: () => string | null;
+  /** Stop what the Sim is doing now; anything queued starts next. Money already paid is not refunded. */
+  cancelAction: () => void;
   arrive: () => void;
   setHeatingLocal: (on: boolean) => void;
   applyCheckpoint: (patch: Partial<ServerSnapshot> & { needs: Needs; gameMinutes: number }) => void;
@@ -292,6 +294,7 @@ export const useGame = create<GameState>()(
         set({ path, pending: null, queue: [] });
         return null;
       },
+      cancelAction: () => set({ action: null, pending: null, path: [] }),
       canQueue: () => {
         const state = get();
         if (state.readOnly) return "You're only visiting";

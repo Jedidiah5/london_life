@@ -53,7 +53,9 @@ export function CallHome() {
               useUi.getState().pushToast(error, "bad");
               return;
             }
-            setLine(awake ? nation.callHome : `${nation.greeting}… it's ${there.label} here! But it's good to hear you.`);
+            setLine(
+              awake ? nation.callHome : `${nation.greeting}… it's ${there.label} here! But it's good to hear you.`,
+            );
             useGame.getState().addMoodlet({ id: "called_home", label: "Spoke to home", emoji: "📞", value: 8 }, 720);
             useUi.getState().pushToast("+Social · You feel less far away", "good");
           });
@@ -62,7 +64,9 @@ export function CallHome() {
       >
         📞
       </button>
-      <p className="pb-2 text-[10px] text-[#9aa5b1]">Go about an hour of play without calling and you&apos;ll start missing home.</p>
+      <p className="pb-2 text-[10px] text-[#9aa5b1]">
+        Go about an hour of play without calling and you&apos;ll start missing home.
+      </p>
     </div>
   );
 }

@@ -42,7 +42,9 @@ export function BottomNav() {
           >
             <item.Icon className="mb-0.5 h-5 w-5" />
             {item.id === "home" && location !== "home" ? "Go home" : item.label}
-            {nudge ? <span className="absolute right-3 top-1 h-2.5 w-2.5 animate-ping rounded-full bg-[#e8a317]" /> : null}
+            {nudge ? (
+              <span className="absolute right-3 top-1 h-2.5 w-2.5 animate-ping rounded-full bg-[#e8a317]" />
+            ) : null}
           </button>
         );
       })}

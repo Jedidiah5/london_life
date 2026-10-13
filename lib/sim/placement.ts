@@ -124,7 +124,8 @@ export function firstFreeSpot(
   }
   origins.sort((a, b) => Math.hypot(a.x - cx, a.y - cy) - Math.hypot(b.x - cx, b.y - cy));
   return (
-    origins.find((origin) => placementProblem(origin, footprint, rotation, blocked, width, height, sim) === null) ?? null
+    origins.find((origin) => placementProblem(origin, footprint, rotation, blocked, width, height, sim) === null) ??
+    null
   );
 }
 

@@ -14,7 +14,10 @@ export function Toasts() {
   return (
     <div className="pointer-events-none flex flex-col items-end gap-1">
       {toasts.map((toast) => (
-        <div key={toast.id} className={`max-w-64 rounded-2xl px-3 py-1.5 text-xs font-semibold shadow-lg ${TONES[toast.tone]}`}>
+        <div
+          key={toast.id}
+          className={`max-w-64 rounded-2xl px-3 py-1.5 text-xs font-semibold shadow-lg ${TONES[toast.tone]}`}
+        >
           {toast.text}
         </div>
       ))}

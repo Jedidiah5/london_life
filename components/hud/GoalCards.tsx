@@ -75,7 +75,9 @@ export function GoalCards() {
       ) : null}
       {urgent && !shift ? (
         <div className="flex w-full items-center gap-2 rounded-2xl bg-white/90 p-2 text-[#1b2838] shadow">
-          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-[#ffe4e4] text-lg">{NEED_HINT[low]?.emoji}</div>
+          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-[#ffe4e4] text-lg">
+            {NEED_HINT[low]?.emoji}
+          </div>
           <div className="min-w-0">
             <div className="truncate text-[12px] font-bold">{LOW_NEED_GOAL[low]}</div>
             <div className="truncate text-[10px] text-[#5c6b7a]">{NEED_HINT[low]?.hint}</div>

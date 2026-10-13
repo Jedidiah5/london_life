@@ -107,19 +107,31 @@ export function Jobs() {
           )}
         </div>
       ) : (
-        <p className="rounded-2xl bg-[#fff4d6] p-2 text-[12px]">No job yet. Pick one below — entry jobs need no skills.</p>
+        <p className="rounded-2xl bg-[#fff4d6] p-2 text-[12px]">
+          No job yet. Pick one below — entry jobs need no skills.
+        </p>
       )}
       <p className="pt-1 text-[10px] font-bold text-[#9aa5b1]">JOB BOARD</p>
+      {mine ? (
+        <p className="text-[10px] text-[#5c6b7a]">Switching jobs starts you at the bottom of the new ladder.</p>
+      ) : null}
       {jobs.map((job) => {
         const locked = jobLocked(job, skills);
         const current = career?.jobId === job.id;
         return (
-          <div key={job.id} className={`flex items-center gap-2 rounded-2xl bg-white p-2 shadow-sm ${locked ? "opacity-60" : ""}`}>
+          <div
+            key={job.id}
+            className={`flex items-center gap-2 rounded-2xl bg-white p-2 shadow-sm ${locked ? "opacity-60" : ""}`}
+          >
             <span className="text-xl">{job.emoji}</span>
             <div className="min-w-0 flex-1">
               <div className="text-[12px] font-bold">{job.name}</div>
               <div className="truncate text-[10px] text-[#5c6b7a]">
-                {venuesById[job.venue]?.name} · {job.tips ? "tips" : `${formatPence(job.payPerHourPence)}/hr`} · {job.hours}h
+                Starts as {titleFor(job, 0)} · top rank {titleFor(job, job.ladder.length - 1)}
+              </div>
+              <div className="truncate text-[10px] text-[#5c6b7a]">
+                {venuesById[job.venue]?.name} · {job.tips ? "tips" : `${formatPence(job.payPerHourPence)}/hr`} ·{" "}
+                {job.hours}h
               </div>
               {job.skill ? (
                 <div className={`text-[10px] font-semibold ${locked ? "text-[#e5484d]" : "text-[#22924f]"}`}>
@@ -141,7 +153,7 @@ export function Jobs() {
                 });
               }}
             >
-              {current ? "Yours" : "Apply"}
+              {current ? "Yours" : mine ? "Switch" : "Apply"}
             </button>
           </div>
         );

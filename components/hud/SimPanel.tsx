@@ -4,16 +4,10 @@ import dynamic from "next/dynamic";
 import { Flag } from "@/components/Flag";
 import { SKILL_EMOJI, SKILL_HOW } from "@/components/phone/apps/Skills";
 import { goals, jobsById, nationalitiesById, venuesById } from "@/lib/content";
+import { claimGoal } from "@/lib/net/rpc";
 import { capitalise } from "@/lib/sim/actions";
 import { jobLocked, titleFor } from "@/lib/sim/career";
-import {
-  ASPIRATIONS,
-  LEVEL_PAY_STEP,
-  NEED_LABELS,
-  SHIFTS_PER_LEVEL,
-  SKILL_KEYS,
-  SKILL_MAX,
-} from "@/lib/sim/constants";
+import { ASPIRATIONS, LEVEL_PAY_STEP, NEED_LABELS, SHIFTS_PER_LEVEL, SKILL_KEYS, SKILL_MAX } from "@/lib/sim/constants";
 import { goalReady, nextGoal } from "@/lib/sim/goals";
 import { formatPence } from "@/lib/sim/money";
 import { activeMoodlets, moodBand, moodScore } from "@/lib/sim/mood";
@@ -64,7 +58,10 @@ function Profile() {
         }
       />
       <Row label="Traits" value={traits.join(" · ") || "None yet"} />
-      <Row label="Dream" value={ASPIRATIONS.find((entry) => entry.id === aspiration)?.label ?? capitalise(aspiration)} />
+      <Row
+        label="Dream"
+        value={ASPIRATIONS.find((entry) => entry.id === aspiration)?.label ?? capitalise(aspiration)}
+      />
     </div>
   );
 }
@@ -89,7 +86,9 @@ function NeedsTab() {
       <div className="space-y-2">
         {NEED_KEYS.map((key) => (
           <div key={key} className="flex items-center gap-2">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#f1f3f6] text-lg">{NEED_EMOJI[key]}</span>
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#f1f3f6] text-lg">
+              {NEED_EMOJI[key]}
+            </span>
             <div className="flex-1">
               <div className="flex justify-between text-[11px] font-semibold">
                 <span>{NEED_LABELS[key]}</span>
@@ -158,7 +157,9 @@ function GoalsTab() {
               <div className="text-sm font-extrabold">{next.title}</div>
               <div className="text-[11px] opacity-80">{next.hint}</div>
             </div>
-            <span className="rounded-full bg-white/60 px-2 py-0.5 text-[11px] font-bold">+{formatPence(next.rewardPence)}</span>
+            <span className="rounded-full bg-white/60 px-2 py-0.5 text-[11px] font-bold">
+              +{formatPence(next.rewardPence)}
+            </span>
           </div>
           <Progress value={Math.min(stats[next.stat] ?? 0, next.count)} max={next.count} tone="#3d2a00" />
         </div>
@@ -188,9 +189,22 @@ function GoalsTab() {
                 </div>
                 <div className="truncate text-[10px] text-[#5c6b7a]">{goal.hint}</div>
               </div>
-              <span className={`text-[11px] font-bold ${ready ? "text-[#16a34a]" : "text-[#9aa5b1]"}`}>
-                {ready ? "Claim it" : formatPence(goal.rewardPence)}
-              </span>
+              {ready ? (
+                <button
+                  type="button"
+                  className="rounded-full bg-[#3ccf6e] px-2.5 py-1 text-[11px] font-bold text-white"
+                  onClick={() => {
+                    void claimGoal(goal.id).then((result) => {
+                      if (typeof result === "string") useUi.getState().pushToast(result, "bad");
+                      else useUi.getState().pushToast(`Goal done! +${formatPence(result)}`, "good");
+                    });
+                  }}
+                >
+                  Claim {formatPence(goal.rewardPence)}
+                </button>
+              ) : (
+                <span className="text-[11px] font-bold text-[#9aa5b1]">{formatPence(goal.rewardPence)}</span>
+              )}
             </div>
           );
         })}
@@ -203,7 +217,10 @@ function Progress({ value, max, tone }: { value: number; max: number; tone: stri
   return (
     <div className="mt-2 flex items-center gap-2">
       <div className="h-2 flex-1 overflow-hidden rounded-full bg-black/15">
-        <div className="h-full rounded-full" style={{ width: `${(value / Math.max(1, max)) * 100}%`, background: tone }} />
+        <div
+          className="h-full rounded-full"
+          style={{ width: `${(value / Math.max(1, max)) * 100}%`, background: tone }}
+        />
       </div>
       <span className="text-[10px] font-bold">
         {value}/{max}
@@ -257,7 +274,9 @@ function CareerTab() {
     return (
       <div className="space-y-2 text-center">
         <div className="text-4xl">🧳</div>
-        <p className="text-[12px] text-[#5c6b7a]">No job yet. Entry jobs need no skills, so pick one and start earning.</p>
+        <p className="text-[12px] text-[#5c6b7a]">
+          No job yet. Entry jobs need no skills, so pick one and start earning.
+        </p>
         <button
           type="button"
           className="rounded-full bg-[#1b2838] px-4 py-2 text-[12px] font-bold text-white"
@@ -271,7 +290,9 @@ function CareerTab() {
   const top = job.ladder.length - 1;
   const atTop = career.level >= top;
   const shiftsIn = career.shiftsDone % SHIFTS_PER_LEVEL;
-  const pay = job.tips ? "Tips" : `${formatPence(Math.round(job.payPerHourPence * (1 + LEVEL_PAY_STEP * career.level)))}/hr`;
+  const pay = job.tips
+    ? "Tips"
+    : `${formatPence(Math.round(job.payPerHourPence * (1 + LEVEL_PAY_STEP * career.level)))}/hr`;
   return (
     <div className="space-y-2">
       <div className="rounded-3xl bg-gradient-to-br from-[#1b2838] to-[#2f4a6d] p-3 text-white">
@@ -290,16 +311,16 @@ function CareerTab() {
         <div className="mt-3 flex items-center gap-1">
           {job.ladder.map((title, index) => (
             <div key={title} className="flex flex-1 flex-col items-center gap-1" title={title}>
-              <span
-                className={`h-2 w-full rounded-full ${index <= career.level ? "bg-[#3ccf6e]" : "bg-white/20"}`}
-              />
+              <span className={`h-2 w-full rounded-full ${index <= career.level ? "bg-[#3ccf6e]" : "bg-white/20"}`} />
               <span className="text-[10px]">{index === top ? "👑" : index === career.level ? "📍" : ""}</span>
             </div>
           ))}
         </div>
       </div>
       {atTop ? (
-        <p className="rounded-2xl bg-[#fff4d6] p-3 text-[12px] font-semibold">Top of the ladder. Proper London success story.</p>
+        <p className="rounded-2xl bg-[#fff4d6] p-3 text-[12px] font-semibold">
+          Top of the ladder. Proper London success story.
+        </p>
       ) : (
         <div className="rounded-2xl bg-[#f6f7f9] p-3">
           <div className="text-[11px] font-extrabold">Next: {titleFor(job, career.level + 1)}</div>
@@ -362,7 +383,9 @@ export function SimPanel() {
         <header className="flex items-center gap-3 p-3 pb-2">
           <span
             className="relative grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 border-white shadow"
-            style={{ background: `radial-gradient(circle at 50% 38%, ${appearance.skin} 0 38%, ${appearance.top} 39%)` }}
+            style={{
+              background: `radial-gradient(circle at 50% 38%, ${appearance.skin} 0 38%, ${appearance.top} 39%)`,
+            }}
           >
             <span className="absolute -bottom-1 -right-1 flex rounded-full bg-white p-0.5 shadow">
               <Flag origin={appearance.origin} />

@@ -17,7 +17,9 @@ export function Messages() {
           const mine = line.from === name;
           return (
             <div key={line.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-              <p className={`max-w-[80%] rounded-2xl px-3 py-1.5 ${mine ? "bg-[#2459c7] text-white" : "bg-white shadow-sm"}`}>
+              <p
+                className={`max-w-[80%] rounded-2xl px-3 py-1.5 ${mine ? "bg-[#2459c7] text-white" : "bg-white shadow-sm"}`}
+              >
                 {mine ? null : <span className="block text-[10px] font-bold text-[#5c6b7a]">{line.from}</span>}
                 {line.text}
               </p>

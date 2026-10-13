@@ -363,14 +363,15 @@ function SelfTag({
     <Html position={[wx, 1.45, wz]} center zIndexRange={[8, 0]}>
       <div className={`pointer-events-none flex-col items-center gap-1 ${moving ? "hidden" : "flex"}`}>
         {action ? (
-          <div className="flex items-center gap-1.5 rounded-full bg-white px-2 py-1 text-[11px] font-semibold text-[#1b2838] shadow-md">
-            <span className="text-sm">{action.emoji}</span>
-            <span className="h-1.5 w-12 overflow-hidden rounded-full bg-[#e5e1d8]">
+          <div className="relative flex flex-col items-center gap-1 rounded-2xl bg-white px-2.5 pb-1.5 pt-1 shadow-md">
+            <span className="text-xl leading-none">{action.emoji}</span>
+            <span className="h-1 w-9 overflow-hidden rounded-full bg-[#e5e1d8]">
               <span
                 className="block h-full rounded-full bg-[#3ccf6e]"
                 style={{ width: `${Math.round(done * 100)}%` }}
               />
             </span>
+            <span className="absolute -bottom-1 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 bg-white" />
           </div>
         ) : null}
         <div className="flex items-center gap-1 whitespace-nowrap rounded-full bg-[#1b2838]/85 px-2 py-0.5 text-[10px] font-semibold text-white">

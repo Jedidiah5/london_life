@@ -42,7 +42,9 @@ export function TravelModal() {
   return (
     <section className="pointer-events-auto mx-auto w-full max-w-md rounded-3xl bg-white p-3 text-[#1b2838] shadow-2xl">
       <div className="flex items-start gap-3">
-        <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-[#f1ede6] text-3xl">{venue.emoji}</div>
+        <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-[#f1ede6] text-3xl">
+          {venue.emoji}
+        </div>
         <div className="min-w-0 flex-1">
           <h2 className="text-lg font-extrabold leading-tight">{venue.name}</h2>
           <p className="text-[11px] font-semibold text-[#9aa5b1]">{venue.district}</p>
@@ -70,7 +72,10 @@ export function TravelModal() {
           <p className="text-[11px] font-bold text-[#5c6b7a]">Here now</p>
           <div className="mt-1 flex gap-1 overflow-x-auto">
             {crowd.map((member) => (
-              <span key={member.local.id} className="flex shrink-0 items-center gap-1 rounded-full border border-[#ece7de] px-2 py-0.5 text-[11px]">
+              <span
+                key={member.local.id}
+                className="flex shrink-0 items-center gap-1 rounded-full border border-[#ece7de] px-2 py-0.5 text-[11px]"
+              >
                 <Flag origin={member.local.origin} /> {member.local.name}
               </span>
             ))}
@@ -86,12 +91,14 @@ export function TravelModal() {
               type="button"
               onClick={() => setMode(entry.mode)}
               className={`flex flex-col items-center rounded-2xl border-2 px-1 py-2 ${
-                mode === entry.mode ? "border-[#1b2838] bg-[#f8f6f1]" : "border-transparent bg-[#f1ede6]"
+                mode === entry.mode ? "border-[#2f6fed] bg-[#eef3ff]" : "border-transparent bg-[#f1ede6]"
               }`}
             >
               <span className="text-2xl">{entry.emoji}</span>
               <span className="text-[11px] font-bold">{entry.name}</span>
-              <span className="text-[10px] font-semibold text-[#5c6b7a]">{option.pence === 0 ? "Free" : formatPence(option.pence)}</span>
+              <span className="text-[10px] font-semibold text-[#5c6b7a]">
+                {option.pence === 0 ? "Free" : formatPence(option.pence)}
+              </span>
               <span className="text-[10px] text-[#9aa5b1]">{option.minutes} min</span>
             </button>
           );

@@ -70,7 +70,9 @@ export function TopBar() {
         className="flex shrink-0 items-center gap-1 rounded-full bg-[#f1ede6] py-0.5 pl-3 pr-0.5 text-sm font-bold"
       >
         <span className={balance < 0 ? "text-[#c8102e]" : ""}>{formatPence(balance)}</span>
-        <span className="grid h-7 w-7 place-items-center rounded-full bg-[#3ccf6e] text-base font-bold text-white">+</span>
+        <span className="grid h-7 w-7 place-items-center rounded-full bg-[#3ccf6e] text-base font-bold text-white">
+          +
+        </span>
       </button>
     </header>
   );
@@ -78,7 +80,10 @@ export function TopBar() {
 
 function Pill({ children, className = "", title }: { children: React.ReactNode; className?: string; title?: string }) {
   return (
-    <div title={title} className={`flex shrink-0 items-center gap-1.5 rounded-full bg-[#f1ede6] px-3 py-1 text-[12px] ${className}`}>
+    <div
+      title={title}
+      className={`flex shrink-0 items-center gap-1.5 rounded-full bg-[#f1ede6] px-3 py-1 text-[12px] ${className}`}
+    >
       {children}
     </div>
   );
