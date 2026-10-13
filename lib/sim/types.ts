@@ -137,7 +137,11 @@ export interface Fixture {
   blocks: boolean;
   label?: string;
   emoji?: string;
+  /** Opens an info panel instead of an action menu. */
+  panel?: SpotPanel;
 }
+
+export type SpotPanel = "departures" | "receipts" | "audit";
 
 export interface JobDef {
   id: string;
@@ -180,6 +184,8 @@ export interface VenueDef {
   model: string;
   floor: string;
   wall: string | null;
+  /** Roof trim colour on the city map. */
+  accent?: string;
   flavour: string[];
   fixtures: Fixture[];
 }
@@ -193,6 +199,8 @@ export interface GoalDef {
   count: number;
   rewardPence: number;
   highlight: string;
+  /** A bonus after the onboarding goals; not counted in "Goal n/8". */
+  optional?: boolean;
 }
 
 export interface EventOutcome {

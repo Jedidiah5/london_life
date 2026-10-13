@@ -27,6 +27,7 @@ import type {
   MenuDef,
   Nationality,
   Needs,
+  SpotPanel,
   VenueDef,
 } from "@/lib/sim/types";
 import { NEED_KEYS } from "@/lib/sim/types";
@@ -65,10 +66,14 @@ interface RawFixture {
   blocks: boolean;
   label?: string;
   emoji?: string;
+  panel?: string;
 }
 
+const PANELS: readonly SpotPanel[] = ["departures", "receipts", "audit"];
+
 function asFixture(raw: RawFixture): Fixture {
-  return { ...raw, menu: raw.menu ?? null };
+  const panel = PANELS.find((known) => known === raw.panel);
+  return { ...raw, menu: raw.menu ?? null, panel };
 }
 
 interface RawAction {
@@ -154,6 +159,7 @@ export const homesById: Record<string, HomeDef> = Object.fromEntries(homes.map((
 export const venues: VenueDef[] = venuesJson.map((venue) => ({
   ...venue,
   wall: venue.wall ?? null,
+  accent: "accent" in venue ? venue.accent : undefined,
   fixtures: venue.fixtures.map((fixture) => asFixture(fixture)),
 }));
 
@@ -201,6 +207,32 @@ export const locals: LocalDef[] = localsJson.map((local) => ({
 
 export function localsAt(venueId: string): LocalDef[] {
   return locals.filter((local) => local.venues.includes(venueId));
+}
+
+const TRAVEL_LABELS: Record<string, string> = {
+  tube: "Tube fare",
+  bus: "Bus fare",
+  ride: "Black cab",
+  walk: "Walk",
+  oyster: "Oyster top-up",
+};
+
+function humanise(text: string): string {
+  const spaced = text.replaceAll("_", " ");
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+/** A ledger row in words: "Oat latte", "Barista wages", "Tube fare". Gift refs are sim ids, so never shown. */
+export function ledgerLabel(kind: string, ref: string | null): string {
+  if (kind === "gift") return "Gift";
+  if (!ref) return humanise(kind);
+  if (kind === "travel") return TRAVEL_LABELS[ref] ?? humanise(ref);
+  if (kind === "wage") return ref === "arrival" ? "Arrival money" : `${jobsById[ref]?.name ?? humanise(ref)} wages`;
+  if (kind === "goal") return `Goal: ${goals.find((goal) => goal.id === ref)?.title ?? humanise(ref)}`;
+  if (kind === "rent") return ref === "missed" ? "Missed rent" : "Rent and bills";
+  if (kind === "bill") return ref === "overdraft" ? "Overdraft interest" : humanise(ref);
+  const name = actionsById[ref]?.label ?? catalogueById[ref]?.name ?? finishesById[ref]?.name ?? humanise(ref);
+  return kind === "sale" ? `Sold ${name.toLowerCase()}` : name;
 }
 
 export function emptySkills(): Record<string, number> {

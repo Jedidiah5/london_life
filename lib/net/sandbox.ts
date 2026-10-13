@@ -571,6 +571,7 @@ export function createSandbox(storage: SandboxStorage, now: () => number = Date.
         energy: Math.max(0, sim.needs.energy - quote.energy),
       };
       if (destination !== "home") bump(sim, "travel");
+      if (destination === "monad_house") bump(sim, "monad");
       return {
         balance_pence: sim.balance_pence,
         oyster_pence: sim.oyster_pence,

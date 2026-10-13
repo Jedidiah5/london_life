@@ -4,9 +4,11 @@ import {
   actionsById,
   catalogue,
   events,
+  goals,
   homes,
   jobs,
   locals,
+  localsAt,
   menusById,
   nationalitiesById,
   venues,
@@ -29,10 +31,29 @@ test("catalogue items, fixtures and venue spots point at real menus", () => {
     }
   }
   for (const venue of venues.filter((entry) => entry.id !== "home")) {
-    const spots = venue.fixtures.filter((fixture) => fixture.menu);
+    const spots = venue.fixtures.filter((fixture) => fixture.menu || fixture.panel);
     assert.ok(spots.length >= 3, `${venue.id} needs 3+ spots`);
     assert.ok(venue.flavour.length >= 3, `${venue.id} needs flavour lines`);
   }
+});
+
+test("Monad House has its three panels and its own regulars", () => {
+  const house = venuesById.monad_house;
+  assert.ok(house);
+  assert.deepEqual(
+    house.fixtures.filter((fixture) => fixture.panel).map((fixture) => fixture.panel),
+    ["departures", "receipts", "audit"],
+  );
+  const regulars = localsAt("monad_house");
+  assert.ok(regulars.length >= 4 && regulars.length <= 5);
+  for (const local of regulars) assert.ok(nationalitiesById[local.origin], local.id);
+});
+
+test("the bonus goal comes after the eight onboarding goals", () => {
+  const required = goals.filter((goal) => !goal.optional);
+  assert.equal(required.length, 8);
+  assert.equal(goals.at(-1)?.id, "monad_receipts");
+  assert.equal(goals.at(-1)?.optional, true);
 });
 
 test("venue actions belong to a real venue and skills are real", () => {

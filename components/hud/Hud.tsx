@@ -5,6 +5,7 @@ import { PhoneOverlay } from "@/components/phone/PhoneOverlay";
 import { TravelModal } from "@/components/travel/TravelModal";
 import { EventModal } from "@/components/venue/EventModal";
 import { PersonCard } from "@/components/venue/PersonCard";
+import { SpotPanel } from "@/components/venue/SpotPanel";
 import { VenuePanel } from "@/components/venue/VenuePanel";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
@@ -46,6 +47,7 @@ export function Hud() {
       </div>
       <div className="mx-auto w-full max-w-md space-y-2">
         <ActionSheet />
+        <SpotPanel />
         <PersonCard />
         <VenuePanel />
         <TravelModal />

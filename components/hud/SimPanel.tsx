@@ -146,6 +146,8 @@ function GoalsTab() {
   const aspiration = useGame((state) => state.aspiration);
   const next = nextGoal(goals, done);
   const dream = ASPIRATIONS.find((entry) => entry.id === aspiration)?.label ?? capitalise(aspiration);
+  const required = goals.filter((goal) => !goal.optional);
+  const requiredDone = required.filter((goal) => done.includes(goal.id)).length;
   return (
     <div className="space-y-2">
       {next ? (
@@ -168,9 +170,9 @@ function GoalsTab() {
         <div className="text-[10px] font-extrabold tracking-wide opacity-75">LIFE DREAM</div>
         <div className="text-sm font-extrabold">{dream}</div>
         <div className="text-[11px] opacity-85">
-          {done.length} of {goals.length} London milestones done
+          {requiredDone} of {required.length} London milestones done
         </div>
-        <Progress value={done.length} max={goals.length} tone="#ffffff" />
+        <Progress value={requiredDone} max={required.length} tone="#ffffff" />
       </div>
       <h3 className="pt-1 text-[11px] font-extrabold tracking-wide text-[#9aa5b1]">MILESTONES</h3>
       <div className="space-y-1.5">

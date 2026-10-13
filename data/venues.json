@@ -82,6 +82,19 @@
     ]
   },
   {
+    "id": "monad_house", "name": "Monad House", "district": "East · Zone 1", "zone": 1, "x": 6, "z": 15.5, "emoji": "🧾",
+    "kind": "receipts", "blurb": "Where London's receipts live. Every payment in the city lands here in about a second.",
+    "width": 7, "height": 6, "model": "building-f", "accent": "#836EF9", "floor": "#d9d6e3", "wall": "#3b3550",
+    "flavour": ["Blocks every 300 ms. The queue for the toilet is still slower.", "Someone is explaining gas fees to a pigeon.", "A man checks his churros receipt for the third time."],
+    "fixtures": [
+      {"id":"departures","model":"departuresBoard","itemId":"sofa_long","x":2,"y":0,"rotation":0,"menu":null,"panel":"departures","blocks":true,"label":"Departures board","emoji":"🚉"},
+      {"id":"printer","model":"receiptCounter","itemId":"sink","x":0,"y":3,"rotation":1,"menu":null,"panel":"receipts","blocks":true,"label":"Receipt printer","emoji":"🧾"},
+      {"id":"audit","model":"desk","itemId":"desk","x":5,"y":3,"rotation":0,"menu":null,"panel":"audit","blocks":true,"label":"Audit desk","emoji":"🔎"},
+      {"id":"plant","model":"pottedPlant","itemId":"plant","x":6,"y":5,"rotation":0,"menu":null,"blocks":true},
+      {"id":"lamp","model":"lampSquareFloor","itemId":"floor_lamp","x":6,"y":0,"rotation":0,"menu":null,"blocks":false}
+    ]
+  },
+  {
     "id": "tube", "name": "Oval Square station", "district": "Zone 1", "zone": 1, "x": 0, "z": 3, "emoji": "🚇",
     "kind": "station", "blurb": "Minor delays. A busker. Somebody apologising to a stranger they bumped.",
     "width": 7, "height": 6, "model": "building-a", "floor": "#b9b4a8", "wall": "#e8e2d4",

@@ -3,8 +3,8 @@
 import { useEffect, useRef } from "react";
 import type { Group, Mesh } from "three";
 
-/** Built-in kitchen pieces with no model file. Local -z is the wall side; the front faces +z. */
-export const BUILT_IN_MODELS = ["kitchenCooker", "kitchenCounter"] as const;
+/** Built-in pieces with no model file. Local -z is the wall side; the front faces +z. */
+export const BUILT_IN_MODELS = ["kitchenCooker", "kitchenCounter", "departuresBoard", "receiptCounter"] as const;
 export type BuiltInModel = (typeof BUILT_IN_MODELS)[number];
 
 export function isBuiltIn(model: string): model is BuiltInModel {
@@ -140,6 +140,80 @@ function Cooker() {
   );
 }
 
+const BOARD_ROWS = [0.92, 0.7, 0.85, 0.6, 0.78];
+
+/** A three-tile station-style board on two posts, amber rows under a purple header. */
+function DeparturesBoard() {
+  const panelZ = BACK + 0.08;
+  return (
+    <group>
+      {[-1.25, 1.25].map((x) => (
+        <mesh key={x} position={[x, 0.55, panelZ]}>
+          <boxGeometry args={[0.07, 1.1, 0.07]} />
+          <meshStandardMaterial color="#2a2733" />
+        </mesh>
+      ))}
+      <mesh position={[0, 1.2, panelZ]}>
+        <boxGeometry args={[2.7, 1.0, 0.08]} />
+        <meshStandardMaterial color="#836ef9" />
+      </mesh>
+      <mesh position={[0, 1.18, panelZ + 0.045]}>
+        <boxGeometry args={[2.56, 0.86, 0.01]} />
+        <meshStandardMaterial color="#121019" roughness={0.3} />
+      </mesh>
+      <mesh position={[0, 1.53, panelZ + 0.052]}>
+        <boxGeometry args={[2.4, 0.08, 0.005]} />
+        <meshStandardMaterial color="#c9bdff" emissive="#836ef9" emissiveIntensity={0.9} />
+      </mesh>
+      {BOARD_ROWS.map((width, index) => (
+        <mesh key={index} position={[-1.2 + (2.4 * width) / 2, 1.38 - index * 0.13, panelZ + 0.052]}>
+          <boxGeometry args={[2.4 * width, 0.05, 0.005]} />
+          <meshStandardMaterial color="#ffb000" emissive="#ffb000" emissiveIntensity={0.8} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/** A plain counter with a little till printer and a curl of paper. */
+function ReceiptCounter() {
+  const top = BODY_HEIGHT + TOP;
+  return (
+    <group>
+      <Carcass colour="#3b3550" />
+      <mesh position={[0, 0.8, FRONT + 0.004]}>
+        <boxGeometry args={[0.86, 0.05, 0.01]} />
+        <meshStandardMaterial color="#836ef9" emissive="#836ef9" emissiveIntensity={0.4} />
+      </mesh>
+      <group position={[0, top, -0.08]}>
+        <mesh position={[0, 0.07, 0]}>
+          <boxGeometry args={[0.3, 0.14, 0.26]} />
+          <meshStandardMaterial color="#e9e6f2" />
+        </mesh>
+        <mesh position={[0, 0.145, -0.04]}>
+          <boxGeometry args={[0.2, 0.012, 0.02]} />
+          <meshStandardMaterial color="#1d2126" />
+        </mesh>
+        <mesh position={[0, 0.2, -0.03]} rotation={[-0.25, 0, 0]}>
+          <boxGeometry args={[0.16, 0.13, 0.004]} />
+          <meshStandardMaterial color="#fffdf6" />
+        </mesh>
+        <mesh position={[0.1, 0.142, 0.08]}>
+          <boxGeometry args={[0.05, 0.01, 0.05]} />
+          <meshStandardMaterial color="#3ccf6e" emissive="#3ccf6e" emissiveIntensity={0.8} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+const PIECES: Record<BuiltInModel, () => React.JSX.Element> = {
+  kitchenCooker: Cooker,
+  kitchenCounter: Counter,
+  departuresBoard: DeparturesBoard,
+  receiptCounter: ReceiptCounter,
+};
+
 export function BuiltInPiece({ model }: { model: BuiltInModel }) {
   const root = useRef<Group>(null);
   useEffect(() => {
@@ -150,5 +224,10 @@ export function BuiltInPiece({ model }: { model: BuiltInModel }) {
       mesh.receiveShadow = true;
     });
   }, [model]);
-  return <group ref={root}>{model === "kitchenCooker" ? <Cooker /> : <Counter />}</group>;
+  const Piece = PIECES[model];
+  return (
+    <group ref={root}>
+      <Piece />
+    </group>
+  );
 }

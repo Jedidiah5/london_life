@@ -68,6 +68,15 @@ test("venue actions only work at the venue; home actions only at home", () => {
   assert.equal(err("perform_action", { p_action: "free_money" }), "Not on the menu");
 });
 
+test("visiting Monad House counts for the bonus goal, which waits for the onboarding goals", () => {
+  const { ok, err } = fresh();
+  const pub = ok("travel", { p_destination: "pub", p_mode: "walk" });
+  assert.equal((pub.stats as Record<string, number>).monad, undefined);
+  const arrived = ok("travel", { p_destination: "monad_house", p_mode: "tube" });
+  assert.equal((arrived.stats as Record<string, number>).monad, 1);
+  assert.equal(err("claim_goal", { p_goal: "monad_receipts" }), "Do the goals in order");
+});
+
 test("jobs need applying, the right place, and a finished shift", () => {
   const { ok, err, advance } = fresh();
   assert.equal(err("apply_job", { p_job: "lawyer" }), "Skill too low");

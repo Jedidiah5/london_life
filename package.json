@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "deploy:ledger": "node --env-file=.env.local --import tsx scripts/deploy-ledger.mts",
-    "test": "node --import tsx --test lib/sim/clock.test.ts lib/sim/needs.test.ts lib/sim/mood.test.ts lib/sim/actions.test.ts lib/sim/path.test.ts lib/sim/upkeep.test.ts lib/sim/travel.test.ts lib/sim/story.test.ts lib/sim/londonClock.test.ts lib/sim/placement.test.ts lib/content.test.ts lib/net/sandbox.test.ts lib/net/authRules.test.ts lib/sim/appearance.test.ts lib/chain/batch.test.ts"
+    "test": "node --import tsx --test lib/sim/clock.test.ts lib/sim/needs.test.ts lib/sim/mood.test.ts lib/sim/actions.test.ts lib/sim/path.test.ts lib/sim/upkeep.test.ts lib/sim/travel.test.ts lib/sim/story.test.ts lib/sim/londonClock.test.ts lib/sim/placement.test.ts lib/content.test.ts lib/net/sandbox.test.ts lib/net/authRules.test.ts lib/sim/appearance.test.ts lib/chain/batch.test.ts lib/chain/audit.test.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

@@ -92,6 +92,67 @@ export async function checkpointNeeds(): Promise<void> {
   useGame.getState().applyCheckpoint(patch);
 }
 
+export interface Departure {
+  id: string;
+  firstName: string;
+  kind: string;
+  ref: string | null;
+  amountPence: number;
+  chainTx: string;
+}
+
+/** The last settled payments across London, newest first. Empty offline: nothing settles there. */
+export async function loadDepartures(): Promise<Departure[]> {
+  if (!supabaseConfigured()) return [];
+  const result = await call("get_departures");
+  const rows = result.data?.departures;
+  if (!Array.isArray(rows)) return [];
+  return rows.flatMap((entry) => {
+    const row = record(entry);
+    const chainTx = str(row?.chain_tx);
+    if (!row || !chainTx) return [];
+    return [
+      {
+        id: str(row.id),
+        firstName: str(row.first_name, "Someone"),
+        kind: str(row.kind),
+        ref: typeof row.ref === "string" ? row.ref : null,
+        amountPence: num(row.amount_pence),
+        chainTx,
+      },
+    ];
+  });
+}
+
+export type Audit =
+  | { status: "matches" | "settling" | "differs"; gamePence: number; onchainPence: number; pendingCount: number }
+  | { status: "offline" | "error"; message: string };
+
+export async function loadAudit(): Promise<Audit> {
+  const supabase = getSupabase();
+  if (!supabaseConfigured() || !supabase) return { status: "offline", message: "The audit desk needs you online" };
+  const session = await supabase.auth.getSession();
+  const token = session.data.session?.access_token;
+  if (!token) return { status: "offline", message: "Sign in to see your audit" };
+  try {
+    const response = await fetch("/api/chain/audit", { headers: { authorization: `Bearer ${token}` } });
+    const body = record(await response.json());
+    if (!response.ok || !body) return { status: "error", message: str(body?.error, "The auditor is on a break") };
+    const status = str(body.status);
+    if (status !== "matches" && status !== "settling" && status !== "differs") {
+      return { status: "error", message: "The auditor is on a break" };
+    }
+    return {
+      status,
+      gamePence: num(body.gamePence),
+      onchainPence: num(body.onchainPence),
+      pendingCount: num(body.pendingCount),
+    };
+  } catch {
+    return { status: "error", message: "The auditor is on a break" };
+  }
+}
+
 /** Server ledger with receipt status, so the Bank shows every row, not just the ones this tab saw. */
 export async function refreshLedger(): Promise<void> {
   const result = await call("get_ledger");

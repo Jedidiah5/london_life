@@ -104,9 +104,13 @@ export function RoomScene() {
   const goal = nextGoal(goals, goalsDone);
   const highlight = atHome && !visit ? goal?.highlight : undefined;
   const seat = seatFor(action, layout, inventory);
-  const tap = (target: string) => {
+  const tap = (target: string, panel = false) => {
     if (visit) return;
     if (useUi.getState().nav === "buy") return;
+    if (panel) {
+      useUi.getState().openSheet(target);
+      return;
+    }
     const blocked = useGame.getState().canQueue();
     if (blocked) {
       useUi.getState().pushToast(blocked);
@@ -173,6 +177,7 @@ export function RoomScene() {
         const footprint = item?.footprint ?? [1, 1];
         const [fx, , fz] = itemWorld(fixture.x, fixture.y, footprint, fixture.rotation, layout.width, layout.height);
         const menu = fixture.menu ? menusById[fixture.menu] : undefined;
+        const panel = Boolean(fixture.panel);
         return (
           <group key={fixture.id}>
             <FurniturePiece
@@ -183,19 +188,19 @@ export function RoomScene() {
               rotation={fixture.rotation}
               roomWidth={layout.width}
               roomHeight={layout.height}
-              onClick={menu ? () => tap(fixture.id) : undefined}
+              onClick={menu || panel ? () => tap(fixture.id, panel) : undefined}
             />
-            {menu ? (
-              <ScreenLabel position={[fx, 1.7, fz]}>
+            {menu || panel ? (
+              <ScreenLabel position={[fx, panel && fixture.model === "departuresBoard" ? 2.1 : 1.7, fz]}>
                 <button
                   type="button"
-                  onClick={() => tap(fixture.id)}
+                  onClick={() => tap(fixture.id, panel)}
                   className={`items-center gap-1 whitespace-nowrap rounded-full bg-white/95 px-2 py-1 text-[11px] font-semibold text-[#1b2838] shadow-md ${
                     highlight === fixture.id ? "animate-bounce ring-2 ring-[#e8a317]" : ""
                   } ${!atHome || highlight === fixture.id ? "flex" : "hidden"}`}
                 >
-                  <span className="text-sm">{fixture.emoji ?? menu.emoji}</span>
-                  {atHome ? "Tap me" : (fixture.label ?? menu.title)}
+                  <span className="text-sm">{fixture.emoji ?? menu?.emoji}</span>
+                  {atHome ? "Tap me" : (fixture.label ?? menu?.title)}
                 </button>
               </ScreenLabel>
             ) : null}

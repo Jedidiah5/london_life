@@ -2,51 +2,18 @@
 
 import { useEffect } from "react";
 import { scheduleFlush } from "@/lib/chain/flush";
-import { EXPLORER_TX } from "@/lib/chain/monad";
 import { catalogueById, homesById } from "@/lib/content";
 import { refreshLedger, setHeating, topUpOyster } from "@/lib/net/rpc";
 import { weeksOwed } from "@/lib/sim/clock";
 import { OYSTER_TOP_UPS, SELL_RATIO } from "@/lib/sim/constants";
 import { formatSpan } from "@/lib/sim/londonClock";
 import { formatPence } from "@/lib/sim/money";
-import type { LedgerEntry } from "@/lib/sim/types";
 import { weeklyBills } from "@/lib/sim/upkeep";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
-
-const KIND_EMOJI: Record<string, string> = {
-  wage: "💷",
-  rent: "🏠",
-  bill: "🧾",
-  purchase: "🛍️",
-  sale: "♻️",
-  travel: "🚇",
-  gift: "🎁",
-  goal: "🏆",
-};
+import { LedgerRow } from "./LedgerRow";
 
 const POLL_MS = 3000;
-
-function ReceiptChip({ entry }: { entry: LedgerEntry }) {
-  if (!entry.chainStatus) return null;
-  if (entry.chainStatus === "settled" && entry.chainTx) {
-    return (
-      <a
-        href={`${EXPLORER_TX}${entry.chainTx}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="shrink-0 rounded-full bg-[#e6f6ec] px-1.5 py-0.5 text-[9px] font-bold text-[#22924f]"
-      >
-        On Monad ✓
-      </a>
-    );
-  }
-  return (
-    <span className="shrink-0 rounded-full bg-[#f1f3f5] px-1.5 py-0.5 text-[9px] font-bold text-[#5c6b7a]">
-      ⏳ settling
-    </span>
-  );
-}
 
 export function Bank() {
   const balance = useGame((state) => state.balancePence);
@@ -134,15 +101,7 @@ export function Bank() {
       <p className="pt-1 text-[10px] font-bold text-[#9aa5b1]">RECENT</p>
       <ul className="space-y-1">
         {ledger.map((entry) => (
-          <li key={entry.id} className="flex items-center gap-2 rounded-xl bg-white px-2 py-1.5 shadow-sm">
-            <span>{KIND_EMOJI[entry.kind] ?? "•"}</span>
-            <span className="flex-1 truncate capitalize">{entry.ref?.replaceAll("_", " ") ?? entry.kind}</span>
-            <ReceiptChip entry={entry} />
-            <span className={`font-bold ${entry.amountPence >= 0 ? "text-[#22924f]" : ""}`}>
-              {entry.amountPence >= 0 ? "+" : ""}
-              {formatPence(entry.amountPence)}
-            </span>
-          </li>
+          <LedgerRow key={entry.id} entry={entry} />
         ))}
       </ul>
     </div>

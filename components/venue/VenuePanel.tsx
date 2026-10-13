@@ -40,7 +40,7 @@ export function VenuePanel() {
 
   if (!venue || location === "home" || sheet || person || nav !== "home") return null;
   const nation = nationalitiesById[origin];
-  const spots = venue.fixtures.filter((fixture) => fixture.menu);
+  const spots = venue.fixtures.filter((fixture) => fixture.menu || fixture.panel);
   const people = crowd.length + here.length + 1;
   const flavour = venue.flavour[line % Math.max(1, venue.flavour.length)];
   const recent = chat.slice(-3);

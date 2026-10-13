@@ -1,10 +1,35 @@
 "use client";
 
+import { useGLTF } from "@react-three/drei";
+import { Suspense, useMemo } from "react";
+import { Box3, Vector3 } from "three";
 import { CITY_DRESSING, venues } from "@/lib/content";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
-import { FittedModel } from "./fitted";
+import { FittedModel, fitObject } from "./fitted";
 import { ScreenLabel } from "./ScreenLabel";
+
+/** A city building with a coloured roof slab and a lit band, so it reads from across the map. */
+function AccentBuilding({ url, targetWidth, accent }: { url: string; targetWidth: number; accent: string }) {
+  const gltf = useGLTF(url);
+  const { object, size } = useMemo(() => {
+    const fitted = fitObject(gltf.scene, targetWidth);
+    return { object: fitted, size: new Box3().setFromObject(fitted).getSize(new Vector3()) };
+  }, [gltf.scene, targetWidth]);
+  return (
+    <group>
+      <primitive object={object} />
+      <mesh position={[0, size.y + 0.05, 0]} raycast={() => null} castShadow>
+        <boxGeometry args={[size.x * 0.82, 0.1, size.z * 0.82]} />
+        <meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={0.35} />
+      </mesh>
+      <mesh position={[0, size.y + 0.22, 0]} raycast={() => null}>
+        <boxGeometry args={[0.22, 0.24, 0.22]} />
+        <meshStandardMaterial color="#f4f1ff" emissive={accent} emissiveIntensity={0.9} />
+      </mesh>
+    </group>
+  );
+}
 
 const ROADS_X = [-14, -8.5, -3, 3.5, 9.5, 14.5];
 const ROADS_Z = [-10, -4.5, 5.5, 9.5];
@@ -68,7 +93,13 @@ export function CityScene() {
         const selected = travelTo === venue.id;
         return (
           <group key={venue.id} position={[venue.x, 0, venue.z]}>
-            <FittedModel url={`/models/city/${venue.model}.glb`} targetWidth={venue.kind === "park" ? 1.8 : 2.5} />
+            {venue.accent ? (
+              <Suspense fallback={null}>
+                <AccentBuilding url={`/models/city/${venue.model}.glb`} targetWidth={2.5} accent={venue.accent} />
+              </Suspense>
+            ) : (
+              <FittedModel url={`/models/city/${venue.model}.glb`} targetWidth={venue.kind === "park" ? 1.8 : 2.5} />
+            )}
             <ScreenLabel position={[0, 2.4, 0]}>
               <button
                 type="button"

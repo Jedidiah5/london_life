@@ -33,6 +33,7 @@ export function GoalCards() {
   const low = lowestNeed(needs);
   const urgent = needs[low] < NEED_WARNING + 10;
   const index = goal ? goals.findIndex((entry) => entry.id === goal.id) : goals.length;
+  const required = goals.filter((entry) => !entry.optional).length;
 
   return (
     <div className="pointer-events-none flex w-60 flex-col items-start gap-1.5">
@@ -45,7 +46,7 @@ export function GoalCards() {
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#fff4d6] text-xl">{goal.emoji}</div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1 text-[10px] font-semibold text-[#9aa5b1]">
-              GOAL {index + 1}/{goals.length}
+              {goal.optional ? "BONUS" : `GOAL ${index + 1}/${required}`}
             </div>
             <div className="truncate text-[13px] font-bold">{goal.title}</div>
             <div className="truncate text-[11px] text-[#5c6b7a]">{goal.hint}</div>
