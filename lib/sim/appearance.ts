@@ -60,6 +60,40 @@ export function normaliseAppearance(raw: unknown): Appearance {
   };
 }
 
+/** A fresh random look for the creator's Randomise button. Origin is kept as chosen. */
+export function randomAppearance(
+  keep: Pick<Appearance, "origin" | "londonBorn">,
+  palette: {
+    skins: readonly string[];
+    hairs: readonly string[];
+    tops: readonly string[];
+    bottoms: readonly string[];
+    shoes: readonly string[];
+    headwearColours: readonly string[];
+  },
+  rng: () => number = Math.random,
+): Appearance {
+  const choose = <T>(list: readonly T[]): T => list[Math.min(list.length - 1, Math.floor(rng() * list.length))];
+  const figure = choose(FIGURES);
+  const topStyle = choose(TOP_STYLES);
+  return {
+    figure,
+    skin: choose(palette.skins),
+    hairStyle: choose(HAIR_STYLES),
+    hairColor: choose(palette.hairs),
+    headwear: rng() < 0.2 ? choose(HEADWEAR) : "none",
+    headwearColor: choose(palette.headwearColours),
+    beard: figure === "masc" && rng() < 0.3,
+    build: choose(BUILDS),
+    top: choose(palette.tops),
+    topStyle: figure === "masc" && topStyle === "dress" ? "tee" : topStyle,
+    bottom: choose(palette.bottoms),
+    shoes: choose(palette.shoes),
+    origin: keep.origin,
+    londonBorn: keep.londonBorn,
+  };
+}
+
 /** Deterministic random look for crowd extras, seeded by a string. */
 export function seededLook(seed: string, palette: { skins: string[]; hairs: string[]; tops: string[] }): Appearance {
   let hash = 2166136261;
