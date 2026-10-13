@@ -62,18 +62,7 @@ export interface SimAction {
 }
 
 export type HairStyle =
-  | "short"
-  | "fade"
-  | "buzz"
-  | "bald"
-  | "afro"
-  | "curly"
-  | "long"
-  | "ponytail"
-  | "bun"
-  | "braids"
-  | "locs"
-  | "cornrows";
+  "short" | "fade" | "buzz" | "bald" | "afro" | "curly" | "long" | "ponytail" | "bun" | "braids" | "locs" | "cornrows";
 
 export type Headwear = "none" | "hijab" | "turban" | "headwrap" | "cap" | "beanie";
 
@@ -81,7 +70,10 @@ export type Build = "slim" | "regular" | "broad";
 
 export type TopStyle = "tee" | "hoodie" | "jacket" | "blazer" | "dress" | "kaftan";
 
+export type Figure = "masc" | "fem";
+
 export interface Appearance {
+  figure: Figure;
   skin: string;
   hairStyle: HairStyle;
   hairColor: string;

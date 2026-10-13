@@ -117,11 +117,42 @@ export const SKINS = [
   "#4a2912",
   "#3a2010",
 ];
-export const HAIRS = ["#111111", "#2b1a10", "#5c3a24", "#8b5a2b", "#c4a35a", "#c45a2a", "#8b2e3a", "#d5d5d5", "#6b8fd1", "#d16bb0"];
-export const TOPS = ["#1f4b99", "#b23a48", "#2f6b4f", "#f4f1ea", "#1a1a1a", "#e8a317", "#6b2d5b", "#c5d4e8", "#3e3a34", "#d9673b"];
+export const HAIRS = [
+  "#111111",
+  "#2b1a10",
+  "#5c3a24",
+  "#8b5a2b",
+  "#c4a35a",
+  "#c45a2a",
+  "#8b2e3a",
+  "#d5d5d5",
+  "#6b8fd1",
+  "#d16bb0",
+];
+export const TOPS = [
+  "#1f4b99",
+  "#b23a48",
+  "#2f6b4f",
+  "#f4f1ea",
+  "#1a1a1a",
+  "#e8a317",
+  "#6b2d5b",
+  "#c5d4e8",
+  "#3e3a34",
+  "#d9673b",
+];
 export const BOTTOMS = ["#243044", "#3e3a34", "#1f4b99", "#6b2d5b", "#1a1a1a", "#c4a574"];
 export const SHOES = ["#1a1a1a", "#f4f1ea", "#6b3a2a", "#1f4b99", "#b23a48"];
-export const HEADWEAR_COLOURS = ["#1a1a1a", "#f4f1ea", "#2f6b4f", "#6b2d5b", "#e8a317", "#1f4b99", "#b23a48", "#c4a574"];
+export const HEADWEAR_COLOURS = [
+  "#1a1a1a",
+  "#f4f1ea",
+  "#2f6b4f",
+  "#6b2d5b",
+  "#e8a317",
+  "#1f4b99",
+  "#b23a48",
+  "#c4a574",
+];
 
 export const HAIR_STYLES = [
   "short",
@@ -139,6 +170,7 @@ export const HAIR_STYLES = [
 ] as const;
 export const HEADWEAR = ["none", "hijab", "turban", "headwrap", "cap", "beanie"] as const;
 export const BUILDS = ["slim", "regular", "broad"] as const;
+export const FIGURES = ["masc", "fem"] as const;
 export const TOP_STYLES = ["tee", "hoodie", "jacket", "blazer", "dress", "kaftan"] as const;
 
 export const CATALOGUE_CATEGORIES = [

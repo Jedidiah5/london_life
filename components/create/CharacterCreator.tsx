@@ -10,6 +10,7 @@ import {
   ASPIRATIONS,
   BOTTOMS,
   BUILDS,
+  FIGURES,
   HAIR_STYLES,
   HAIRS,
   HEADWEAR,
@@ -163,7 +164,8 @@ export function CharacterCreator() {
         {step === "origin" ? (
           <section className="flex flex-1 flex-col gap-3">
             <p className="text-sm text-[#5c6b7a]">
-              London is everyone&apos;s city. Your roots change your greetings, your comfort food, and who you bump into.
+              London is everyone&apos;s city. Your roots change your greetings, your comfort food, and who you bump
+              into.
             </p>
             <input
               value={query}
@@ -226,6 +228,13 @@ export function CharacterCreator() {
 
         {step === "look" ? (
           <section className="flex flex-1 flex-col gap-3">
+            <Chips
+              label="Body"
+              values={FIGURES}
+              labels={{ masc: "Masculine", fem: "Feminine" }}
+              selected={look.figure}
+              onPick={(figure) => set({ figure, beard: figure === "fem" ? false : look.beard })}
+            />
             <Swatches label="Skin" values={SKINS} selected={look.skin} onPick={(skin) => set({ skin })} />
             <Chips
               label="Hair"
@@ -234,7 +243,12 @@ export function CharacterCreator() {
               selected={look.hairStyle}
               onPick={(hairStyle) => set({ hairStyle })}
             />
-            <Swatches label="Hair colour" values={HAIRS} selected={look.hairColor} onPick={(hairColor) => set({ hairColor })} />
+            <Swatches
+              label="Hair colour"
+              values={HAIRS}
+              selected={look.hairColor}
+              onPick={(hairColor) => set({ hairColor })}
+            />
             <Chips
               label="Headwear"
               values={HEADWEAR}
@@ -258,23 +272,35 @@ export function CharacterCreator() {
                 selected={look.build}
                 onPick={(build) => set({ build })}
               />
-              <div>
-                <p className="text-xs font-semibold text-[#5c6b7a]">Beard</p>
-                <button
-                  type="button"
-                  onClick={() => set({ beard: !look.beard })}
-                  className={`mt-1 rounded-full px-3 py-1 text-xs shadow-sm ${look.beard ? "bg-[#1b2838] text-white" : "bg-white"}`}
-                >
-                  {look.beard ? "Yes" : "No"}
-                </button>
-              </div>
+              {look.figure === "masc" ? (
+                <div>
+                  <p className="text-xs font-semibold text-[#5c6b7a]">Beard</p>
+                  <button
+                    type="button"
+                    onClick={() => set({ beard: !look.beard })}
+                    className={`mt-1 rounded-full px-3 py-1 text-xs shadow-sm ${look.beard ? "bg-[#1b2838] text-white" : "bg-white"}`}
+                  >
+                    {look.beard ? "Yes" : "No"}
+                  </button>
+                </div>
+              ) : null}
             </div>
-            <Chips label="Outfit" values={TOP_STYLES} labels={TOP_LABELS} selected={look.topStyle} onPick={(topStyle) => set({ topStyle })} />
+            <Chips
+              label="Outfit"
+              values={TOP_STYLES}
+              labels={TOP_LABELS}
+              selected={look.topStyle}
+              onPick={(topStyle) => set({ topStyle })}
+            />
             <Swatches label="Top" values={TOPS} selected={look.top} onPick={(top) => set({ top })} />
             <Swatches label="Bottoms" values={BOTTOMS} selected={look.bottom} onPick={(bottom) => set({ bottom })} />
             <Swatches label="Trainers" values={SHOES} selected={look.shoes} onPick={(shoes) => set({ shoes })} />
             <div className="mt-auto flex gap-2">
-              <button type="button" className="rounded-full bg-white px-5 py-3 text-sm font-semibold shadow" onClick={() => setStep("origin")}>
+              <button
+                type="button"
+                className="rounded-full bg-white px-5 py-3 text-sm font-semibold shadow"
+                onClick={() => setStep("origin")}
+              >
                 Back
               </button>
               <button
@@ -341,11 +367,16 @@ export function CharacterCreator() {
               </div>
             </div>
             <div className="rounded-2xl bg-white/80 p-3 text-[12px] text-[#3a4a5a] shadow-sm">
-              You start with <b>£400</b> and a box room in Zone 4. Rent is <b>£180</b> a week. Check the Bank app for when it&apos;s due. It is already raining.
+              You start with <b>£400</b> and a box room in Zone 4. Rent is <b>£180</b> a week. Check the Bank app for
+              when it&apos;s due. It is already raining.
             </div>
             {error ? <p className="text-sm font-semibold text-[#c8102e]">{error}</p> : null}
             <div className="mt-auto flex gap-2">
-              <button type="button" className="rounded-full bg-white px-5 py-3 text-sm font-semibold shadow" onClick={() => setStep("look")}>
+              <button
+                type="button"
+                className="rounded-full bg-white px-5 py-3 text-sm font-semibold shadow"
+                onClick={() => setStep("look")}
+              >
                 Back
               </button>
               <button

@@ -1,8 +1,18 @@
-import { BUILDS, HAIR_STYLES, HEADWEAR, TOP_STYLES } from "./constants";
-import type { Appearance, Build, HairStyle, Headwear, TopStyle } from "./types";
+import { BUILDS, FIGURES, HAIR_STYLES, HEADWEAR, TOP_STYLES } from "./constants";
+import type { Appearance, Build, Figure, HairStyle, Headwear, TopStyle } from "./types";
+
+const FEM_HAIR: readonly HairStyle[] = ["long", "ponytail", "bun", "braids"];
+
+/** Saves from before `figure` existed get a best guess from what they were wearing. */
+function guessFigure(row: Record<string, unknown>): Figure {
+  if (row.beard === true) return "masc";
+  if (row.topStyle === "dress" || row.headwear === "hijab" || row.headwear === "headwrap") return "fem";
+  return FEM_HAIR.includes(row.hairStyle as HairStyle) ? "fem" : "masc";
+}
 
 export function defaultAppearance(): Appearance {
   return {
+    figure: "masc",
     skin: "#c68642",
     hairStyle: "short",
     hairColor: "#111111",
@@ -33,6 +43,7 @@ export function normaliseAppearance(raw: unknown): Appearance {
   if (!raw || typeof raw !== "object") return base;
   const row = raw as Record<string, unknown>;
   return {
+    figure: pick<Figure>(FIGURES, row.figure, guessFigure(row)),
     skin: colour(row.skin, base.skin),
     hairStyle: pick<HairStyle>(HAIR_STYLES, row.hairStyle ?? row.hair, base.hairStyle),
     hairColor: colour(row.hairColor, base.hairColor),
@@ -60,19 +71,22 @@ export function seededLook(seed: string, palette: { skins: string[]; hairs: stri
     hash = Math.imul(hash ^ (hash >>> 15), 2246822507) >>> 0;
     return hash / 4294967296;
   };
-  const choose = <T,>(list: readonly T[], fallback: T): T => list[Math.floor(next() * list.length)] ?? fallback;
+  const choose = <T>(list: readonly T[], fallback: T): T => list[Math.floor(next() * list.length)] ?? fallback;
   const base = defaultAppearance();
+  const figure = choose(FIGURES, base.figure);
+  const topStyle = choose(TOP_STYLES, base.topStyle);
   return {
     ...base,
+    figure,
     skin: choose(palette.skins, base.skin),
     hairStyle: choose(HAIR_STYLES, base.hairStyle),
     hairColor: choose(palette.hairs, base.hairColor),
     headwear: next() < 0.15 ? choose(HEADWEAR, "none") : "none",
     headwearColor: choose(palette.tops, base.headwearColor),
-    beard: next() < 0.3,
+    beard: figure === "masc" && next() < 0.3,
     build: choose(BUILDS, base.build),
     top: choose(palette.tops, base.top),
-    topStyle: choose(TOP_STYLES, base.topStyle),
+    topStyle: figure === "masc" && topStyle === "dress" ? "tee" : topStyle,
     bottom: choose(palette.tops, base.bottom),
   };
 }

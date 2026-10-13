@@ -1,553 +1,429 @@
 "use client";
 
-import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
-import { DoubleSide, Vector2, type Group, type Mesh } from "three";
-import type { Anim, Appearance } from "@/lib/sim/types";
+import { useGLTF } from "@react-three/drei";
+import { createPortal, useFrame } from "@react-three/fiber";
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import {
+  AnimationMixer,
+  DoubleSide,
+  Quaternion,
+  Skeleton,
+  Vector3,
+  type AnimationAction,
+  type Bone,
+  type Group,
+  type Mesh,
+  type MeshStandardMaterial,
+  type Object3D,
+  type SkinnedMesh,
+} from "three";
+import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
+import type { Anim, Appearance, Figure, HairStyle, TopStyle } from "@/lib/sim/types";
 import { shadeHex as shade } from "./colour";
 
-const HEAD_Y = 0.66;
-const HEAD_R = 0.12;
+type ModelId =
+  | "m_casual"
+  | "m_hoodie"
+  | "m_suit"
+  | "m_punk"
+  | "m_beach"
+  | "m_adventurer"
+  | "f_casual"
+  | "f_formal"
+  | "f_suit"
+  | "f_punk"
+  | "f_adventurer"
+  | "f_soldier";
 
-function Mat({ color, rough = 0.75 }: { color: string; rough?: number }) {
-  return <meshStandardMaterial color={color} roughness={rough} />;
+const modelUrl = (id: ModelId) => `/models/people/${id}.glb`;
+
+/** The source models are 1.8m tall; this brings them to the old avatar's height. */
+const MODEL_SCALE = 0.54;
+
+const OUTFITS: Record<Figure, Record<TopStyle, ModelId>> = {
+  masc: {
+    tee: "m_casual",
+    hoodie: "m_hoodie",
+    jacket: "m_punk",
+    blazer: "m_suit",
+    dress: "m_casual",
+    kaftan: "m_casual",
+  },
+  fem: {
+    tee: "f_casual",
+    hoodie: "f_casual",
+    jacket: "f_punk",
+    blazer: "f_suit",
+    dress: "f_formal",
+    kaftan: "f_formal",
+  },
+};
+
+const HEADS: Record<Figure, Record<HairStyle, ModelId>> = {
+  masc: {
+    short: "m_hoodie",
+    fade: "m_suit",
+    buzz: "m_beach",
+    bald: "m_suit",
+    afro: "m_suit",
+    curly: "m_hoodie",
+    long: "m_casual",
+    ponytail: "m_casual",
+    bun: "m_casual",
+    braids: "m_suit",
+    locs: "m_suit",
+    cornrows: "m_suit",
+  },
+  fem: {
+    short: "f_adventurer",
+    fade: "f_adventurer",
+    buzz: "f_adventurer",
+    bald: "f_suit",
+    afro: "f_suit",
+    curly: "f_formal",
+    long: "f_soldier",
+    ponytail: "f_casual",
+    bun: "f_formal",
+    braids: "f_suit",
+    locs: "f_suit",
+    cornrows: "f_suit",
+  },
+};
+
+/** Styles the models don't have: their own hair is hidden and ours is drawn on the head bone. */
+const DRAWN_HAIR: readonly HairStyle[] = ["bald", "afro", "braids", "locs", "cornrows"];
+
+const CLIPS: Record<Anim, string> = {
+  stand: "Idle",
+  walk: "Walk",
+  sit: "Idle",
+  sleep: "Idle",
+  eat: "Interact",
+  shower: "Interact",
+  work: "Interact",
+  dance: "Wave",
+};
+
+type Part = "head" | "top" | "bottom" | "shoes";
+
+function partOf(node: Object3D): Part | null {
+  for (let current: Object3D | null = node; current; current = current.parent) {
+    if (/_Head$/.test(current.name)) return "head";
+    if (/_Body$/.test(current.name)) return "top";
+    if (/_(Legs|Pants)$/.test(current.name)) return "bottom";
+    if (/_Feet$/.test(current.name)) return "shoes";
+  }
+  return null;
 }
 
-function Hair({ look }: { look: Appearance }) {
-  const c = look.hairColor;
-  const covered = look.headwear === "hijab" || look.headwear === "turban" || look.headwear === "headwrap";
-  if (covered || look.hairStyle === "bald") return null;
-  const cap = (scale = 1.06, squash = 0.62) => (
-    <mesh position={[0, HEAD_Y + 0.012, -0.012]} rotation={[-0.38, 0, 0]} scale={[scale, squash * scale + 0.38, scale]}>
-      <sphereGeometry args={[HEAD_R, 18, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
-      <Mat color={c} />
-    </mesh>
-  );
-  switch (look.hairStyle) {
-    case "buzz":
-      return cap(1.02, 0.55);
-    case "fade":
-      return cap(1.04, 0.7);
-    case "short":
-      return cap(1.08, 0.75);
-    case "afro":
-      return (
-        <mesh position={[0, HEAD_Y + 0.055, -0.045]} scale={[1.05, 0.95, 0.9]}>
-          <sphereGeometry args={[0.155, 20, 16]} />
-          <Mat color={c} rough={0.95} />
+function findPart(root: Object3D, suffix: string): Object3D | undefined {
+  let found: Object3D | undefined;
+  root.traverse((node) => {
+    if (!found && node.name.endsWith(suffix) && !(node as Bone).isBone) found = node;
+  });
+  return found;
+}
+
+/** Clones an outfit and, if asked, swaps in the head (and hair) from another model on the same rig. */
+function assemble(body: Object3D, head: Object3D | null): Object3D {
+  const root = cloneSkinned(body);
+  const source = head ? findPart(head, "_Head") : undefined;
+  if (source) {
+    findPart(root, "_Head")?.removeFromParent();
+    const bones = new Map<string, Bone>();
+    root.traverse((node) => {
+      if ((node as Bone).isBone) bones.set(node.name, node as Bone);
+    });
+    const copy = source.clone();
+    copy.traverse((node) => {
+      const mesh = node as SkinnedMesh;
+      if (!mesh.isSkinnedMesh) return;
+      const skeleton = new Skeleton(
+        mesh.skeleton.bones.map((bone) => bones.get(bone.name) ?? bone),
+        mesh.skeleton.boneInverses,
+      );
+      mesh.bind(skeleton, mesh.bindMatrix);
+    });
+    (root.getObjectByName(source.parent?.name ?? "") ?? root).add(copy);
+  }
+  root.traverse((node) => {
+    const mesh = node as Mesh;
+    if (!mesh.isMesh) return;
+    mesh.material = (mesh.material as MeshStandardMaterial).clone();
+    mesh.castShadow = true;
+    mesh.frustumCulled = false;
+  });
+  return root;
+}
+
+const NOT_CLOTHES = /^(Skin|Skin_Darker|Hair.*|Eyebrows|Moustache|Eye|Earrings)$/;
+
+function recolour(root: Object3D, look: Appearance, hideHair: boolean) {
+  const meshes: { mesh: Mesh; part: Part | null; name: string }[] = [];
+  root.traverse((node) => {
+    const mesh = node as Mesh;
+    if (mesh.isMesh) meshes.push({ mesh, part: partOf(mesh), name: (mesh.material as MeshStandardMaterial).name });
+  });
+  const main = new Map<Part, Mesh>();
+  for (const entry of meshes) {
+    if (!entry.part || entry.part === "head" || NOT_CLOTHES.test(entry.name)) continue;
+    const current = main.get(entry.part);
+    const count = entry.mesh.geometry.attributes.position?.count ?? 0;
+    if (!current || count > (current.geometry.attributes.position?.count ?? 0)) main.set(entry.part, entry.mesh);
+  }
+  const dressed = look.topStyle === "dress" || look.topStyle === "kaftan";
+  for (const { mesh, part, name } of meshes) {
+    const material = mesh.material as MeshStandardMaterial;
+    material.roughness = 0.8;
+    mesh.visible = true;
+    if (name === "Skin") material.color.set(look.skin);
+    else if (name === "Skin_Darker") material.color.set(shade(look.skin, -0.06));
+    else if (/^Hair/.test(name) || (part === "head" && (name === "Red" || name === "Pink"))) {
+      material.color.set(name === "Hair_Blond" ? shade(look.hairColor, 0.06) : look.hairColor);
+      if (hideHair) mesh.visible = false;
+    } else if (name === "Eyebrows" || name === "Moustache") material.color.set(shade(look.hairColor, -0.04));
+    else if (part && main.get(part) === mesh) {
+      const colour =
+        part === "top" || (part === "bottom" && dressed) ? look.top : part === "bottom" ? look.bottom : look.shoes;
+      material.color.set(colour);
+    }
+  }
+}
+
+function Mat({ color }: { color: string }) {
+  return <meshStandardMaterial color={color} roughness={0.85} />;
+}
+
+const HALF_SPHERE = [24, 12, 0, Math.PI * 2, 0, Math.PI / 2] as const;
+
+/** Modelled in metres around the head bone, which sits at the base of the skull. */
+function HeadExtras({ look }: { look: Appearance }) {
+  const hair = look.hairColor;
+  const wear = look.headwearColor;
+  const covered = look.headwear !== "none";
+  return (
+    <group>
+      {!covered && look.hairStyle === "afro" ? (
+        <mesh position={[0, 0.16, -0.03]} scale={[1.05, 0.95, 1]}>
+          <sphereGeometry args={[0.18, 20, 16]} />
+          <Mat color={hair} />
         </mesh>
-      );
-    case "curly":
-      return (
+      ) : null}
+      {!covered && (look.hairStyle === "locs" || look.hairStyle === "braids") ? (
         <group>
-          {cap(1.08, 0.8)}
-          {[
-            [-0.08, 0.1, 0.02],
-            [0.08, 0.1, 0.02],
-            [0, 0.13, -0.02],
-            [-0.1, 0.05, -0.06],
-            [0.1, 0.05, -0.06],
-            [0, 0.08, -0.1],
-          ].map(([x, y, z], index) => (
-            <mesh key={index} position={[x ?? 0, HEAD_Y + (y ?? 0), z ?? 0]}>
-              <sphereGeometry args={[0.055, 10, 8]} />
-              <Mat color={c} rough={0.95} />
-            </mesh>
-          ))}
-        </group>
-      );
-    case "long":
-      return (
-        <group>
-          {cap(1.1, 0.8)}
-          <mesh position={[0, HEAD_Y - 0.1, -0.07]}>
-            <boxGeometry args={[0.25, 0.26, 0.09]} />
-            <Mat color={c} />
+          <mesh position={[0, 0.115, -0.01]} rotation={[-0.25, 0, 0]} scale={[1, 0.85, 1.05]}>
+            <sphereGeometry args={[0.133, ...HALF_SPHERE]} />
+            <Mat color={hair} />
           </mesh>
-        </group>
-      );
-    case "ponytail":
-      return (
-        <group>
-          {cap(1.08, 0.78)}
-          <mesh position={[0, HEAD_Y - 0.02, -0.15]} rotation={[0.5, 0, 0]}>
-            <capsuleGeometry args={[0.035, 0.14, 4, 8]} />
-            <Mat color={c} />
-          </mesh>
-        </group>
-      );
-    case "bun":
-      return (
-        <group>
-          {cap(1.07, 0.78)}
-          <mesh position={[0, HEAD_Y + 0.13, -0.06]}>
-            <sphereGeometry args={[0.06, 12, 10]} />
-            <Mat color={c} />
-          </mesh>
-        </group>
-      );
-    case "braids":
-    case "locs": {
-      const thick = look.hairStyle === "locs" ? 0.026 : 0.018;
-      const angles = [-1.9, -1.4, -0.9, -0.45, 0, 0.45, 0.9, 1.4, 1.9];
-      return (
-        <group>
-          {cap(1.08, 0.78)}
-          {angles.map((angle, index) => (
+          {[-1.9, -1.45, -1, -0.5, 0, 0.5, 1, 1.45, 1.9].map((angle) => (
             <mesh
-              key={index}
-              position={[Math.sin(angle) * 0.115, HEAD_Y - 0.09, -Math.cos(angle) * 0.1]}
+              key={angle}
+              position={[Math.sin(angle) * 0.12, 0.0, -Math.cos(angle) * 0.11]}
+              rotation={[-0.12, 0, 0]}
             >
-              <capsuleGeometry args={[thick, 0.2, 4, 6]} />
-              <Mat color={c} rough={0.9} />
+              <capsuleGeometry args={[look.hairStyle === "locs" ? 0.022 : 0.015, 0.22, 4, 8]} />
+              <Mat color={hair} />
             </mesh>
           ))}
         </group>
-      );
-    }
-    case "cornrows":
-      return (
+      ) : null}
+      {!covered && look.hairStyle === "cornrows" ? (
         <group>
-          {cap(1.03, 0.62)}
-          {[-0.05, 0, 0.05].map((x) => (
-            <mesh key={x} position={[x, HEAD_Y + 0.095, -0.01]} rotation={[0, 0, 0]}>
-              <boxGeometry args={[0.018, 0.02, 0.2]} />
-              <Mat color={shade(c, -0.08)} />
+          <mesh position={[0, 0.11, -0.005]} scale={[1, 0.8, 1.05]}>
+            <sphereGeometry args={[0.13, ...HALF_SPHERE]} />
+            <Mat color={hair} />
+          </mesh>
+          {[-0.06, -0.02, 0.02, 0.06].map((x) => (
+            <mesh key={x} position={[x, 0.21, -0.01]} rotation={[0.1, 0, 0]}>
+              <boxGeometry args={[0.018, 0.02, 0.22]} />
+              <Mat color={shade(hair, -0.08)} />
             </mesh>
           ))}
         </group>
-      );
-    default:
-      return cap();
-  }
-}
-
-function Headwear({ look }: { look: Appearance }) {
-  const c = look.headwearColor;
-  switch (look.headwear) {
-    case "hijab":
-      return (
+      ) : null}
+      {look.headwear === "hijab" ? (
         <group>
-          <mesh position={[0, HEAD_Y + 0.005, -0.01]}>
-            <sphereGeometry args={[HEAD_R * 1.18, 20, 14, (5 * Math.PI) / 6, (4 * Math.PI) / 3]} />
-            <meshStandardMaterial color={c} roughness={0.8} side={DoubleSide} />
+          <mesh position={[0, 0.105, -0.005]}>
+            <sphereGeometry args={[0.152, 24, 16, (5 * Math.PI) / 6, (4 * Math.PI) / 3]} />
+            <meshStandardMaterial color={wear} roughness={0.85} side={DoubleSide} />
           </mesh>
-          <mesh position={[0, HEAD_Y - 0.13, -0.005]}>
-            <cylinderGeometry args={[0.1, 0.17, 0.12, 16]} />
-            <Mat color={c} rough={0.8} />
+          <mesh position={[0, -0.09, -0.01]}>
+            <cylinderGeometry args={[0.13, 0.22, 0.16, 20]} />
+            <Mat color={wear} />
           </mesh>
         </group>
-      );
-    case "turban":
-      return (
+      ) : null}
+      {look.headwear === "turban" ? (
+        <group rotation={[-0.22, 0, 0]}>
+          <mesh position={[0, 0.115, -0.01]} scale={[1, 1.15, 1.12]}>
+            <sphereGeometry args={[0.135, ...HALF_SPHERE]} />
+            <Mat color={wear} />
+          </mesh>
+          <mesh position={[0, 0.125, -0.01]} rotation={[Math.PI / 2, 0, 0]} scale={[1, 1.12, 1]}>
+            <torusGeometry args={[0.132, 0.03, 8, 24]} />
+            <Mat color={shade(wear, -0.06)} />
+          </mesh>
+          <mesh position={[0, 0.2, 0.1]} rotation={[0.5, 0, Math.PI / 4]}>
+            <boxGeometry args={[0.07, 0.07, 0.03]} />
+            <Mat color={shade(wear, -0.1)} />
+          </mesh>
+        </group>
+      ) : null}
+      {look.headwear === "headwrap" ? (
         <group>
-          <mesh position={[0, HEAD_Y + 0.07, -0.01]} scale={[1, 0.8, 1.05]}>
-            <sphereGeometry args={[HEAD_R * 1.15, 18, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
-            <Mat color={c} rough={0.8} />
+          <mesh position={[0, 0.17, -0.03]} rotation={[-0.35, 0, 0]} scale={[1, 1, 1.1]}>
+            <cylinderGeometry args={[0.17, 0.14, 0.17, 18]} />
+            <Mat color={wear} />
           </mesh>
-          <mesh position={[0, HEAD_Y + 0.06, -0.01]} rotation={[0.25, 0, 0]}>
-            <torusGeometry args={[HEAD_R * 1.02, 0.03, 8, 20]} />
-            <Mat color={shade(c, -0.06)} rough={0.8} />
+          <mesh position={[0.07, 0.27, -0.08]} rotation={[0, 0, 0.6]} scale={[1.4, 0.7, 1]}>
+            <sphereGeometry args={[0.07, 12, 10]} />
+            <Mat color={shade(wear, 0.06)} />
           </mesh>
         </group>
-      );
-    case "headwrap":
-      return (
+      ) : null}
+      {look.headwear === "cap" ? (
         <group>
-          <mesh position={[0, HEAD_Y + 0.09, -0.03]} rotation={[-0.35, 0, 0]}>
-            <cylinderGeometry args={[0.11, 0.13, 0.17, 16]} />
-            <Mat color={c} rough={0.8} />
+          <mesh position={[0, 0.13, 0]} scale={[1, 0.85, 1.05]}>
+            <sphereGeometry args={[0.14, ...HALF_SPHERE]} />
+            <Mat color={wear} />
           </mesh>
-          <mesh position={[0.05, HEAD_Y + 0.19, -0.05]}>
-            <sphereGeometry args={[0.06, 10, 8]} />
-            <Mat color={shade(c, 0.06)} rough={0.8} />
+          <mesh position={[0, 0.14, 0.16]} rotation={[0.08, 0, 0]}>
+            <boxGeometry args={[0.2, 0.015, 0.13]} />
+            <Mat color={shade(wear, -0.08)} />
           </mesh>
         </group>
-      );
-    case "cap":
-      return (
+      ) : null}
+      {look.headwear === "beanie" ? (
         <group>
-          <mesh position={[0, HEAD_Y + 0.03, 0]}>
-            <sphereGeometry args={[HEAD_R * 1.1, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2]} />
-            <Mat color={c} />
+          <mesh position={[0, 0.12, 0]} scale={[1, 1.2, 1.05]}>
+            <sphereGeometry args={[0.142, ...HALF_SPHERE]} />
+            <Mat color={wear} />
           </mesh>
-          <mesh position={[0, HEAD_Y + 0.035, 0.14]}>
-            <boxGeometry args={[0.18, 0.015, 0.11]} />
-            <Mat color={shade(c, -0.08)} />
-          </mesh>
-        </group>
-      );
-    case "beanie":
-      return (
-        <group>
-          <mesh position={[0, HEAD_Y + 0.035, 0]} scale={[1, 1.15, 1]}>
-            <sphereGeometry args={[HEAD_R * 1.12, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2]} />
-            <Mat color={c} rough={0.95} />
-          </mesh>
-          <mesh position={[0, HEAD_Y + 0.03, 0]} rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[HEAD_R * 1.1, 0.022, 8, 20]} />
-            <Mat color={shade(c, -0.08)} rough={0.95} />
+          <mesh position={[0, 0.125, 0]} rotation={[Math.PI / 2, 0, 0]} scale={[1, 1.05, 1]}>
+            <torusGeometry args={[0.14, 0.024, 8, 24]} />
+            <Mat color={shade(wear, -0.08)} />
           </mesh>
         </group>
-      );
-    default:
-      return null;
-  }
-}
-
-/** Head parts above are modelled around HEAD_Y/HEAD_R; this places and scales them on the body. */
-const HEAD_CENTRE = 0.875;
-const HEAD_SCALE = 0.86;
-const HIP_Y = 0.46;
-const SHOULDER_Y = 0.715;
-
-function Face({ look }: { look: Appearance }) {
-  const brow = look.hairStyle === "bald" ? shade(look.skin, -0.3) : look.hairColor;
-  const z = HEAD_R * 0.93;
-  return (
-    <group>
-      {[-1, 1].map((side) => (
-        <group key={side}>
-          <mesh position={[side * 0.04, HEAD_Y + 0.012, z]} scale={[1, 1.1, 0.5]}>
-            <sphereGeometry args={[0.011, 10, 8]} />
-            <meshStandardMaterial color="#1a1412" roughness={0.25} />
-          </mesh>
-          <mesh position={[side * 0.042, HEAD_Y + 0.04, z - 0.006]} rotation={[0, 0, Math.PI / 2 + side * 0.15]}>
-            <capsuleGeometry args={[0.005, 0.026, 2, 6]} />
-            <Mat color={brow} />
-          </mesh>
-          <mesh position={[side * HEAD_R * 0.93, HEAD_Y, -0.005]} scale={[0.45, 1, 0.75]}>
-            <sphereGeometry args={[0.03, 10, 8]} />
-            <Mat color={shade(look.skin, -0.04)} rough={0.6} />
-          </mesh>
-        </group>
-      ))}
-      <mesh position={[0, HEAD_Y - 0.012, z + 0.008]} scale={[0.8, 1, 1]}>
-        <sphereGeometry args={[0.018, 10, 8]} />
-        <Mat color={shade(look.skin, -0.05)} rough={0.6} />
-      </mesh>
-      <mesh position={[0, HEAD_Y - 0.052, z - 0.006]} rotation={[0, 0, Math.PI / 2]}>
-        <capsuleGeometry args={[0.006, 0.028, 2, 6]} />
-        <meshStandardMaterial color={shade(look.skin, -0.32)} roughness={0.5} />
-      </mesh>
+      ) : null}
     </group>
   );
 }
 
-function Outfit({ look, width }: { look: Appearance; width: number }) {
-  const top = look.top;
-  const front = 0.058;
-  switch (look.topStyle) {
-    case "dress":
-      return (
-        <mesh position={[0, 0.37, 0]} castShadow>
-          <cylinderGeometry args={[width * 0.48, width * 0.82, 0.26, 20]} />
-          <Mat color={top} />
-        </mesh>
-      );
-    case "kaftan":
-      return (
-        <group>
-          <mesh position={[0, 0.36, 0]} castShadow>
-            <cylinderGeometry args={[width * 0.52, width * 0.66, 0.3, 20]} />
-            <Mat color={top} />
-          </mesh>
-          <mesh position={[0, 0.66, front]}>
-            <boxGeometry args={[0.03, 0.12, 0.01]} />
-            <Mat color="#e8c25a" rough={0.4} />
-          </mesh>
-        </group>
-      );
-    case "hoodie":
-      return (
-        <group>
-          <mesh position={[0, 0.75, -0.05]} scale={[1.2, 0.7, 1]}>
-            <sphereGeometry args={[0.06, 12, 8]} />
-            <Mat color={shade(top, -0.06)} />
-          </mesh>
-          <mesh position={[0, 0.54, front - 0.007]}>
-            <boxGeometry args={[width * 0.5, 0.065, 0.012]} />
-            <Mat color={shade(top, -0.08)} />
-          </mesh>
-          {[-0.02, 0.02].map((x) => (
-            <mesh key={x} position={[x, 0.68, front + 0.004]}>
-              <capsuleGeometry args={[0.003, 0.05, 2, 4]} />
-              <Mat color="#f4f1ea" />
-            </mesh>
-          ))}
-        </group>
-      );
-    case "jacket":
-    case "blazer": {
-      const shirt = look.topStyle === "blazer" ? "#f4f1ea" : shade(top, 0.3);
-      return (
-        <group>
-          <mesh position={[0, 0.63, front]}>
-            <boxGeometry args={[0.05, 0.2, 0.01]} />
-            <Mat color={shirt} />
-          </mesh>
-          {[-1, 1].map((side) => (
-            <mesh key={side} position={[side * 0.034, 0.67, front + 0.004]} rotation={[0, 0, side * 0.35]}>
-              <boxGeometry args={[0.02, 0.1, 0.008]} />
-              <Mat color={shade(top, -0.12)} />
-            </mesh>
-          ))}
-          {look.topStyle === "blazer" ? (
-            <mesh position={[0, 0.64, front + 0.008]}>
-              <boxGeometry args={[0.016, 0.13, 0.006]} />
-              <Mat color="#8b2e3a" />
-            </mesh>
-          ) : null}
-        </group>
-      );
-    }
-    default:
-      return (
-        <mesh position={[0, 0.735, 0.02]} rotation={[Math.PI / 2, 0, 0]} scale={[1, 0.7, 1]}>
-          <torusGeometry args={[0.036, 0.008, 6, 16]} />
-          <Mat color={shade(top, -0.1)} />
-        </mesh>
-      );
-  }
+const turn = new Quaternion();
+const parentTurn = new Quaternion();
+const rootTurn = new Quaternion();
+const axis = new Vector3();
+
+/** Rotates a bone about the body's own left-right axis, on top of whatever the clip set. */
+function bend(bone: Object3D | undefined, angle: number) {
+  if (!bone?.parent) return;
+  bone.parent.getWorldQuaternion(parentTurn).invert();
+  axis.set(1, 0, 0).applyQuaternion(rootTurn).applyQuaternion(parentTurn);
+  bone.quaternion.premultiply(turn.setFromAxisAngle(axis, angle));
 }
 
-/** A tapered limb hanging down from its joint, with a rounded end so the next segment blends in. */
-function Limb({ top, bottom, length, color }: { top: number; bottom: number; length: number; color: string }) {
-  return (
-    <group>
-      <mesh position={[0, -length / 2, 0]}>
-        <cylinderGeometry args={[top, bottom, length, 14, 1, true]} />
-        <Mat color={color} rough={0.7} />
-      </mesh>
-      <mesh position={[0, -length, 0]}>
-        <sphereGeometry args={[bottom, 14, 10]} />
-        <Mat color={color} rough={0.7} />
-      </mesh>
-    </group>
+const spot = new Vector3();
+
+/** The rig's feet hang off the root, not the shins, so they have to be moved to wherever the shin now ends. */
+function plant(shinEnd: Object3D | undefined, foot: Object3D | undefined) {
+  if (!shinEnd || !foot?.parent) return;
+  shinEnd.getWorldPosition(spot);
+  foot.parent.updateWorldMatrix(true, false);
+  foot.position.copy(foot.parent.worldToLocal(spot));
+}
+
+function Person({ look, anim, seed }: { look: Appearance; anim: Anim; seed: number }) {
+  const bodyId = OUTFITS[look.figure][look.topStyle];
+  const headId: ModelId = look.figure === "masc" && look.beard ? "m_adventurer" : HEADS[look.figure][look.hairStyle];
+  const body = useGLTF(modelUrl(bodyId));
+  const head = useGLTF(modelUrl(headId));
+  const root = useMemo(
+    () => assemble(body.scene, headId === bodyId ? null : head.scene),
+    [body.scene, head.scene, headId, bodyId],
   );
-}
+  const headBone = useMemo(() => root.getObjectByName("Head"), [root]);
+  const legs = useMemo(
+    () =>
+      ["UpperLegL", "UpperLegR", "LowerLegL", "LowerLegR", "LowerLegL_end", "LowerLegR_end", "FootL", "FootR"].map(
+        (name) => root.getObjectByName(name),
+      ),
+    [root],
+  );
+  const pose = useRef<Group>(null);
+  const mixer = useMemo(() => new AnimationMixer(root), [root]);
+  const current = useRef<AnimationAction | null>(null);
+  const hideHair = look.headwear !== "none" || DRAWN_HAIR.includes(look.hairStyle);
 
-/** Radius-by-height profiles, turned on a lathe and flattened front to back. */
-const TORSO_PROFILE: [number, number][] = [
-  [0.07, 0.49],
-  [0.074, 0.53],
-  [0.07, 0.57],
-  [0.078, 0.63],
-  [0.088, 0.68],
-  [0.09, 0.71],
-  [0.078, 0.74],
-  [0.05, 0.765],
-  [0.032, 0.775],
-  [0.001, 0.778],
-];
-const PELVIS_PROFILE: [number, number][] = [
-  [0.001, 0.4],
-  [0.05, 0.405],
-  [0.075, 0.43],
-  [0.08, 0.46],
-  [0.074, 0.5],
-  [0.07, 0.52],
-];
+  useLayoutEffect(() => recolour(root, look, hideHair), [root, look, hideHair]);
 
-function Lathe({ profile, color, width, depth = 0.68 }: { profile: [number, number][]; color: string; width: number; depth?: number }) {
-  const points = useMemo(() => profile.map(([r, y]) => new Vector2(r, y)), [profile]);
+  useEffect(
+    () => () => {
+      mixer.stopAllAction();
+      mixer.uncacheRoot(root);
+    },
+    [mixer, root],
+  );
+
+  useEffect(() => {
+    const clip = body.animations.find((entry) => entry.name === CLIPS[anim]) ?? body.animations[0];
+    if (!clip) return;
+    const next = mixer.clipAction(clip);
+    next.timeScale = anim === "walk" ? 1.5 : 1;
+    if (current.current === next) return;
+    next.reset();
+    next.time = (seed * 0.731) % clip.duration;
+    next.play();
+    if (current.current) next.crossFadeFrom(current.current, 0.2, false);
+    current.current = next;
+  }, [anim, body.animations, mixer, seed]);
+
+  useFrame(({ clock }, delta) => {
+    mixer.update(Math.min(delta, 0.1));
+    const group = pose.current;
+    if (!group) return;
+    const t = clock.elapsedTime + seed;
+    group.position.set(0, 0, 0);
+    group.rotation.set(0, 0, 0);
+    if (anim === "sit") {
+      group.position.y = -0.24;
+      group.getWorldQuaternion(rootTurn);
+      bend(legs[0], -Math.PI / 2);
+      bend(legs[1], -Math.PI / 2);
+      bend(legs[2], Math.PI / 2);
+      bend(legs[3], Math.PI / 2);
+      plant(legs[4], legs[6]);
+      plant(legs[5], legs[7]);
+    } else if (anim === "sleep") {
+      group.rotation.x = -Math.PI / 2;
+      group.position.set(0, 0.2, 0.45);
+    } else if (anim === "dance") {
+      group.position.y = Math.abs(Math.sin(t * 6)) * 0.03;
+      group.rotation.y = Math.sin(t * 3) * 0.5;
+    }
+  });
+
+  const width = look.build === "slim" ? 0.93 : look.build === "broad" ? 1.1 : 1;
   return (
-    <mesh scale={[width / 0.18, 1, depth]}>
-      <latheGeometry args={[points, 24]} />
-      <Mat color={color} rough={0.75} />
-    </mesh>
+    <group ref={pose}>
+      <group scale={[MODEL_SCALE * width, MODEL_SCALE, MODEL_SCALE * width]}>
+        <primitive object={root} />
+      </group>
+      {headBone
+        ? createPortal(
+            <group scale={0.01}>
+              <HeadExtras look={look} />
+            </group>,
+            headBone,
+          )
+        : null}
+    </group>
   );
 }
 
 export function Avatar({ look, anim, seed = 0 }: { look: Appearance; anim: Anim; seed?: number }) {
-  const body = useRef<Group>(null);
-  const chest = useRef<Group>(null);
-  const leftArm = useRef<Group>(null);
-  const rightArm = useRef<Group>(null);
-  const leftElbow = useRef<Group>(null);
-  const rightElbow = useRef<Group>(null);
-  const leftLeg = useRef<Group>(null);
-  const rightLeg = useRef<Group>(null);
-  const leftKnee = useRef<Group>(null);
-  const rightKnee = useRef<Group>(null);
-  const width = look.build === "slim" ? 0.19 : look.build === "broad" ? 0.26 : 0.22;
-  const legGap = width * 0.22;
-  const armX = width / 2 + 0.006;
-  const style = look.topStyle;
-  const upperArm = style === "dress" ? look.skin : look.top;
-  const foreArm = style === "dress" || style === "tee" ? look.skin : look.top;
-  const shin = style === "dress" ? look.skin : look.bottom;
-  const hips = style === "dress" || style === "kaftan" ? look.top : look.bottom;
-  const skinDark = useMemo(() => shade(look.skin, -0.06), [look.skin]);
-
-  useEffect(() => {
-    body.current?.traverse((node) => {
-      if ((node as Mesh).isMesh) node.castShadow = true;
-    });
-  }, [look]);
-
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime + seed;
-    const root = body.current;
-    const torso = chest.current;
-    const la = leftArm.current;
-    const ra = rightArm.current;
-    const le = leftElbow.current;
-    const re = rightElbow.current;
-    const ll = leftLeg.current;
-    const rl = rightLeg.current;
-    const lk = leftKnee.current;
-    const rk = rightKnee.current;
-    if (!root || !torso || !la || !ra || !le || !re || !ll || !rl || !lk || !rk) return;
-    root.position.set(0, 0, 0);
-    root.rotation.set(0, 0, 0);
-    torso.rotation.set(0, 0, 0);
-    torso.scale.set(1, 1, 1);
-    la.rotation.set(0, 0, -0.13);
-    ra.rotation.set(0, 0, 0.13);
-    le.rotation.set(-0.15, 0, 0);
-    re.rotation.set(-0.15, 0, 0);
-    ll.rotation.set(0, 0, 0);
-    rl.rotation.set(0, 0, 0);
-    lk.rotation.set(0, 0, 0);
-    rk.rotation.set(0, 0, 0);
-    switch (anim) {
-      case "walk": {
-        const phase = t * 9;
-        const swing = Math.sin(phase) * 0.5;
-        ll.rotation.x = swing;
-        rl.rotation.x = -swing;
-        lk.rotation.x = 0.1 + Math.max(0, Math.sin(phase + 1.4)) * 0.7;
-        rk.rotation.x = 0.1 + Math.max(0, Math.sin(phase + 1.4 + Math.PI)) * 0.7;
-        la.rotation.x = -swing * 0.75;
-        ra.rotation.x = swing * 0.75;
-        le.rotation.x = -0.35;
-        re.rotation.x = -0.35;
-        root.position.y = Math.abs(Math.cos(phase)) * 0.012;
-        torso.rotation.y = Math.sin(phase) * 0.06;
-        break;
-      }
-      case "sit":
-        root.position.y = -0.28;
-        ll.rotation.x = -Math.PI / 2;
-        rl.rotation.x = -Math.PI / 2;
-        lk.rotation.x = Math.PI / 2;
-        rk.rotation.x = Math.PI / 2;
-        la.rotation.x = -0.35;
-        ra.rotation.x = -0.35;
-        le.rotation.x = -0.7;
-        re.rotation.x = -0.7;
-        torso.scale.y = 1 + Math.sin(t * 2) * 0.01;
-        break;
-      case "sleep":
-        root.rotation.x = -Math.PI / 2;
-        root.position.set(0, 0.2, 0.45);
-        torso.scale.y = 1 + Math.sin(t * 1.3) * 0.02;
-        lk.rotation.x = 0.08;
-        rk.rotation.x = 0.08;
-        break;
-      case "eat": {
-        const lift = (Math.sin(t * 3) + 1) / 2;
-        ra.rotation.x = -0.45 - lift * 0.35;
-        re.rotation.x = -1.5 - lift * 0.4;
-        la.rotation.x = -0.3;
-        le.rotation.x = -1.1;
-        break;
-      }
-      case "shower":
-        la.rotation.set(-2.7 + Math.sin(t * 8) * 0.2, 0, -0.25);
-        ra.rotation.set(-2.7 + Math.cos(t * 8) * 0.2, 0, 0.25);
-        le.rotation.x = -0.9;
-        re.rotation.x = -0.9;
-        root.position.y = Math.abs(Math.sin(t * 4)) * 0.01;
-        break;
-      case "dance": {
-        const beat = t * 6;
-        root.position.y = Math.abs(Math.sin(beat)) * 0.04;
-        root.rotation.y = Math.sin(t * 3) * 0.5;
-        la.rotation.set(-2.3 + Math.sin(beat) * 0.5, 0, -0.35);
-        ra.rotation.set(-0.6 - Math.cos(beat) * 0.6, 0, 0.35);
-        le.rotation.x = -0.6;
-        re.rotation.x = -0.9;
-        ll.rotation.x = Math.sin(beat) * 0.25;
-        rl.rotation.x = -Math.sin(beat) * 0.25;
-        lk.rotation.x = 0.2 + Math.max(0, Math.sin(beat)) * 0.4;
-        rk.rotation.x = 0.2 + Math.max(0, -Math.sin(beat)) * 0.4;
-        break;
-      }
-      case "work":
-        la.rotation.x = -0.5;
-        ra.rotation.x = -0.5;
-        le.rotation.x = -1 + Math.sin(t * 16) * 0.06;
-        re.rotation.x = -1 + Math.cos(t * 16) * 0.06;
-        break;
-      default:
-        torso.scale.y = 1 + Math.sin(t * 2) * 0.008;
-        la.rotation.z = -0.13 - Math.sin(t * 2) * 0.02;
-        ra.rotation.z = 0.13 + Math.sin(t * 2) * 0.02;
-    }
-  });
-
-  const leg = (side: number, legRef: React.RefObject<Group | null>, kneeRef: React.RefObject<Group | null>) => (
-    <group ref={legRef} position={[side * legGap, HIP_Y, 0]}>
-      <Limb top={0.05} bottom={0.04} length={0.225} color={style === "dress" ? look.skin : look.bottom} />
-      <group ref={kneeRef} position={[0, -0.225, 0]}>
-        <Limb top={0.04} bottom={0.03} length={0.2} color={shin} />
-        <mesh position={[0, -0.212, 0.032]} scale={[0.95, 0.5, 1.9]}>
-          <sphereGeometry args={[0.045, 16, 10]} />
-          <Mat color={look.shoes} rough={0.45} />
-        </mesh>
-      </group>
-    </group>
-  );
-
-  const arm = (side: number, armRef: React.RefObject<Group | null>, elbowRef: React.RefObject<Group | null>) => (
-    <group ref={armRef} position={[side * armX, SHOULDER_Y, 0]}>
-      <mesh>
-        <sphereGeometry args={[0.036, 14, 10]} />
-        <Mat color={upperArm} />
-      </mesh>
-      <Limb top={0.036} bottom={0.029} length={0.175} color={upperArm} />
-      <group ref={elbowRef} position={[0, -0.175, 0]}>
-        <Limb top={0.029} bottom={0.023} length={0.15} color={foreArm} />
-        <mesh position={[0, -0.172, 0.004]} scale={[0.72, 1.15, 0.55]}>
-          <sphereGeometry args={[0.032, 12, 10]} />
-          <Mat color={look.skin} rough={0.6} />
-        </mesh>
-      </group>
-    </group>
-  );
-
   return (
-    <group ref={body}>
-      {leg(-1, leftLeg, leftKnee)}
-      {leg(1, rightLeg, rightKnee)}
-      <group ref={chest}>
-        <Lathe profile={PELVIS_PROFILE} color={hips} width={width * 0.95} />
-        <Lathe profile={TORSO_PROFILE} color={look.top} width={width} />
-        <Outfit look={look} width={width} />
-        {arm(-1, leftArm, leftElbow)}
-        {arm(1, rightArm, rightElbow)}
-        <mesh position={[0, 0.77, 0]}>
-          <cylinderGeometry args={[0.03, 0.035, 0.07, 12]} />
-          <Mat color={skinDark} />
-        </mesh>
-        <group position={[0, HEAD_CENTRE - HEAD_Y * HEAD_SCALE, 0]} scale={HEAD_SCALE}>
-          <mesh position={[0, HEAD_Y, 0]} scale={[0.93, 1.07, 0.98]}>
-            <sphereGeometry args={[HEAD_R, 24, 18]} />
-            <Mat color={look.skin} rough={0.55} />
-          </mesh>
-          <Face look={look} />
-          {look.beard ? (
-            <mesh position={[0, HEAD_Y - 0.06, 0.022]} scale={[0.92, 0.6, 0.85]}>
-              <sphereGeometry args={[0.1, 16, 10, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2]} />
-              <Mat color={look.hairColor} rough={0.95} />
-            </mesh>
-          ) : null}
-          <Hair look={look} />
-          <Headwear look={look} />
-        </group>
-      </group>
-    </group>
+    <Suspense fallback={null}>
+      <Person look={look} anim={anim} seed={seed} />
+    </Suspense>
   );
 }
