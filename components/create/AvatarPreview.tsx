@@ -69,7 +69,7 @@ export default function AvatarPreview({ look, anim = "stand" }: { look: Appearan
       onPointerUp={up}
       onPointerCancel={up}
     >
-      <Canvas camera={{ position: [0, 0.2, 1.9], fov: 34 }} dpr={[1, 2]}>
+      <Canvas camera={{ position: [0, 0.2, 2.3], fov: 34 }} dpr={[1, 2]}>
         <ambientLight intensity={0.8} />
         <hemisphereLight args={["#fff8ec", "#8a7a66", 0.4]} />
         <directionalLight position={[2, 3, 2]} intensity={1.3} />

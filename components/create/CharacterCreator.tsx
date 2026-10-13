@@ -266,7 +266,7 @@ export function CharacterCreator() {
         <div className="absolute inset-0 pt-14">
           <AvatarPreview look={look} anim={previewAnim} />
         </div>
-        <div className="absolute bottom-3 left-3 rounded-full bg-white px-3 py-1 text-sm font-semibold shadow">
+        <div className="absolute left-3 top-16 rounded-full bg-white px-3 py-1 text-sm font-semibold shadow">
           {nation ? <Flag origin={nation.id} /> : null} {displayName}
         </div>
         <p className="pointer-events-none absolute bottom-3 left-1/2 hidden -translate-x-1/2 text-xs font-semibold text-[#1b2838]/50 sm:block">
