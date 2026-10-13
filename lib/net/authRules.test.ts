@@ -34,4 +34,8 @@ test("password validation", () => {
 test("auth errors are friendly", () => {
   assert.equal(friendlyAuthError("User already registered", "signup"), "That username is taken. Try another");
   assert.equal(friendlyAuthError("Invalid login credentials", "login"), "Wrong username or password");
+  const notSetUp = "Accounts aren't set up yet. Play as a guest for now";
+  assert.equal(friendlyAuthError("email rate limit exceeded", "signup"), notSetUp);
+  assert.equal(friendlyAuthError("Email not confirmed", "login"), notSetUp);
+  assert.equal(friendlyAuthError('Email address "alex@players.londonlife.app" is invalid', "signup"), notSetUp);
 });

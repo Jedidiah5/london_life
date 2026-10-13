@@ -5,6 +5,12 @@ export type AuthResult = { ok: true } | { ok: false; message: string };
 
 const fail = (message: string): AuthResult => ({ ok: false, message });
 
+function supabaseFail(raw: string, mode: "signup" | "login"): AuthResult {
+  const message = friendlyAuthError(raw, mode);
+  if (message !== raw) console.warn(`[auth] ${mode} failed: ${raw}`);
+  return fail(message);
+}
+
 /**
  * Creates an account. If the player already started as a guest, the guest session is upgraded
  * in place so their Sim, money and flat carry over.
@@ -27,18 +33,18 @@ export async function signUp(rawUsername: string, password: string): Promise<Aut
 
     if (guest) {
       const { error } = await supabase.auth.updateUser({ email, password, data: { username } });
-      if (error) return fail(friendlyAuthError(error.message, "signup"));
+      if (error) return supabaseFail(error.message, "signup");
       const { data } = await supabase.auth.getUser();
       if (!data.user || data.user.is_anonymous || data.user.email !== email) {
-        return fail("Supabase is asking for email confirmation. Turn off 'Confirm email' in Auth settings");
+        return supabaseFail("Email not confirmed", "signup");
       }
       return { ok: true };
     }
 
     const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { username } } });
-    if (error) return fail(friendlyAuthError(error.message, "signup"));
+    if (error) return supabaseFail(error.message, "signup");
     if (!data.session) {
-      return fail("Supabase is asking for email confirmation. Turn off 'Confirm email' in Auth settings");
+      return supabaseFail("Email not confirmed", "signup");
     }
     return { ok: true };
   } catch (error) {
@@ -56,7 +62,7 @@ export async function logIn(rawUsername: string, password: string): Promise<Auth
 
   try {
     const { error } = await supabase.auth.signInWithPassword({ email: usernameToEmail(rawUsername), password });
-    if (error) return fail(friendlyAuthError(error.message, "login"));
+    if (error) return supabaseFail(error.message, "login");
     return { ok: true };
   } catch (error) {
     return fail(friendlyAuthError(error instanceof Error ? error.message : "", "login"));

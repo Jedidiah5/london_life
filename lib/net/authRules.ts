@@ -49,6 +49,11 @@ export function friendlyAuthError(message: string, mode: "signup" | "login"): st
     return "That username is taken. Try another";
   }
   if (text.includes("invalid login")) return "Wrong username or password";
+  // Usernames map to addresses that never receive mail, so any email step means Supabase still has
+  // "Confirm email" switched on (Authentication → Providers → Email).
+  if (text.includes("email rate limit") || text.includes("email not confirmed") || /email address .* is invalid/.test(text)) {
+    return "Accounts aren't set up yet. Play as a guest for now";
+  }
   if (text.includes("rate limit") || text.includes("too many")) return "Too many tries. Give it a minute";
   if (text.includes("password") && text.includes("weak")) return "That password is too weak. Try a longer one";
   if (text.includes("failed to fetch") || text.includes("network")) return "Can't reach London right now. Check your connection";
