@@ -248,6 +248,8 @@ export interface LedgerEntry {
   kind: string;
   ref: string | null;
   createdAt: string;
+  chainStatus?: "pending" | "sending" | "settled" | "failed";
+  chainTx?: string | null;
 }
 
 export interface ActiveShift {

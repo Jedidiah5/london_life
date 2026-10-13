@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# London Life
 
-## Getting Started
+A browser life sim set in London. Make a Londoner, move into a box room in Zone 4, find a job, keep your needs up, pay the rent, and work your way up the property ladder. Everything runs in the browser: an isometric home and city in three.js, a phone for your bank, jobs and friends, and Tube, bus and cab rides across town.
 
-First, run the development server:
+Built with Next.js 15 (App Router), react-three-fiber, Zustand and Supabase.
+
+## Run it
 
 ```bash
+npm install
+cp .env.example .env.local   # fill in the Supabase URL and anon key
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Without Supabase keys the game runs offline and keeps its save in `localStorage`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To set up the database, link the Supabase CLI to your project and push the migrations in `supabase/migrations`:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+supabase link --project-ref <your-project-ref>
+supabase db push
+```
 
-## Learn More
+In the Supabase dashboard, turn on **Anonymous sign-ins** (guests play without an account) and turn off **Confirm email** (usernames sign in with a synthetic email).
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm test     # unit tests for the sim, content, sandbox and chain batching
+npm run lint
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## How it works
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **The server is the authority.** Every action that costs or pays money is a Postgres function (`security definer`, RLS on every table). The client asks; the database charges, pays and writes a row to `transactions`.
+- **The client is a view.** Zustand holds the state the server sent back, plus the needs and clock that tick locally between checkpoints.
 
-## Deploy on Vercel
+## Monad
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Every payment in the game settles on **Monad testnet** as a public receipt. Players never see a wallet, a seed phrase or a token. The database stays the source of truth; the chain is the receipt.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+How a payment gets onchain:
+
+1. A game action writes a row to `transactions` (wage, rent, purchase, gift…). The row starts as `chain_status = 'pending'`.
+2. When the balance changes, the client calls `POST /api/chain/flush` after a 2-second debounce. It sends no amounts.
+3. The route (Node runtime, service role) claims up to 50 pending rows, then sends them in one `settleBatch` call to the `LondonLedger` contract from an operator key that only the server holds.
+4. Once the receipt lands, the rows are marked `settled` with the transaction hash. If anything fails, they go back to `pending` and the next flush retries them. The contract skips any row id it has already settled, so a retry can't double-count.
+5. The Bank app shows each row as **⏳ settling** or **On Monad ✓**, linked to the transaction on [MonadVision](https://testnet.monadvision.com).
+
+Sims are identified onchain only by `keccak256(sim id)`: no usernames, nothing personal.
+
+| Piece | Where |
+| --- | --- |
+| Contract | `contracts/LondonLedger.sol` |
+| Chain config and ABI | `lib/chain/monad.ts` |
+| Batch building | `lib/chain/batch.ts` (tested in `batch.test.ts`) |
+| Flush route | `app/api/chain/flush/route.ts` |
+| Client trigger | `lib/chain/flush.ts` |
+| Database | `supabase/migrations/007_monad.sql` |
+
+### Deploying the ledger
+
+1. Put a fresh private key in `.env.local` as `MONAD_OPERATOR_KEY`, plus `SUPABASE_SERVICE_ROLE_KEY` from the Supabase dashboard.
+2. Fund the operator address with testnet MON from [faucet.monad.xyz](https://faucet.monad.xyz).
+3. Run `npm run deploy:ledger`. It compiles the contract, deploys it and writes `MONAD_LEDGER_ADDRESS` into `.env.local`.
+4. On Vercel, set `MONAD_OPERATOR_KEY`, `MONAD_LEDGER_ADDRESS` and `SUPABASE_SERVICE_ROLE_KEY` as server environment variables (never `NEXT_PUBLIC_`), then deploy.
+
+Network: Monad testnet, chain ID `10143`, RPC `https://testnet-rpc.monad.xyz`.

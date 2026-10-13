@@ -1,3 +1,4 @@
+import { scheduleFlush } from "@/lib/chain/flush";
 import { actionsById, nationalitiesById } from "@/lib/content";
 import { heritageLabel } from "@/lib/sim/actions";
 import { formatPence } from "@/lib/sim/money";
@@ -8,6 +9,7 @@ import {
   careerOf,
   finishesOf,
   inventoryRow,
+  ledgerOf,
   num,
   ownedFinishesOf,
   parseCheckpoint,
@@ -38,6 +40,7 @@ async function call(fn: string, args: Row = {}): Promise<{ data: Row | null; err
 function applyCommon(row: Row) {
   const game = useGame.getState();
   if (typeof row.balance_pence === "number") {
+    if (row.balance_pence !== game.balancePence) scheduleFlush();
     game.applyMoney(row.balance_pence, typeof row.oyster_pence === "number" ? row.oyster_pence : undefined);
   }
   if (row.stats) game.setStats(statsOf(row.stats));
@@ -84,7 +87,16 @@ export async function checkpointNeeds(): Promise<void> {
   });
   if (result.error || !result.data) return;
   const patch = parseCheckpoint(result.data);
-  if (patch) useGame.getState().applyCheckpoint(patch);
+  if (!patch) return;
+  if (patch.balancePence !== useGame.getState().balancePence) scheduleFlush();
+  useGame.getState().applyCheckpoint(patch);
+}
+
+/** Server ledger with receipt status, so the Bank shows every row, not just the ones this tab saw. */
+export async function refreshLedger(): Promise<void> {
+  const result = await call("get_ledger");
+  if (result.error || !result.data) return;
+  useGame.getState().setLedger(ledgerOf(result.data.ledger));
 }
 
 /** Server charges and checks first; only then does the Sim walk over and do it. */

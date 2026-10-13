@@ -7,7 +7,8 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --import tsx --test lib/sim/clock.test.ts lib/sim/needs.test.ts lib/sim/mood.test.ts lib/sim/actions.test.ts lib/sim/path.test.ts lib/sim/upkeep.test.ts lib/sim/travel.test.ts lib/sim/story.test.ts lib/sim/londonClock.test.ts lib/sim/placement.test.ts lib/content.test.ts lib/net/sandbox.test.ts lib/net/authRules.test.ts lib/sim/appearance.test.ts"
+    "deploy:ledger": "node --env-file=.env.local --import tsx scripts/deploy-ledger.mts",
+    "test": "node --import tsx --test lib/sim/clock.test.ts lib/sim/needs.test.ts lib/sim/mood.test.ts lib/sim/actions.test.ts lib/sim/path.test.ts lib/sim/upkeep.test.ts lib/sim/travel.test.ts lib/sim/story.test.ts lib/sim/londonClock.test.ts lib/sim/placement.test.ts lib/content.test.ts lib/net/sandbox.test.ts lib/net/authRules.test.ts lib/sim/appearance.test.ts lib/chain/batch.test.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",
@@ -17,6 +18,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "three": "^0.186.1",
+    "viem": "^2.57.5",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
@@ -28,6 +30,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.23",
     "prettier": "^3.9.10",
+    "solc": "^0.8.37",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5"

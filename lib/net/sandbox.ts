@@ -206,6 +206,7 @@ export function createSandbox(storage: SandboxStorage, now: () => number = Date.
 
   const handlers: Record<string, (db: Db, args: Json) => unknown> = {
     get_state: (db) => (db.sim ? pack(db) : null),
+    get_ledger: (db) => ({ ledger: db.transactions.slice(0, 30) }),
 
     create_sim: (db, args) => {
       const username = str(args.p_username);

@@ -79,11 +79,14 @@ function inventoryOf(value: unknown): InventoryItem[] {
   });
 }
 
-function ledgerOf(value: unknown): LedgerEntry[] {
+const CHAIN_STATUSES = ["pending", "sending", "settled", "failed"] as const;
+
+export function ledgerOf(value: unknown): LedgerEntry[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((entry) => {
     const row = record(entry);
     if (!row) return [];
+    const status = CHAIN_STATUSES.find((known) => known === row.chain_status);
     return [
       {
         id: str(row.id, String(num(row.id))),
@@ -91,6 +94,8 @@ function ledgerOf(value: unknown): LedgerEntry[] {
         kind: str(row.kind, "purchase"),
         ref: typeof row.ref === "string" ? row.ref : null,
         createdAt: str(row.created_at ?? row.createdAt),
+        ...(status ? { chainStatus: status } : {}),
+        ...(typeof row.chain_tx === "string" ? { chainTx: row.chain_tx } : {}),
       },
     ];
   });

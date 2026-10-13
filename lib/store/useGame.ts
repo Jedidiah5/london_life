@@ -114,6 +114,7 @@ interface GameState {
   setHeatingLocal: (on: boolean) => void;
   applyCheckpoint: (patch: Partial<ServerSnapshot> & { needs: Needs; gameMinutes: number }) => void;
   applyMoney: (balancePence: number, oysterPence?: number, entry?: LedgerEntry) => void;
+  setLedger: (ledger: LedgerEntry[]) => void;
   upsertInventory: (item: InventoryItem) => void;
   removeInventory: (id: string) => void;
   setShift: (shift: ActiveShift | null) => void;
@@ -373,6 +374,7 @@ export const useGame = create<GameState>()(
           oysterPence: oysterPence ?? state.oysterPence,
           ledger: entry ? [entry, ...state.ledger].slice(0, 30) : state.ledger,
         })),
+      setLedger: (ledger) => set({ ledger }),
       upsertInventory: (item) =>
         set((state) => {
           const index = state.inventory.findIndex((owned) => owned.id === item.id);

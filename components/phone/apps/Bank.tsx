@@ -1,11 +1,15 @@
 "use client";
 
+import { useEffect } from "react";
+import { scheduleFlush } from "@/lib/chain/flush";
+import { EXPLORER_TX } from "@/lib/chain/monad";
 import { catalogueById, homesById } from "@/lib/content";
-import { setHeating, topUpOyster } from "@/lib/net/rpc";
+import { refreshLedger, setHeating, topUpOyster } from "@/lib/net/rpc";
 import { weeksOwed } from "@/lib/sim/clock";
 import { OYSTER_TOP_UPS, SELL_RATIO } from "@/lib/sim/constants";
 import { formatSpan } from "@/lib/sim/londonClock";
 import { formatPence } from "@/lib/sim/money";
+import type { LedgerEntry } from "@/lib/sim/types";
 import { weeklyBills } from "@/lib/sim/upkeep";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
@@ -20,6 +24,29 @@ const KIND_EMOJI: Record<string, string> = {
   gift: "🎁",
   goal: "🏆",
 };
+
+const POLL_MS = 3000;
+
+function ReceiptChip({ entry }: { entry: LedgerEntry }) {
+  if (!entry.chainStatus) return null;
+  if (entry.chainStatus === "settled" && entry.chainTx) {
+    return (
+      <a
+        href={`${EXPLORER_TX}${entry.chainTx}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="shrink-0 rounded-full bg-[#e6f6ec] px-1.5 py-0.5 text-[9px] font-bold text-[#22924f]"
+      >
+        On Monad ✓
+      </a>
+    );
+  }
+  return (
+    <span className="shrink-0 rounded-full bg-[#f1f3f5] px-1.5 py-0.5 text-[9px] font-bold text-[#5c6b7a]">
+      ⏳ settling
+    </span>
+  );
+}
 
 export function Bank() {
   const balance = useGame((state) => state.balancePence);
@@ -41,6 +68,17 @@ export function Bank() {
   const nextRent = 1440 * 6 + Math.max(0, Math.ceil((gameMinutes - 1440 * 6) / 10080)) * 10080;
   const rentIn = formatSpan(nextRent - gameMinutes);
 
+  useEffect(() => {
+    scheduleFlush();
+    void refreshLedger();
+    const poll = setInterval(() => {
+      const unsettled = useGame.getState().ledger.some((entry) => entry.chainStatus && entry.chainStatus !== "settled");
+      if (unsettled) scheduleFlush();
+      void refreshLedger();
+    }, POLL_MS);
+    return () => clearInterval(poll);
+  }, []);
+
   return (
     <div className="space-y-2 text-xs">
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#ff5f6d] via-[#c2408f] to-[#4b3bbf] p-4 text-white shadow-lg">
@@ -55,6 +93,7 @@ export function Bank() {
         </div>
         <div className="text-[10px] opacity-70">Overdraft to −£200 · furniture counted at resale value</div>
       </div>
+      <p className="px-1 text-[10px] text-[#9aa5b1]">Every payment settles on Monad testnet.</p>
       <div className="rounded-2xl bg-white p-3 shadow-sm">
         <div className="font-bold">🏠 {home?.name}</div>
         <div>Weekly bills {formatPence(weeklyBills(home?.rentPence ?? 0, heating, sofa))}</div>
@@ -94,10 +133,11 @@ export function Bank() {
       </div>
       <p className="pt-1 text-[10px] font-bold text-[#9aa5b1]">RECENT</p>
       <ul className="space-y-1">
-        {ledger.slice(0, 15).map((entry) => (
+        {ledger.map((entry) => (
           <li key={entry.id} className="flex items-center gap-2 rounded-xl bg-white px-2 py-1.5 shadow-sm">
             <span>{KIND_EMOJI[entry.kind] ?? "•"}</span>
             <span className="flex-1 truncate capitalize">{entry.ref?.replaceAll("_", " ") ?? entry.kind}</span>
+            <ReceiptChip entry={entry} />
             <span className={`font-bold ${entry.amountPence >= 0 ? "text-[#22924f]" : ""}`}>
               {entry.amountPence >= 0 ? "+" : ""}
               {formatPence(entry.amountPence)}

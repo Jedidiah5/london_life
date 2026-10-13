@@ -319,7 +319,10 @@ export default function HomePage() {
           <span className="flex items-center gap-2 font-bold text-[#1b2838]">
             <Roundel className="h-6 w-6" /> London Life
           </span>
-          <span>A browser life sim. Not affiliated with TfL, though we wish the trains ran like this.</span>
+          <span className="text-center sm:text-right">
+            A browser life sim. Not affiliated with TfL, though we wish the trains ran like this.
+            <span className="block text-xs">Payments settle on Monad testnet.</span>
+          </span>
         </div>
       </footer>
     </div>
