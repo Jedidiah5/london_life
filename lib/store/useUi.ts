@@ -48,6 +48,10 @@ interface UiState {
   yaw: number;
   pitch: number;
   zoom: number;
+  /** How far the city map is zoomed in, 1 being the whole city. */
+  mapZoom: number;
+  /** Where the city map is centred, in world units. */
+  mapPan: { x: number; z: number };
   toasts: Toast[];
   travelTo: string | null;
   selectedCatalogueId: string | null;
@@ -71,6 +75,9 @@ interface UiState {
   rotateYaw: () => void;
   orbit: (yaw: number, pitch: number) => void;
   setZoom: (zoom: number) => void;
+  setMapZoom: (mapZoom: number) => void;
+  setMapPan: (x: number, z: number) => void;
+  resetMap: () => void;
   pushToast: (text: string, tone?: Toast["tone"]) => void;
   dismissToast: (id: string) => void;
   setTravelTo: (venueId: string | null) => void;
@@ -96,6 +103,11 @@ let toastSeq = 0;
 export const DEFAULT_PITCH = 0.86;
 export const PITCH_MIN = 0.45;
 export const PITCH_MAX = 1.35;
+export const MAP_ZOOM_MAX = 4;
+/** Half the width of the city, in world units; the map cannot be dragged past it. */
+export const MAP_REACH = 17;
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 export const useUi = create<UiState>()(
   persist(
@@ -105,6 +117,8 @@ export const useUi = create<UiState>()(
       yaw: 0,
       pitch: DEFAULT_PITCH,
       zoom: 52,
+      mapZoom: 1,
+      mapPan: { x: 0, z: 0 },
       toasts: [],
       travelTo: null,
       selectedCatalogueId: null,
@@ -133,11 +147,15 @@ export const useUi = create<UiState>()(
           confirmingBuy: false,
           catalogueHidden: false,
           tryFinish: null,
+          ...(nav === "map" ? { mapZoom: 1, mapPan: { x: 0, z: 0 } } : {}),
         }),
       openPhone: (phoneApp) => set({ phoneApp, nav: "phone", sheet: null, person: null }),
       rotateYaw: () => set((state) => ({ yaw: Math.round(state.yaw) + 1 })),
       orbit: (yaw, pitch) => set({ yaw, pitch: Math.min(PITCH_MAX, Math.max(PITCH_MIN, pitch)) }),
       setZoom: (zoom) => set({ zoom: Math.min(90, Math.max(24, zoom)) }),
+      setMapZoom: (mapZoom) => set({ mapZoom: clamp(mapZoom, 1, MAP_ZOOM_MAX) }),
+      setMapPan: (x, z) => set({ mapPan: { x: clamp(x, -MAP_REACH, MAP_REACH), z: clamp(z, -MAP_REACH, MAP_REACH) } }),
+      resetMap: () => set({ mapZoom: 1, mapPan: { x: 0, z: 0 } }),
       pushToast: (text, tone = "info") => {
         toastSeq += 1;
         const id = `toast-${toastSeq}`;
