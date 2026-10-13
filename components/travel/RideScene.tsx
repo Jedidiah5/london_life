@@ -218,7 +218,7 @@ export function RideScene() {
   const look = useGame((state) => state.appearance);
   const [view, setView] = useState<View>("chase");
   const [elapsed, setElapsed] = useState(0);
-  const duration = ride ? Math.min(12, Math.max(4, ride.minutes)) : 0;
+  const duration = ride ? Math.min(12, Math.max(4, ride.minutes)) + (ride.mode === "tube" ? 5 : 0) : 0;
   const venue = ride ? venuesById[ride.destination] : undefined;
   const name = venue?.name ?? "Home";
   const line = lineFor(name);
