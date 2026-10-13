@@ -6,14 +6,7 @@ import { formatPence } from "@/lib/sim/money";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
 import { CatalogueGrid, ItemPicture } from "./CatalogueGrid";
-import {
-  PROBLEM_TEXT,
-  confirmSell,
-  ghostProblem,
-  nudgeGhost,
-  requestPlace,
-  turnGhost,
-} from "./placementActions";
+import { PROBLEM_TEXT, confirmSell, ghostProblem, nudgeGhost, requestPlace, turnGhost } from "./placementActions";
 
 const KEY_STEPS: Record<string, [1 | -1, 1 | -1]> = {
   ArrowUp: [1, 1],
@@ -27,11 +20,7 @@ function usePlacementKeys(active: boolean) {
     if (!active) return;
     const onKey = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
-      if (
-        target &&
-        (target.tagName === "INPUT" || target.tagName === "TEXTAREA")
-      )
-        return;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
       const step = KEY_STEPS[event.key];
       if (step) {
         event.preventDefault();
@@ -50,17 +39,7 @@ function usePlacementKeys(active: boolean) {
   }, [active]);
 }
 
-function MoveButton({
-  right,
-  up,
-  label,
-  glyph,
-}: {
-  right: 1 | -1;
-  up: 1 | -1;
-  label: string;
-  glyph: string;
-}) {
+function MoveButton({ right, up, label, glyph }: { right: 1 | -1; up: 1 | -1; label: string; glyph: string }) {
   return (
     <button
       type="button"
@@ -88,11 +67,7 @@ function PlacementPanel() {
   return (
     <div>
       <div className="flex items-center gap-2">
-        <ItemPicture
-          item={item}
-          colour={ghost.colour}
-          className="h-12 w-12 shrink-0"
-        />
+        <ItemPicture item={item} colour={ghost.colour} className="h-12 w-12 shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="truncate text-[13px] font-extrabold">{item.name}</div>
           <div className="text-[11px] font-bold text-[#16a34a]">
@@ -226,9 +201,7 @@ export function BuyMode() {
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-base font-extrabold">Catalogue</h2>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold text-[#5c6b7a]">
-                {formatPence(balance)}
-              </span>
+              <span className="text-[11px] font-semibold text-[#5c6b7a]">{formatPence(balance)}</span>
               <button
                 type="button"
                 className="rounded-full bg-[#f1f3f6] px-3 py-1 text-[11px] font-semibold"
@@ -246,9 +219,7 @@ export function BuyMode() {
             </div>
           </div>
           <CatalogueGrid />
-          <p className="mt-2 text-center text-[10px] text-[#5c6b7a]">
-            Tap something in your room to move or sell it
-          </p>
+          <p className="mt-2 text-center text-[10px] text-[#5c6b7a]">Tap something in your room to move or sell it</p>
         </>
       )}
     </section>

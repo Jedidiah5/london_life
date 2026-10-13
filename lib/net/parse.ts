@@ -3,20 +3,11 @@ import { normaliseAppearance } from "@/lib/sim/appearance";
 import { SKILL_KEYS } from "@/lib/sim/constants";
 import { fullNeeds } from "@/lib/sim/needs";
 import type { ServerSnapshot } from "@/lib/store/useGame";
-import type {
-  ActiveShift,
-  Career,
-  Finishes,
-  Friend,
-  InventoryItem,
-  LedgerEntry,
-  Needs,
-} from "@/lib/sim/types";
+import type { ActiveShift, Career, Finishes, Friend, InventoryItem, LedgerEntry, Needs } from "@/lib/sim/types";
 import { NEED_KEYS } from "@/lib/sim/types";
 
 export function record(value: unknown): Record<string, unknown> | null {
-  if (value && typeof value === "object" && !Array.isArray(value))
-    return value as Record<string, unknown>;
+  if (value && typeof value === "object" && !Array.isArray(value)) return value as Record<string, unknown>;
   return null;
 }
 
@@ -48,9 +39,7 @@ export function statsOf(value: unknown): Record<string, number> {
   const row = record(value);
   if (!row) return {};
   return Object.fromEntries(
-    Object.entries(row).filter(
-      (entry): entry is [string, number] => typeof entry[1] === "number",
-    ),
+    Object.entries(row).filter((entry): entry is [string, number] => typeof entry[1] === "number"),
   );
 }
 
@@ -114,9 +103,7 @@ function friendsOf(value: unknown): Friend[] {
     if (!row) return [];
     const simId = str(row.simId ?? row.sim_id);
     if (!simId) return [];
-    return [
-      { simId, username: str(row.username), name: str(row.name, "Londoner") },
-    ];
+    return [{ simId, username: str(row.username), name: str(row.name, "Londoner") }];
   });
 }
 
@@ -145,9 +132,7 @@ export function parseState(value: unknown): ServerSnapshot | null {
     username: str(root.username),
     name: str(sim.name, "Londoner"),
     appearance: normaliseAppearance(sim.appearance),
-    traits: Array.isArray(sim.traits)
-      ? sim.traits.filter((trait) => typeof trait === "string")
-      : [],
+    traits: Array.isArray(sim.traits) ? sim.traits.filter((trait) => typeof trait === "string") : [],
     aspiration: str(sim.aspiration, "property_ladder"),
     balancePence: num(sim.balance_pence),
     oysterPence: num(sim.oyster_pence),
@@ -163,9 +148,7 @@ export function parseState(value: unknown): ServerSnapshot | null {
     shift: shiftOf(sim.active_shift),
     career: careerOf(sim.career),
     stats: statsOf(sim.stats),
-    goalsDone: Array.isArray(sim.goals_done)
-      ? sim.goals_done.filter((goal) => typeof goal === "string")
-      : [],
+    goalsDone: Array.isArray(sim.goals_done) ? sim.goals_done.filter((goal) => typeof goal === "string") : [],
     lastCallMinute: num(sim.last_call_minute, 480),
     inventory: inventoryOf(root.inventory),
     ledger: ledgerOf(root.ledger),
@@ -181,16 +164,13 @@ export function finishesOf(value: unknown): Finishes {
   const floor = str(row?.floor);
   return {
     wall: finishesById[wall]?.kind === "wall" ? wall : DEFAULT_FINISHES.wall,
-    floor:
-      finishesById[floor]?.kind === "floor" ? floor : DEFAULT_FINISHES.floor,
+    floor: finishesById[floor]?.kind === "floor" ? floor : DEFAULT_FINISHES.floor,
   };
 }
 
 export function ownedFinishesOf(value: unknown): string[] {
   const owned = Array.isArray(value)
-    ? value.filter(
-        (id): id is string => typeof id === "string" && id in finishesById,
-      )
+    ? value.filter((id): id is string => typeof id === "string" && id in finishesById)
     : [];
   return [...new Set([...Object.values(DEFAULT_FINISHES), ...owned])];
 }

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { NEED_LABELS } from "@/lib/sim/constants";
 import { NEED_KEYS, type NeedKey } from "@/lib/sim/types";
 import { useGame } from "@/lib/store/useGame";
+import { useUi } from "@/lib/store/useUi";
 
 export const NEED_EMOJI: Record<NeedKey, string> = {
   hunger: "🍔",
@@ -35,10 +36,10 @@ export function NeedsPanel() {
     <section className="pointer-events-auto flex items-end gap-2">
       <button
         type="button"
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => useUi.getState().openSimPanel("needs")}
         className="relative grid h-14 w-14 shrink-0 place-items-center rounded-full border-4 border-white shadow-lg"
         style={{ background: `radial-gradient(circle at 50% 38%, ${appearance.skin} 0 38%, ${appearance.top} 39%)` }}
-        aria-label="Needs"
+        aria-label="Open your Sim"
       >
         <span className="absolute -bottom-1 -right-1 flex rounded-full bg-white p-1 shadow">
           <Flag origin={appearance.origin} />

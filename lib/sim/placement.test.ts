@@ -1,12 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { screenStep } from "./grid";
-import {
-  canPlace,
-  clampOrigin,
-  firstFreeSpot,
-  placementProblem,
-} from "./placement";
+import { canPlace, clampOrigin, firstFreeSpot, placementProblem } from "./placement";
 
 test("items cannot overlap blocked tiles or leave the room", () => {
   const blocked = new Set(["2,2"]);
@@ -19,38 +14,18 @@ test("a new item drops onto the free spot nearest the middle", () => {
   assert.deepEqual(firstFreeSpot([1, 1], 0, new Set(), 5, 5), { x: 2, y: 2 });
   const spot = firstFreeSpot([1, 1], 0, new Set(["2,2"]), 5, 5);
   assert.ok(spot && !(spot.x === 2 && spot.y === 2));
-  const everything = new Set(
-    Array.from({ length: 25 }, (_, i) => `${i % 5},${Math.floor(i / 5)}`),
-  );
+  const everything = new Set(Array.from({ length: 25 }, (_, i) => `${i % 5},${Math.floor(i / 5)}`));
   assert.equal(firstFreeSpot([1, 1], 0, everything, 5, 5), null);
 });
 
 test("a bad spot says why", () => {
   const none = new Set<string>();
-  assert.equal(
-    placementProblem({ x: 1, y: 2 }, "wall", 0, none, 5, 5, null),
-    "wall",
-  );
-  assert.equal(
-    placementProblem({ x: 4, y: 0 }, [2, 1], 0, none, 5, 5, null),
-    "outside",
-  );
-  assert.equal(
-    placementProblem({ x: 1, y: 1 }, [1, 1], 0, new Set(["1,1"]), 5, 5, null),
-    "taken",
-  );
-  assert.equal(
-    placementProblem({ x: 2, y: 2 }, [1, 1], 0, none, 5, 5, { x: 2, y: 2 }),
-    "standing",
-  );
-  assert.equal(
-    placementProblem({ x: 0, y: 1 }, [5, 1], 0, none, 5, 5, { x: 2, y: 0 }),
-    "boxed",
-  );
-  assert.equal(
-    placementProblem({ x: 0, y: 4 }, [5, 1], 0, none, 5, 5, { x: 2, y: 0 }),
-    null,
-  );
+  assert.equal(placementProblem({ x: 1, y: 2 }, "wall", 0, none, 5, 5, null), "wall");
+  assert.equal(placementProblem({ x: 4, y: 0 }, [2, 1], 0, none, 5, 5, null), "outside");
+  assert.equal(placementProblem({ x: 1, y: 1 }, [1, 1], 0, new Set(["1,1"]), 5, 5, null), "taken");
+  assert.equal(placementProblem({ x: 2, y: 2 }, [1, 1], 0, none, 5, 5, { x: 2, y: 2 }), "standing");
+  assert.equal(placementProblem({ x: 0, y: 1 }, [5, 1], 0, none, 5, 5, { x: 2, y: 0 }), "boxed");
+  assert.equal(placementProblem({ x: 0, y: 4 }, [5, 1], 0, none, 5, 5, { x: 2, y: 0 }), null);
 });
 
 test("moving keeps the whole item inside the room", () => {

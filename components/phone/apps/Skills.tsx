@@ -4,7 +4,19 @@ import { capitalise } from "@/lib/sim/actions";
 import { SKILL_KEYS, SKILL_MAX } from "@/lib/sim/constants";
 import { useGame } from "@/lib/store/useGame";
 
-const HOW: Record<string, string> = {
+export const SKILL_EMOJI: Record<string, string> = {
+  coding: "💻",
+  cooking: "🍳",
+  charisma: "🗣️",
+  fitness: "🏃",
+  music: "🎸",
+  comedy: "🎤",
+  style: "🧥",
+  hustle: "💼",
+  photography: "📷",
+};
+
+export const SKILL_HOW: Record<string, string> = {
   coding: "Side projects at your desk, Shoreditch laptops",
   cooking: "Cook a taste of home",
   charisma: "Natter at Camden, network, give a speech",
@@ -32,7 +44,7 @@ export function Skills() {
             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#ece7de]">
               <div className="h-full rounded-full bg-[#6d4fd1]" style={{ width: `${(value / SKILL_MAX) * 100}%` }} />
             </div>
-            <div className="mt-0.5 text-[10px] text-[#9aa5b1]">{HOW[key]}</div>
+            <div className="mt-0.5 text-[10px] text-[#9aa5b1]">{SKILL_HOW[key]}</div>
           </div>
         );
       })}

@@ -5,15 +5,9 @@ import { persist } from "zustand/middleware";
 import type { Appearance, InventoryItem, TravelMode } from "@/lib/sim/types";
 
 export type NavKey = "home" | "buy" | "map" | "phone";
-export type PhoneApp =
-  | "jobs"
-  | "bank"
-  | "messages"
-  | "friends"
-  | "settings"
-  | "callhome"
-  | "help"
-  | "skills";
+export type PhoneApp = "jobs" | "bank" | "messages" | "friends" | "settings" | "callhome" | "help" | "skills";
+
+export type SimTab = "profile" | "needs" | "goals" | "skills" | "career";
 
 export interface GhostPlacement {
   itemId: string;
@@ -65,6 +59,7 @@ interface UiState {
   catalogueHidden: boolean;
   /** A paint or floor shown on the room before paying for it. */
   tryFinish: string | null;
+  simPanel: SimTab | null;
   visit: VisitState | null;
   sheet: string | null;
   person: PersonRef | null;
@@ -86,6 +81,7 @@ interface UiState {
   setConfirmingBuy: (confirmingBuy: boolean) => void;
   setCatalogueHidden: (catalogueHidden: boolean) => void;
   setTryFinish: (tryFinish: string | null) => void;
+  openSimPanel: (simPanel: SimTab | null) => void;
   cancelPlacement: () => void;
   setVisit: (visit: VisitState | null) => void;
   openSheet: (target: string | null) => void;
@@ -117,6 +113,7 @@ export const useUi = create<UiState>()(
       confirmingBuy: false,
       catalogueHidden: false,
       tryFinish: null,
+      simPanel: null,
       visit: null,
       sheet: null,
       person: null,
@@ -137,11 +134,9 @@ export const useUi = create<UiState>()(
           catalogueHidden: false,
           tryFinish: null,
         }),
-      openPhone: (phoneApp) =>
-        set({ phoneApp, nav: "phone", sheet: null, person: null }),
+      openPhone: (phoneApp) => set({ phoneApp, nav: "phone", sheet: null, person: null }),
       rotateYaw: () => set((state) => ({ yaw: Math.round(state.yaw) + 1 })),
-      orbit: (yaw, pitch) =>
-        set({ yaw, pitch: Math.min(PITCH_MAX, Math.max(PITCH_MIN, pitch)) }),
+      orbit: (yaw, pitch) => set({ yaw, pitch: Math.min(PITCH_MAX, Math.max(PITCH_MIN, pitch)) }),
       setZoom: (zoom) => set({ zoom: Math.min(90, Math.max(24, zoom)) }),
       pushToast: (text, tone = "info") => {
         toastSeq += 1;
@@ -190,12 +185,9 @@ export const useUi = create<UiState>()(
         ),
       setConfirmingBuy: (confirmingBuy) => set({ confirmingBuy }),
       setCatalogueHidden: (catalogueHidden) =>
-        set(
-          catalogueHidden
-            ? { catalogueHidden, tryFinish: null }
-            : { catalogueHidden },
-        ),
+        set(catalogueHidden ? { catalogueHidden, tryFinish: null } : { catalogueHidden }),
       setTryFinish: (tryFinish) => set({ tryFinish }),
+      openSimPanel: (simPanel) => set({ simPanel, sheet: null, person: null }),
       cancelPlacement: () =>
         set({
           ghost: null,

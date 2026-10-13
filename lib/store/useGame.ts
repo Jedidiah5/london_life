@@ -2,24 +2,11 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import {
-  DEFAULT_FINISHES,
-  actionsById,
-  catalogueById,
-  emptySkills,
-  roomLayout,
-  targetMenu,
-} from "@/lib/content";
+import { DEFAULT_FINISHES, actionsById, catalogueById, emptySkills, roomLayout, targetMenu } from "@/lib/content";
 import { makeAction, tickAction } from "@/lib/sim/actions";
 import { defaultAppearance, normaliseAppearance } from "@/lib/sim/appearance";
 import { advanceClock } from "@/lib/sim/clock";
-import {
-  NEED_LABELS,
-  OYSTER_START_PENCE,
-  SLEEP_SPEED,
-  STARTING_PENCE,
-  START_GAME_MINUTES,
-} from "@/lib/sim/constants";
+import { NEED_LABELS, OYSTER_START_PENCE, SLEEP_SPEED, STARTING_PENCE, START_GAME_MINUTES } from "@/lib/sim/constants";
 import { missingHome } from "@/lib/sim/home";
 import { activeMoodlets } from "@/lib/sim/mood";
 import { decayNeeds, fullNeeds, warningsFor } from "@/lib/sim/needs";
@@ -123,14 +110,8 @@ interface GameState {
   canQueue: () => string | null;
   arrive: () => void;
   setHeatingLocal: (on: boolean) => void;
-  applyCheckpoint: (
-    patch: Partial<ServerSnapshot> & { needs: Needs; gameMinutes: number },
-  ) => void;
-  applyMoney: (
-    balancePence: number,
-    oysterPence?: number,
-    entry?: LedgerEntry,
-  ) => void;
+  applyCheckpoint: (patch: Partial<ServerSnapshot> & { needs: Needs; gameMinutes: number }) => void;
+  applyMoney: (balancePence: number, oysterPence?: number, entry?: LedgerEntry) => void;
   upsertInventory: (item: InventoryItem) => void;
   removeInventory: (id: string) => void;
   setShift: (shift: ActiveShift | null) => void;
@@ -142,10 +123,7 @@ interface GameState {
   setNeeds: (needs: Needs) => void;
   bumpNeeds: (delta: Partial<Needs>) => void;
   setLocation: (location: string) => void;
-  addMoodlet: (
-    moodlet: Omit<Moodlet, "expiresAtGameMinute">,
-    minutes?: number,
-  ) => void;
+  addMoodlet: (moodlet: Omit<Moodlet, "expiresAtGameMinute">, minutes?: number) => void;
   setFriends: (friends: Friend[]) => void;
   setFinishes: (finishes: Finishes, ownedFinishes: string[]) => void;
   setReadOnly: (readOnly: boolean) => void;
@@ -161,19 +139,11 @@ function nextActionId(): string {
 
 const QUEUE_LIMIT = 3;
 
-function homeItems(state: {
-  location: string;
-  inventory: InventoryItem[];
-}): InventoryItem[] {
+function homeItems(state: { location: string; inventory: InventoryItem[] }): InventoryItem[] {
   return state.location === "home" ? state.inventory : [];
 }
 
-function targetTiles(
-  id: string,
-  location: string,
-  homeId: string,
-  inventory: InventoryItem[],
-): Tile[] | null {
+function targetTiles(id: string, location: string, homeId: string, inventory: InventoryItem[]): Tile[] | null {
   const layout = roomLayout(location, homeId, null);
   const fixture = layout.fixtures.find((entry) => entry.id === id);
   if (fixture) {
@@ -230,10 +200,7 @@ export const useGame = create<GameState>()(
       ...blank,
       hydrate: (snapshot) => {
         const current = get();
-        const samePlace =
-          current.created &&
-          current.simId === snapshot.simId &&
-          current.location === snapshot.location;
+        const samePlace = current.created && current.simId === snapshot.simId && current.location === snapshot.location;
         set({
           created: true,
           simId: snapshot.simId,
@@ -247,10 +214,7 @@ export const useGame = create<GameState>()(
           oysterPence: snapshot.oysterPence,
           homeId: snapshot.homeId,
           location: snapshot.location,
-          gameMinutes: Math.max(
-            snapshot.gameMinutes,
-            samePlace ? current.gameMinutes : 0,
-          ),
+          gameMinutes: Math.max(snapshot.gameMinutes, samePlace ? current.gameMinutes : 0),
           heatingOn: snapshot.heatingOn,
           rentMisses: snapshot.rentMisses,
           sofaSurfing: snapshot.sofaSurfing,
@@ -277,20 +241,10 @@ export const useGame = create<GameState>()(
       tick: (realSeconds) => {
         const state = get();
         if (!state.created || realSeconds <= 0) return [];
-        const sleeping =
-          !state.shift && !state.readOnly && state.action?.anim === "sleep";
-        const elapsed = advanceClock(
-          0,
-          realSeconds,
-          sleeping ? SLEEP_SPEED : 1,
-        );
+        const sleeping = !state.shift && !state.readOnly && state.action?.anim === "sleep";
+        const elapsed = advanceClock(0, realSeconds, sleeping ? SLEEP_SPEED : 1);
         const gameMinutes = state.gameMinutes + elapsed;
-        let needs = decayNeeds(
-          state.needs,
-          elapsed / 60,
-          Boolean(state.shift),
-          sleeping,
-        );
+        let needs = decayNeeds(state.needs, elapsed / 60, Boolean(state.shift), sleeping);
         let action = state.action;
         let queue = state.queue;
         if (action) {
@@ -298,34 +252,18 @@ export const useGame = create<GameState>()(
           needs = stepped.needs;
           action = stepped.action;
         }
-        if (
-          !action &&
-          queue.length > 0 &&
-          state.path.length === 0 &&
-          !state.pending
-        ) {
+        if (!action && queue.length > 0 && state.path.length === 0 && !state.pending) {
           action = queue[0] ?? null;
           queue = queue.slice(1);
         }
-        const notes = warningsFor(state.needs, needs).map(
-          (key) => `${NEED_LABELS[key]} is getting low`,
-        );
+        const notes = warningsFor(state.needs, needs).map((key) => `${NEED_LABELS[key]} is getting low`);
         const passOut = actionsById.pass_out;
-        if (
-          needs.energy <= 0 &&
-          !action &&
-          queue.length === 0 &&
-          !state.shift &&
-          passOut
-        ) {
+        if (needs.energy <= 0 && !action && queue.length === 0 && !state.shift && passOut) {
           action = makeAction(passOut, 1, nextActionId());
           notes.push("You passed out");
         }
         let moodlets = activeMoodlets(state.moodlets, gameMinutes);
-        if (
-          missingHome(state.lastCallMinute, gameMinutes) &&
-          !moodlets.some((m) => m.id === "missing_home")
-        ) {
+        if (missingHome(state.lastCallMinute, gameMinutes) && !moodlets.some((m) => m.id === "missing_home")) {
           moodlets = [
             ...moodlets,
             {
@@ -349,13 +287,7 @@ export const useGame = create<GameState>()(
         if (!tileInside(tile, layout.width, layout.height)) return null;
         const blocked = blockingTiles(layout, homeItems(state));
         if (blocked.has(`${tile.x},${tile.y}`)) return null;
-        const path = findPath(
-          state.tile,
-          tile,
-          blocked,
-          layout.width,
-          layout.height,
-        );
+        const path = findPath(state.tile, tile, blocked, layout.width, layout.height);
         if (!path) return "Can't get there";
         set({ path, pending: null, queue: [] });
         return null;
@@ -364,8 +296,7 @@ export const useGame = create<GameState>()(
         const state = get();
         if (state.readOnly) return "You're only visiting";
         if (state.shift) return "You're on shift";
-        const busy =
-          (state.action ? 1 : 0) + state.queue.length + (state.pending ? 1 : 0);
+        const busy = (state.action ? 1 : 0) + state.queue.length + (state.pending ? 1 : 0);
         if (busy >= QUEUE_LIMIT + 1) return "Queue is full";
         return null;
       },
@@ -374,54 +305,28 @@ export const useGame = create<GameState>()(
         if (blocked) return blocked;
         const state = get();
         const quality = target
-          ? (targetMenu(
-              target,
-              roomLayout(state.location, state.homeId, null),
-              homeItems(state),
-            )?.quality ?? 1)
+          ? (targetMenu(target, roomLayout(state.location, state.homeId, null), homeItems(state))?.quality ?? 1)
           : 1;
         const next = makeAction(def, quality, nextActionId(), target);
-        const busy = Boolean(
-          state.action ||
-          state.pending ||
-          state.queue.length > 0 ||
-          state.path.length > 0,
-        );
+        const busy = Boolean(state.action || state.pending || state.queue.length > 0 || state.path.length > 0);
         if (busy || !target) {
           if (!busy) set({ action: next });
           else set({ queue: [...state.queue, next] });
           return null;
         }
-        const tiles = targetTiles(
-          target,
-          state.location,
-          state.homeId,
-          homeItems(state),
-        );
+        const tiles = targetTiles(target, state.location, state.homeId, homeItems(state));
         if (!tiles) {
           set({ action: next });
           return null;
         }
         const layout = roomLayout(state.location, state.homeId, null);
         const blockedTiles = blockingTiles(layout, homeItems(state));
-        const stand = nearestStand(
-          tiles,
-          state.tile,
-          blockedTiles,
-          layout.width,
-          layout.height,
-        );
+        const stand = nearestStand(tiles, state.tile, blockedTiles, layout.width, layout.height);
         if (!stand || (stand.x === state.tile.x && stand.y === state.tile.y)) {
           set({ action: next, path: [] });
           return null;
         }
-        const path = findPath(
-          state.tile,
-          stand,
-          blockedTiles,
-          layout.width,
-          layout.height,
-        );
+        const path = findPath(state.tile, stand, blockedTiles, layout.width, layout.height);
         if (!path || path.length === 0) {
           set({ action: next, path: [] });
           return null;
@@ -467,9 +372,7 @@ export const useGame = create<GameState>()(
         })),
       upsertInventory: (item) =>
         set((state) => {
-          const index = state.inventory.findIndex(
-            (owned) => owned.id === item.id,
-          );
+          const index = state.inventory.findIndex((owned) => owned.id === item.id);
           if (index === -1) return { inventory: [...state.inventory, item] };
           const inventory = state.inventory.slice();
           inventory[index] = item;
@@ -494,9 +397,7 @@ export const useGame = create<GameState>()(
       setLastCall: (lastCallMinute) =>
         set((state) => ({
           lastCallMinute,
-          moodlets: state.moodlets.filter(
-            (moodlet) => moodlet.id !== "missing_home",
-          ),
+          moodlets: state.moodlets.filter((moodlet) => moodlet.id !== "missing_home"),
         })),
       setNeeds: (needs) => set({ needs }),
       bumpNeeds: (delta) =>
@@ -504,8 +405,7 @@ export const useGame = create<GameState>()(
           const needs = { ...state.needs };
           for (const [key, amount] of Object.entries(delta)) {
             const need = key as keyof Needs;
-            if (typeof amount === "number")
-              needs[need] = Math.min(100, Math.max(0, needs[need] + amount));
+            if (typeof amount === "number") needs[need] = Math.min(100, Math.max(0, needs[need] + amount));
           }
           return { needs };
         }),
@@ -526,8 +426,7 @@ export const useGame = create<GameState>()(
           ],
         })),
       setFriends: (friends) => set({ friends }),
-      setFinishes: (finishes, ownedFinishes) =>
-        set({ finishes, ownedFinishes }),
+      setFinishes: (finishes, ownedFinishes) => set({ finishes, ownedFinishes }),
       setReadOnly: (readOnly) => set({ readOnly, path: [], pending: null }),
       reset: () => set({ ...blank }),
     }),

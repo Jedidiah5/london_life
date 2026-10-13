@@ -4,12 +4,7 @@ import { catalogueById, roomLayout } from "@/lib/content";
 import { buyItem, placeItem, sellItem } from "@/lib/net/rpc";
 import { BIG_PURCHASE_PENCE } from "@/lib/sim/constants";
 import { screenStep } from "@/lib/sim/grid";
-import {
-  clampOrigin,
-  firstFreeSpot,
-  placementProblem,
-  type PlacementProblem,
-} from "@/lib/sim/placement";
+import { clampOrigin, firstFreeSpot, placementProblem, type PlacementProblem } from "@/lib/sim/placement";
 import { blockingTiles } from "@/lib/sim/room";
 import type { Tile } from "@/lib/sim/types";
 import { useGame } from "@/lib/store/useGame";
@@ -79,13 +74,7 @@ export function moveGhostTo(tile: Tile): void {
   const layout = currentLayout();
   ui.setGhost({
     ...ghost,
-    ...clampOrigin(
-      tile,
-      item.footprint,
-      ghost.rotation,
-      layout.width,
-      layout.height,
-    ),
+    ...clampOrigin(tile, item.footprint, ghost.rotation, layout.width, layout.height),
   });
   ui.setConfirmingBuy(false);
 }
@@ -97,13 +86,7 @@ export function turnGhost(): void {
   if (!ghost || !item) return;
   const rotation = (ghost.rotation + 1) % 4;
   const layout = currentLayout();
-  const next = clampOrigin(
-    { x: ghost.x, y: ghost.y },
-    item.footprint,
-    rotation,
-    layout.width,
-    layout.height,
-  );
+  const next = clampOrigin({ x: ghost.x, y: ghost.y }, item.footprint, rotation, layout.width, layout.height);
   ui.setGhost({ ...ghost, ...next, rotation });
   ui.setConfirmingBuy(false);
 }
@@ -115,26 +98,17 @@ export function startPlacing(itemId: string, colour?: string): boolean {
   const item = catalogueById[itemId];
   if (!item) return false;
   const layout = currentLayout();
-  const spot = firstFreeSpot(
-    item.footprint,
-    0,
-    blockingTiles(layout, game.inventory),
-    layout.width,
-    layout.height,
-  );
+  const blocked = blockingTiles(layout, game.inventory);
+  const sim = item.blocks && game.location === "home" ? game.tile : null;
   ui.selectCatalogue(item.id);
-  if (!spot) {
-    ui.pushToast("No room for that. Sell something first", "bad");
-    return false;
+  for (const rotation of [0, 1]) {
+    const spot = firstFreeSpot(item.footprint, rotation, blocked, layout.width, layout.height, sim);
+    if (!spot) continue;
+    ui.setGhost({ itemId: item.id, x: spot.x, y: spot.y, rotation, colour: colour ?? item.colours[0] ?? "#f4f1ea" });
+    return true;
   }
-  ui.setGhost({
-    itemId: item.id,
-    x: spot.x,
-    y: spot.y,
-    rotation: 0,
-    colour: colour ?? item.colours[0] ?? "#f4f1ea",
-  });
-  return true;
+  ui.pushToast("No room for that. Sell something first", "bad");
+  return false;
 }
 
 /** Place the ghost. A big purchase needs a second tap to say yes. */
@@ -153,9 +127,7 @@ export function requestPlace(another = false): void {
     return;
   }
   const balance = useGame.getState().balancePence;
-  const big =
-    !ui.movingId &&
-    (item.pricePence >= BIG_PURCHASE_PENCE || item.pricePence > balance / 2);
+  const big = !ui.movingId && (item.pricePence >= BIG_PURCHASE_PENCE || item.pricePence > balance / 2);
   if (big && !ui.confirmingBuy) {
     ui.setConfirmingBuy(true);
     return;

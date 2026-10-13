@@ -13,6 +13,7 @@ import { BottomNav } from "./BottomNav";
 import { GoalCards } from "./GoalCards";
 import { RotateIcon } from "./icons";
 import { NeedsPanel } from "./NeedsPanel";
+import { SimPanel } from "./SimPanel";
 import { Toasts } from "./Toasts";
 import { TopBar } from "./TopBar";
 
@@ -50,6 +51,7 @@ export function Hud() {
         <BottomNav />
       </div>
       <EventModal />
+      <SimPanel />
       <button
         type="button"
         aria-label="Turn camera"

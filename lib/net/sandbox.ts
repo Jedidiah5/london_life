@@ -31,12 +31,7 @@ import { wageMultiplier } from "@/lib/sim/mood";
 import { coveredTiles } from "@/lib/sim/placement";
 import { travelQuote } from "@/lib/sim/travel";
 import { applyUpkeep } from "@/lib/sim/upkeep";
-import {
-  NEED_KEYS,
-  type Finishes,
-  type Needs,
-  type TravelMode,
-} from "@/lib/sim/types";
+import { NEED_KEYS, type Finishes, type Needs, type TravelMode } from "@/lib/sim/types";
 
 /**
  * Offline stand-in for the Supabase RPCs. Same names, arguments, rules and
@@ -133,18 +128,13 @@ function str(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
-export function createSandbox(
-  storage: SandboxStorage,
-  now: () => number = Date.now,
-): Sandbox {
+export function createSandbox(storage: SandboxStorage, now: () => number = Date.now): Sandbox {
   const load = (): Db => {
     const raw = storage.read();
     if (!raw) return emptyDb();
     try {
       const parsed = JSON.parse(raw) as Db;
-      return parsed && typeof parsed === "object"
-        ? { ...emptyDb(), ...parsed }
-        : emptyDb();
+      return parsed && typeof parsed === "object" ? { ...emptyDb(), ...parsed } : emptyDb();
     } catch {
       return emptyDb();
     }
@@ -182,9 +172,7 @@ export function createSandbox(
     return {
       username: db.username,
       sim: { ...sim, updated_at: new Date(sim.updated_at).toISOString() },
-      inventory: [...db.inventory].sort(
-        (a, b) => Number(b.placed) - Number(a.placed),
-      ),
+      inventory: [...db.inventory].sort((a, b) => Number(b.placed) - Number(a.placed)),
       ledger: db.transactions.slice(0, 30),
       friends: [],
     };
@@ -192,27 +180,12 @@ export function createSandbox(
 
   const upkeep = (db: Db, sim: Sim, time: number) => {
     const home = homesById[sim.home_id];
-    const weeks = Math.max(
-      0,
-      weekIndex(time) - weekIndex(sim.last_upkeep_minute),
-    );
+    const weeks = Math.max(0, weekIndex(time) - weekIndex(sim.last_upkeep_minute));
     const days = Math.floor(Math.max(time - sim.game_time, 0) / 1440);
-    const result = applyUpkeep(
-      sim.balance_pence,
-      weeks,
-      days,
-      home?.rentPence ?? 0,
-      sim.heating_on,
-      sim.sofa_surfing,
-    );
+    const result = applyUpkeep(sim.balance_pence, weeks, days, home?.rentPence ?? 0, sim.heating_on, sim.sofa_surfing);
     if (result.total > 0 && result.missed) {
       sim.rent_misses += weeks;
-      log(
-        db,
-        -Math.min(result.total, sim.balance_pence + OVERDRAFT_LIMIT_PENCE),
-        "rent",
-        "missed",
-      );
+      log(db, -Math.min(result.total, sim.balance_pence + OVERDRAFT_LIMIT_PENCE), "rent", "missed");
       sim.balance_pence = -OVERDRAFT_LIMIT_PENCE;
       if (sim.rent_misses >= 2) {
         sim.sofa_surfing = true;
@@ -237,16 +210,12 @@ export function createSandbox(
     create_sim: (db, args) => {
       const username = str(args.p_username);
       const name = str(args.p_name).trim();
-      const traits = Array.isArray(args.p_traits)
-        ? args.p_traits.filter((t) => typeof t === "string")
-        : [];
+      const traits = Array.isArray(args.p_traits) ? args.p_traits.filter((t) => typeof t === "string") : [];
       const aspiration = str(args.p_aspiration);
-      if (!/^[A-Za-z0-9_]{3,20}$/.test(username))
-        fail("Username must be 3-20 letters, numbers, or _");
+      if (!/^[A-Za-z0-9_]{3,20}$/.test(username)) fail("Username must be 3-20 letters, numbers, or _");
       if (name.length < 1 || name.length > 24) fail("Name is too long");
       if (traits.length !== 2) fail("Pick two traits");
-      if (!ASPIRATIONS.some((entry) => entry.id === aspiration))
-        fail("Pick an aspiration");
+      if (!ASPIRATIONS.some((entry) => entry.id === aspiration)) fail("Pick an aspiration");
       db.username = username;
       if (!db.sim) {
         db.sim = {
@@ -313,10 +282,7 @@ export function createSandbox(
       const sim = mine(db);
       const wall = Math.max(0, (now() - sim.updated_at) / 1000);
       const claimed = Math.round(num(args.p_game_time));
-      const trusted = Math.min(
-        Math.max(claimed, sim.game_time),
-        sim.game_time + Math.floor(wall * SLEEP_SPEED + 2),
-      );
+      const trusted = Math.min(Math.max(claimed, sim.game_time), sim.game_time + Math.floor(wall * SLEEP_SPEED + 2));
       const hours = Math.max(trusted - sim.game_time, 0) / 60;
       const naturalGain = Math.min(80, (Math.max(wall, 1) / 15) * 25);
       const wanted = (args.p_needs ?? {}) as Record<string, unknown>;
@@ -324,17 +290,10 @@ export function createSandbox(
       const allowance = { ...sim.allowance };
       for (const key of NEED_KEYS) {
         const old = sim.needs[key] ?? 80;
-        const value =
-          typeof wanted[key] === "number" ? (wanted[key] as number) : old;
-        const floor = Math.max(
-          0,
-          old - NEED_DECAY_PER_HOUR[key] * hours * 1.25 - 1,
-        );
+        const value = typeof wanted[key] === "number" ? (wanted[key] as number) : old;
+        const floor = Math.max(0, old - NEED_DECAY_PER_HOUR[key] * hours * 1.25 - 1);
         const ceiling = old + naturalGain + (allowance[key] ?? 0);
-        const clamped = Math.min(
-          100,
-          Math.max(0, Math.min(Math.max(value, floor), ceiling)),
-        );
+        const clamped = Math.min(100, Math.max(0, Math.min(Math.max(value, floor), ceiling)));
         const used = Math.max(0, clamped - old - naturalGain);
         allowance[key] = Math.max(0, (allowance[key] ?? 0) - used);
         next[key] = Math.round(clamped * 100) / 100;
@@ -378,12 +337,8 @@ export function createSandbox(
 
     buy_finish: (db, args) => {
       const sim = mine(db);
-      const finish =
-        finishesById[str(args.p_finish)] ?? fail("Unknown paint or floor");
-      const owned = new Set([
-        ...Object.values(DEFAULT_FINISHES),
-        ...(sim.owned_finishes ?? []),
-      ]);
+      const finish = finishesById[str(args.p_finish)] ?? fail("Unknown paint or floor");
+      const owned = new Set([...Object.values(DEFAULT_FINISHES), ...(sim.owned_finishes ?? [])]);
       if (!owned.has(finish.id)) {
         charge(sim, finish.pricePence, "Overdraft is maxed out");
         owned.add(finish.id);
@@ -404,12 +359,8 @@ export function createSandbox(
 
     sell_item: (db, args) => {
       const sim = mine(db);
-      const row =
-        db.inventory.find((entry) => entry.id === str(args.p_inventory)) ??
-        fail("You do not own that");
-      const refund = Math.floor(
-        (catalogueById[row.item_id]?.pricePence ?? 0) / 2,
-      );
+      const row = db.inventory.find((entry) => entry.id === str(args.p_inventory)) ?? fail("You do not own that");
+      const refund = Math.floor((catalogueById[row.item_id]?.pricePence ?? 0) / 2);
       db.inventory = db.inventory.filter((entry) => entry.id !== row.id);
       sim.balance_pence += refund;
       log(db, refund, "sale", row.item_id);
@@ -420,25 +371,14 @@ export function createSandbox(
       const sim = mine(db);
       const rotation = num(args.p_rotation);
       if (rotation < 0 || rotation > 3) fail("Bad rotation");
-      const row =
-        db.inventory.find((entry) => entry.id === str(args.p_inventory)) ??
-        fail("You do not own that");
+      const row = db.inventory.find((entry) => entry.id === str(args.p_inventory)) ?? fail("You do not own that");
       const item = catalogueById[row.item_id] ?? fail("Unknown item");
       const home = homesById[sim.home_id] ?? fail("No home");
       const x = num(args.p_x);
       const y = num(args.p_y);
-      if (item.footprint === "wall" && y !== 0)
-        fail("Wall lamps sit on the back wall");
+      if (item.footprint === "wall" && y !== 0) fail("Wall lamps sit on the back wall");
       const tiles = coveredTiles({ x, y }, item.footprint, rotation);
-      if (
-        tiles.some(
-          (tile) =>
-            tile.x < 0 ||
-            tile.y < 0 ||
-            tile.x >= home.width ||
-            tile.y >= home.height,
-        )
-      ) {
+      if (tiles.some((tile) => tile.x < 0 || tile.y < 0 || tile.x >= home.width || tile.y >= home.height)) {
         fail("That does not fit");
       }
       if (item.blocks) {
@@ -447,21 +387,14 @@ export function createSandbox(
           if (other.id === row.id || !other.placed) continue;
           const def = catalogueById[other.item_id];
           if (!def?.blocks) continue;
-          const hit = coveredTiles(other, def.footprint, other.rotation).some(
-            (t) => mineTiles.has(`${t.x},${t.y}`),
-          );
+          const hit = coveredTiles(other, def.footprint, other.rotation).some((t) => mineTiles.has(`${t.x},${t.y}`));
           if (hit) fail("Something is already there");
         }
         for (const fixture of home.fixtures) {
           if (!fixture.blocks) continue;
           const footprint = catalogueById[fixture.itemId]?.footprint ?? [1, 1];
-          const hit = coveredTiles(fixture, footprint, fixture.rotation).some(
-            (t) => mineTiles.has(`${t.x},${t.y}`),
-          );
-          if (hit)
-            fail(
-              `The ${(fixture.label ?? "fixture").toLowerCase()} is already there`,
-            );
+          const hit = coveredTiles(fixture, footprint, fixture.rotation).some((t) => mineTiles.has(`${t.x},${t.y}`));
+          if (hit) fail(`The ${(fixture.label ?? "fixture").toLowerCase()} is already there`);
         }
       }
       if (!row.placed) bump(sim, "place");
@@ -477,8 +410,7 @@ export function createSandbox(
     top_up_oyster: (db, args) => {
       const sim = mine(db);
       const pence = num(args.p_pence);
-      if (!OYSTER_TOP_UPS.some((value) => value === pence))
-        fail("Top up £5, £10, or £20");
+      if (!OYSTER_TOP_UPS.some((value) => value === pence)) fail("Top up £5, £10, or £20");
       charge(sim, pence, "Overdraft is maxed out");
       sim.oyster_pence += pence;
       log(db, -pence, "travel", "oyster");
@@ -493,13 +425,8 @@ export function createSandbox(
       const def = actionsById[str(args.p_action)] ?? fail("Not on the menu");
       if (sim.active_shift) fail("You are on shift");
       if (def.venue && sim.location !== def.venue) fail("Go there first");
-      if (!def.venue && !def.anywhere && sim.location !== "home")
-        fail("Only at home");
-      if (
-        def.requires &&
-        (sim.skills[def.requires.skill] ?? 0) < def.requires.level
-      )
-        fail("Skill too low");
+      if (!def.venue && !def.anywhere && sim.location !== "home") fail("Only at home");
+      if (def.requires && (sim.skills[def.requires.skill] ?? 0) < def.requires.level) fail("Skill too low");
       const clock = now();
       if (sim.busy_until > clock + 180_000) fail("Queue is full");
       charge(sim, def.costPence);
@@ -507,20 +434,13 @@ export function createSandbox(
       if (def.skill && def.xp) {
         sim.skills = {
           ...sim.skills,
-          [def.skill]: Math.min(
-            SKILL_MAX,
-            Math.round(((sim.skills[def.skill] ?? 0) + def.xp) * 100) / 100,
-          ),
+          [def.skill]: Math.min(SKILL_MAX, Math.round(((sim.skills[def.skill] ?? 0) + def.xp) * 100) / 100),
         };
       }
       const allowance = { ...sim.allowance };
       for (const key of NEED_KEYS) {
         const gain = def.effects[key] ?? 0;
-        if (gain > 0)
-          allowance[key] = Math.min(
-            200,
-            (allowance[key] ?? 0) + gain * (def.scales ? 1.6 : 1),
-          );
+        if (gain > 0) allowance[key] = Math.min(200, (allowance[key] ?? 0) + gain * (def.scales ? 1.6 : 1));
       }
       sim.allowance = allowance;
       if ((def.effects.hunger ?? 0) > 0) bump(sim, "eat");
@@ -530,8 +450,7 @@ export function createSandbox(
         bump(sim, "call");
         sim.last_call_minute = sim.game_time;
       }
-      sim.busy_until =
-        Math.max(sim.busy_until, clock) + (def.minutes * 1000) / HOME_SPEED_MAX;
+      sim.busy_until = Math.max(sim.busy_until, clock) + (def.minutes * 1000) / HOME_SPEED_MAX;
       return {
         balance_pence: sim.balance_pence,
         skills: sim.skills,
@@ -560,8 +479,7 @@ export function createSandbox(
       const job = jobsById[str(args.p_job)] ?? fail("Unknown job");
       if (sim.active_shift) fail("Finish your shift first");
       if (sim.career?.job_id === job.id) fail("You already work there");
-      if (job.skill && (sim.skills[job.skill] ?? 0) < job.skillRequired)
-        fail("Skill too low");
+      if (job.skill && (sim.skills[job.skill] ?? 0) < job.skillRequired) fail("Skill too low");
       sim.career = { job_id: job.id, level: 0, shifts_done: 0 };
       bump(sim, "job");
       return { career: sim.career, stats: sim.stats };
@@ -573,13 +491,8 @@ export function createSandbox(
       const job = jobsById[str(args.p_job)] ?? fail("Unknown job");
       if (sim.career?.job_id !== job.id) fail("Apply for this job first");
       if (sim.location !== job.venue) fail("Go there first");
-      const average =
-        NEED_KEYS.reduce((sum, key) => sum + (sim.needs[key] ?? 0), 0) /
-        NEED_KEYS.length;
-      const mood = Math.min(
-        100,
-        Math.max(0, average + (sim.heating_on ? 0 : -15)),
-      );
+      const average = NEED_KEYS.reduce((sum, key) => sum + (sim.needs[key] ?? 0), 0) / NEED_KEYS.length;
+      const mood = Math.min(100, Math.max(0, average + (sim.heating_on ? 0 : -15)));
       sim.active_shift = {
         jobId: job.id,
         startedAt: new Date(now()).toISOString(),
@@ -600,20 +513,12 @@ export function createSandbox(
       const levelBoost = 1 + LEVEL_PAY_STEP * career.level;
       let wage: number;
       if (job.tips) wage = 300 + Math.floor(Math.random() * 1701);
-      else if (job.id === "delivery_rider")
-        wage = (1000 + Math.floor(Math.random() * 601)) * job.hours;
-      else
-        wage =
-          job.payPerHourPence *
-          job.hours *
-          wageMultiplier(num(shift.moodScore) || 50);
+      else if (job.id === "delivery_rider") wage = (1000 + Math.floor(Math.random() * 601)) * job.hours;
+      else wage = job.payPerHourPence * job.hours * wageMultiplier(num(shift.moodScore) || 50);
       wage = Math.round(wage * levelBoost);
       sim.skills = {
         ...sim.skills,
-        [job.xpSkill]: Math.min(
-          SKILL_MAX,
-          (sim.skills[job.xpSkill] ?? 0) + SHIFT_XP,
-        ),
+        [job.xpSkill]: Math.min(SKILL_MAX, (sim.skills[job.xpSkill] ?? 0) + SHIFT_XP),
       };
       sim.needs = {
         ...sim.needs,
@@ -643,25 +548,14 @@ export function createSandbox(
     travel: (db, args) => {
       const sim = mine(db);
       const mode = str(args.p_mode) as TravelMode;
-      if (!["tube", "bus", "walk", "ride"].includes(mode))
-        fail("Unknown way to travel");
+      if (!["tube", "bus", "walk", "ride"].includes(mode)) fail("Unknown way to travel");
       const destination = str(args.p_destination);
-      const toZone =
-        destination === "home"
-          ? homesById[sim.home_id]?.zone
-          : venuesById[destination]?.zone;
+      const toZone = destination === "home" ? homesById[sim.home_id]?.zone : venuesById[destination]?.zone;
       if (toZone === undefined || destination === "") fail("Unknown place");
-      if (sim.location === destination)
-        fail(
-          destination === "home"
-            ? "You are already home"
-            : "You are already there",
-        );
+      if (sim.location === destination) fail(destination === "home" ? "You are already home" : "You are already there");
       if (sim.active_shift) fail("Finish your shift first");
       const fromZone =
-        sim.location === "home"
-          ? (homesById[sim.home_id]?.zone ?? 4)
-          : (venuesById[sim.location]?.zone ?? 1);
+        sim.location === "home" ? (homesById[sim.home_id]?.zone ?? 4) : (venuesById[sim.location]?.zone ?? 1);
       const quote = travelQuote(fromZone, toZone, mode);
       if (quote.paysWith === "oyster") {
         if (sim.oyster_pence < quote.pence) fail("Top up your Oyster");
@@ -716,8 +610,7 @@ export function createSandbox(
           error: null,
         };
       } catch (error) {
-        if (error instanceof RpcError)
-          return { data: null, error: error.message };
+        if (error instanceof RpcError) return { data: null, error: error.message };
         throw error;
       }
     },
@@ -732,13 +625,9 @@ let browserSandbox: Sandbox | null = null;
 export function getSandbox(): Sandbox {
   if (!browserSandbox) {
     browserSandbox = createSandbox({
-      read: () =>
-        typeof window === "undefined"
-          ? null
-          : window.localStorage.getItem(SANDBOX_KEY),
+      read: () => (typeof window === "undefined" ? null : window.localStorage.getItem(SANDBOX_KEY)),
       write: (value) => {
-        if (typeof window !== "undefined")
-          window.localStorage.setItem(SANDBOX_KEY, value);
+        if (typeof window !== "undefined") window.localStorage.setItem(SANDBOX_KEY, value);
       },
     });
   }

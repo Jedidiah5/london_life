@@ -31,16 +31,7 @@ import type {
 } from "@/lib/sim/types";
 import { NEED_KEYS } from "@/lib/sim/types";
 
-const ANIMS: readonly Anim[] = [
-  "stand",
-  "walk",
-  "sit",
-  "sleep",
-  "eat",
-  "shower",
-  "dance",
-  "work",
-];
+const ANIMS: readonly Anim[] = ["stand", "walk", "sit", "sleep", "eat", "shower", "dance", "work"];
 
 function asAnim(value: unknown): Anim {
   return ANIMS.find((anim) => anim === value) ?? "stand";
@@ -151,18 +142,14 @@ export const DEFAULT_FINISHES: Finishes = {
 
 export const jobs: JobDef[] = jobsJson;
 
-export const jobsById: Record<string, JobDef> = Object.fromEntries(
-  jobs.map((job) => [job.id, job]),
-);
+export const jobsById: Record<string, JobDef> = Object.fromEntries(jobs.map((job) => [job.id, job]));
 
 export const homes: HomeDef[] = homesJson.map((home) => ({
   ...home,
   fixtures: home.fixtures.map((fixture) => asFixture(fixture)),
 }));
 
-export const homesById: Record<string, HomeDef> = Object.fromEntries(
-  homes.map((home) => [home.id, home]),
-);
+export const homesById: Record<string, HomeDef> = Object.fromEntries(homes.map((home) => [home.id, home]));
 
 export const venues: VenueDef[] = venuesJson.map((venue) => ({
   ...venue,
@@ -170,9 +157,7 @@ export const venues: VenueDef[] = venuesJson.map((venue) => ({
   fixtures: venue.fixtures.map((fixture) => asFixture(fixture)),
 }));
 
-export const venuesById: Record<string, VenueDef> = Object.fromEntries(
-  venues.map((venue) => [venue.id, venue]),
-);
+export const venuesById: Record<string, VenueDef> = Object.fromEntries(venues.map((venue) => [venue.id, venue]));
 
 export const goals: GoalDef[] = goalsJson;
 
@@ -201,8 +186,9 @@ export const events: EventDef[] = eventsJson.map((event) => ({
 
 export const nationalities: Nationality[] = nationalitiesJson;
 
-export const nationalitiesById: Record<string, Nationality> =
-  Object.fromEntries(nationalities.map((nation) => [nation.id, nation]));
+export const nationalitiesById: Record<string, Nationality> = Object.fromEntries(
+  nationalities.map((nation) => [nation.id, nation]),
+);
 
 export const locals: LocalDef[] = localsJson.map((local) => ({
   ...local,
@@ -252,11 +238,7 @@ function homeLayout(homeId: string): RoomLayout {
     : FALLBACK_LAYOUT;
 }
 
-export function roomLayout(
-  location: string,
-  homeId: string,
-  visitHomeId: string | null,
-): RoomLayout {
+export function roomLayout(location: string, homeId: string, visitHomeId: string | null): RoomLayout {
   if (visitHomeId) return homeLayout(visitHomeId);
   if (location === "home") return homeLayout(homeId);
   const venue = venuesById[location];

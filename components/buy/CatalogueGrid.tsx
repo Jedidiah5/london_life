@@ -44,9 +44,7 @@ export function ItemPicture({
   className?: string;
 }) {
   const tint = colour ?? item.colours[0] ?? "#ffffff";
-  const [src, setSrc] = useState<string | null>(() =>
-    cachedThumbnail(item.model, tint),
-  );
+  const [src, setSrc] = useState<string | null>(() => cachedThumbnail(item.model, tint));
   useEffect(() => {
     let live = true;
     const [w, d] = footprintOf(item);
@@ -61,12 +59,7 @@ export function ItemPicture({
   }, [item, tint]);
   return src ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt={item.name}
-      draggable={false}
-      className={`object-contain ${className}`}
-    />
+    <img src={src} alt={item.name} draggable={false} className={`object-contain ${className}`} />
   ) : (
     <div className={`animate-pulse rounded-2xl bg-[#e9edf2] ${className}`} />
   );
@@ -90,9 +83,7 @@ export function CatalogueGrid() {
             key={entry}
             type="button"
             className={`flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[12px] font-semibold ${
-              category === entry
-                ? "bg-[#1b2838] text-white"
-                : "bg-[#f1f3f6] text-[#1b2838]"
+              category === entry ? "bg-[#1b2838] text-white" : "bg-[#f1f3f6] text-[#1b2838]"
             }`}
             onClick={() => pick(entry)}
           >
@@ -114,11 +105,7 @@ export function CatalogueGrid() {
                 key={item.id}
                 type="button"
                 className={`relative flex flex-col rounded-2xl bg-[#f6f7f9] p-1.5 text-left transition ${
-                  active
-                    ? "ring-2 ring-[#3ccf6e]"
-                    : affordable
-                      ? "hover:bg-[#eef1f4]"
-                      : "cursor-not-allowed opacity-60"
+                  active ? "ring-2 ring-[#3ccf6e]" : affordable ? "hover:bg-[#eef1f4]" : "cursor-not-allowed opacity-60"
                 }`}
                 disabled={!affordable}
                 onClick={() => startPlacing(item.id)}
@@ -127,20 +114,11 @@ export function CatalogueGrid() {
                   {item.footprint === "wall" ? "wall" : `${w}×${d}`}
                 </span>
                 {item.tier > 1 ? (
-                  <span className="absolute right-2 top-1 text-[9px] text-[#e8a317]">
-                    {"★".repeat(item.tier - 1)}
-                  </span>
+                  <span className="absolute right-2 top-1 text-[9px] text-[#e8a317]">{"★".repeat(item.tier - 1)}</span>
                 ) : null}
-                <ItemPicture
-                  item={item}
-                  className="mx-auto mt-3 aspect-square w-full"
-                />
-                <span className="mt-1 truncate text-[11px] font-semibold text-[#1b2838]">
-                  {item.name}
-                </span>
-                <span
-                  className={`text-[12px] font-bold ${affordable ? "text-[#16a34a]" : "text-[#c8102e]"}`}
-                >
+                <ItemPicture item={item} className="mx-auto mt-3 aspect-square w-full" />
+                <span className="mt-1 truncate text-[11px] font-semibold text-[#1b2838]">{item.name}</span>
+                <span className={`text-[12px] font-bold ${affordable ? "text-[#16a34a]" : "text-[#c8102e]"}`}>
                   {formatPence(item.pricePence)}
                 </span>
                 {item.colours.length > 1 ? (

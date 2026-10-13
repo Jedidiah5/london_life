@@ -5,17 +5,13 @@ import { createSandbox } from "./sandbox";
 function fresh() {
   let saved: string | null = null;
   let clock = 1_000_000;
-  const sandbox = createSandbox(
-    { read: () => saved, write: (value) => (saved = value) },
-    () => clock,
-  );
+  const sandbox = createSandbox({ read: () => saved, write: (value) => (saved = value) }, () => clock);
   const ok = (fn: string, args: Record<string, unknown> = {}) => {
     const result = sandbox.rpc(fn, args);
     assert.equal(result.error, null, `${fn}: ${result.error}`);
     return result.data as Record<string, unknown>;
   };
-  const err = (fn: string, args: Record<string, unknown> = {}) =>
-    sandbox.rpc(fn, args).error;
+  const err = (fn: string, args: Record<string, unknown> = {}) => sandbox.rpc(fn, args).error;
   const advance = (seconds: number) => {
     clock += seconds * 1000;
   };
@@ -49,10 +45,7 @@ test("paint costs once; putting an owned finish back on is free", () => {
   assert.equal(back.balance_pence, 40_000 - 4500);
   const again = ok("buy_finish", { p_finish: "sage_green" });
   assert.equal(again.balance_pence, 40_000 - 4500);
-  assert.equal(
-    err("buy_finish", { p_finish: "gold_leaf" }),
-    "Unknown paint or floor",
-  );
+  assert.equal(err("buy_finish", { p_finish: "gold_leaf" }), "Unknown paint or floor");
 });
 
 test("eating at home charges pence, counts for the goal, and pays the reward once", () => {
@@ -69,26 +62,17 @@ test("venue actions only work at the venue; home actions only at home", () => {
   const { ok, err } = fresh();
   assert.equal(err("perform_action", { p_action: "pint" }), "Go there first");
   ok("travel", { p_destination: "pub", p_mode: "bus" });
-  assert.equal(
-    err("perform_action", { p_action: "beans_on_toast" }),
-    "Only at home",
-  );
+  assert.equal(err("perform_action", { p_action: "beans_on_toast" }), "Only at home");
   const drank = ok("perform_action", { p_action: "pint" });
   assert.equal(drank.balance_pence, 40_000 - 175 - 650);
-  assert.equal(
-    err("perform_action", { p_action: "free_money" }),
-    "Not on the menu",
-  );
+  assert.equal(err("perform_action", { p_action: "free_money" }), "Not on the menu");
 });
 
 test("jobs need applying, the right place, and a finished shift", () => {
   const { ok, err, advance } = fresh();
   assert.equal(err("apply_job", { p_job: "lawyer" }), "Skill too low");
   ok("apply_job", { p_job: "barista" });
-  assert.equal(
-    err("start_shift", { p_job: "cleaner" }),
-    "Apply for this job first",
-  );
+  assert.equal(err("start_shift", { p_job: "cleaner" }), "Apply for this job first");
   assert.equal(err("start_shift", { p_job: "barista" }), "Go there first");
   ok("travel", { p_destination: "shoreditch_coffee", p_mode: "tube" });
   ok("start_shift", { p_job: "barista" });
@@ -106,18 +90,11 @@ test("jobs need applying, the right place, and a finished shift", () => {
 test("the queue and the overdraft stop spam", () => {
   const { ok, err } = fresh();
   let accepted = 0;
-  while (accepted < 50 && !err("perform_action", { p_action: "side_project" }))
-    accepted += 1;
+  while (accepted < 50 && !err("perform_action", { p_action: "side_project" })) accepted += 1;
   assert.ok(accepted > 3 && accepted < 25, `accepted ${accepted}`);
-  assert.equal(
-    err("perform_action", { p_action: "side_project" }),
-    "Queue is full",
-  );
+  assert.equal(err("perform_action", { p_action: "side_project" }), "Queue is full");
   ok("buy_item", { p_item: "sofa_long", p_colour: "" });
-  assert.equal(
-    err("buy_item", { p_item: "sofa_long", p_colour: "" }),
-    "Overdraft is maxed out",
-  );
+  assert.equal(err("buy_item", { p_item: "sofa_long", p_colour: "" }), "Overdraft is maxed out");
 });
 
 test("checkpoints only accept need gains the server has seen paid for", () => {
