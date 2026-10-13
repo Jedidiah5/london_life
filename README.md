@@ -56,6 +56,24 @@ Sims are identified onchain only by `keccak256(sim id)`: no usernames, nothing p
 | Client trigger | `lib/chain/flush.ts` |
 | Database | `supabase/migrations/007_monad.sql` |
 
+### Monad House
+
+Monad House is a venue in East · Zone 1 where players can see the receipts. You get there like any other venue, and visiting it counts toward an optional bonus goal that comes after the 8 onboarding goals. It has three spots:
+
+- **Departures board**: the last 20 settled payments across all players, with first names only. It refreshes every 3 seconds, and each row links to its transaction on MonadVision.
+- **Receipt printer**: your last 10 settled payments.
+- **Audit desk**: compares `balancePence(simKey)` on the contract with your game balance minus the payments still pending. It shows **✓ matches**, or **settling…** while payments are on their way.
+
+Everything here only reads from the chain. Only the flush route writes.
+
+| Piece | Where |
+| --- | --- |
+| Venue, regulars, bonus goal | `data/venues.json`, `data/locals.json`, `data/goals.json`, `supabase/migrations/008_monad_house.sql` |
+| Departures and audit queries | `supabase/migrations/009_monad_spots.sql` |
+| Audit route | `app/api/chain/audit/route.ts` |
+| Audit comparison | `lib/chain/audit.ts` (tested in `audit.test.ts`) |
+| Spot panels | `components/venue/SpotPanel.tsx` |
+
 ### Deploying the ledger
 
 1. Put a fresh private key in `.env.local` as `MONAD_OPERATOR_KEY`, plus `SUPABASE_SERVICE_ROLE_KEY` from the Supabase dashboard.
