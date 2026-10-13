@@ -70,7 +70,7 @@ export function IsoCamera() {
       if (!drag.moved && Math.hypot(dx, dy) < TAP_SLOP) return;
       drag.moved = true;
       swallowClick = true;
-      useUi.getState().orbit(drag.yaw - dx / DRAG_PER_QUARTER, drag.pitch + dy / DRAG_PER_RADIAN);
+      useUi.getState().orbit(drag.yaw + dx / DRAG_PER_QUARTER, drag.pitch + dy / DRAG_PER_RADIAN);
     };
     const up = (event: PointerEvent) => {
       pointers.delete(event.pointerId);
