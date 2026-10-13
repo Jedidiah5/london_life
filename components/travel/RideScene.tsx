@@ -2,246 +2,215 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Group, Vector3 } from "three";
-import { Avatar } from "@/components/canvas/Avatar";
+import { Vector3 } from "three";
 import { events, venuesById } from "@/lib/content";
-import { seededLook } from "@/lib/sim/appearance";
-import { ARRIVAL_EVENT_CHANCE, HAIRS, SKINS, TOPS } from "@/lib/sim/constants";
+import { ARRIVAL_EVENT_CHANCE } from "@/lib/sim/constants";
 import { pickEvent } from "@/lib/sim/events";
-import type { Appearance, TravelMode } from "@/lib/sim/types";
+import type { TravelMode } from "@/lib/sim/types";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
+import { BUS_PLAYER_SEAT } from "./ride/Bus";
+import { LANE_Z, PAVEMENT_Z, Street } from "./ride/Street";
+import { hashOf } from "./ride/textures";
+import { TUBE_PLAYER_SEAT, TubeCarriage } from "./ride/Tube";
 
 type View = "chase" | "side" | "inside";
+type Vec = [number, number, number];
 
-const SLOGANS: Record<TravelMode, string[]> = {
-  tube: ["PLEASE MIND THE GAP", "STAND ON THE RIGHT", "SEE IT. SAY IT. SORTED."],
-  bus: ["KEEP CALM AND TAP IN", "NEXT STOP: SOMEWHERE", "MOVE DOWN INSIDE PLEASE"],
-  ride: ["THE KNOWLEDGE, SINCE 1865", "CASH OR CARD, GUV?", "I ONLY GO SOUTH OF THE RIVER ON TUESDAYS"],
-  walk: ["IT'S ONLY SPITTING", "QUICKER TO WALK, HONESTLY", "TWENTY MINUTES, TOPS"],
+const LINES = [
+  { name: "Northern", colour: "#1a1a1a", ink: "#1a1a1a" },
+  { name: "Victoria", colour: "#0098d4", ink: "#0077a8" },
+  { name: "Central", colour: "#e32017", ink: "#c41a12" },
+  { name: "Jubilee", colour: "#a0a5a9", ink: "#5f666b" },
+  { name: "Piccadilly", colour: "#003688", ink: "#003688" },
+  { name: "District", colour: "#00782a", ink: "#00782a" },
+  { name: "Bakerloo", colour: "#b36305", ink: "#9a5404" },
+];
+const ROUTES = ["73", "38", "12", "159", "25", "88", "149", "176", "24", "390"];
+const STOPS = [
+  "Oval Square",
+  "Elephant & Cattle",
+  "Bank Holiday",
+  "Angel Delight",
+  "Kings Crossing",
+  "Swiss Cottage Pie",
+];
+const SPEED: Record<TravelMode, number> = { tube: 0, bus: 5, ride: 7, walk: 1.1 };
+const VIEWS: Record<TravelMode, { view: View; label: string }[]> = {
+  tube: [
+    { view: "chase", label: "Carriage" },
+    { view: "side", label: "Your seat" },
+  ],
+  bus: [
+    { view: "chase", label: "Chase" },
+    { view: "side", label: "Side" },
+    { view: "inside", label: "Top deck" },
+  ],
+  ride: [
+    { view: "chase", label: "Chase" },
+    { view: "side", label: "Side" },
+    { view: "inside", label: "Back seat" },
+  ],
+  walk: [
+    { view: "chase", label: "Chase" },
+    { view: "side", label: "Side" },
+  ],
 };
 
-const PALETTE = { skins: SKINS, hairs: HAIRS, tops: TOPS };
+type Line = (typeof LINES)[number];
+const FALLBACK_LINE: Line = { name: "Northern", colour: "#1a1a1a", ink: "#1a1a1a" };
 
-function Passengers({ count, seated }: { count: number; seated: boolean }) {
-  const looks = useMemo(() => Array.from({ length: count }, (_, index) => seededLook(`rider-${index}`, PALETTE)), [count]);
-  return (
-    <group>
-      {looks.map((look, index) => {
-        const side = index % 2 === 0 ? -1 : 1;
-        const x = -3 + Math.floor(index / 2) * 1.6;
-        return (
-          <group key={index} position={[x, seated ? 0.22 : 0, side * 0.75]} rotation={[0, side > 0 ? Math.PI : 0, 0]}>
-            <Avatar look={look} anim={seated ? "sit" : "stand"} seed={index} />
-          </group>
-        );
-      })}
-    </group>
-  );
+export function lineFor(destination: string): Line {
+  return LINES[hashOf(destination) % LINES.length] ?? FALLBACK_LINE;
 }
 
-function TubeCarriage({ look }: { look: Appearance }) {
-  const lights = useRef<Group>(null);
-  useFrame((_, delta) => {
-    const group = lights.current;
-    if (!group) return;
-    for (const child of group.children) {
-      child.position.x -= delta * 18;
-      if (child.position.x < -12) child.position.x += 24;
+function routeFor(destination: string): string {
+  return ROUTES[hashOf(`bus-${destination}`) % ROUTES.length] ?? "73";
+}
+
+function announcements(mode: TravelMode, line: string, route: string, destination: string): string[] {
+  if (mode === "tube") {
+    return [
+      `This is a ${line} line train to ${destination}`,
+      "Please mind the gap between the train and the platform",
+      "Please move right down inside the carriage",
+      "See it. Say it. Sorted.",
+    ];
+  }
+  if (mode === "bus") {
+    return [
+      `${route} to ${destination}`,
+      `The next stop is ${destination}`,
+      "Please hold on, the bus is about to move",
+      "Move down inside please",
+    ];
+  }
+  if (mode === "ride")
+    return ["The Knowledge, since 1865", "Cash or card, guv?", "I don't go south of the river after six"];
+  return ["It's only spitting", "Quicker to walk, honestly", "Twenty minutes, tops"];
+}
+
+function shot(mode: TravelMode, view: View): { eye: Vec; look: Vec } {
+  if (mode === "tube") {
+    const x = TUBE_PLAYER_SEAT.x;
+    return view === "side"
+      ? { eye: [x + 0.2, 0.82, 0.3], look: [x, 0.55, -0.8] }
+      : { eye: [5.5, 0.95, 0.05], look: [-6, 0.55, 0] };
+  }
+  if (mode === "bus") {
+    if (view === "side") return { eye: [0.3, 1.8, 8.5], look: [0.3, 1.35, LANE_Z] };
+    if (view === "inside") {
+      return { eye: [BUS_PLAYER_SEAT[0] - 0.55, 2.02, LANE_Z + 0.1], look: [10, 1.45, LANE_Z + 0.2] };
     }
-  });
-  return (
-    <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[10, 2.6]} />
-        <meshStandardMaterial color="#5a5f66" />
-      </mesh>
-      <mesh position={[0, 1.6, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[10, 2.6]} />
-        <meshStandardMaterial color="#e8e6e0" />
-      </mesh>
-      {[-1, 1].map((side) => (
-        <group key={side}>
-          <mesh position={[0, 0.8, side * 1.3]}>
-            <boxGeometry args={[10, 1.6, 0.05]} />
-            <meshStandardMaterial color="#d8d4ca" />
-          </mesh>
-          <mesh position={[0, 0.95, side * 1.27]}>
-            <boxGeometry args={[9, 0.5, 0.02]} />
-            <meshStandardMaterial color="#0e1013" emissive="#0e1013" />
-          </mesh>
-          <mesh position={[0, 0.16, side * 1.0]}>
-            <boxGeometry args={[9.4, 0.32, 0.5]} />
-            <meshStandardMaterial color="#2a4a8c" />
-          </mesh>
-          <mesh position={[0, 0.42, side * 1.18]}>
-            <boxGeometry args={[9.4, 0.5, 0.12]} />
-            <meshStandardMaterial color="#b23a48" />
-          </mesh>
-        </group>
-      ))}
-      {[-3.5, -1, 1.5, 4].map((x) => (
-        <mesh key={x} position={[x, 0.8, 0]}>
-          <cylinderGeometry args={[0.025, 0.025, 1.6, 8]} />
-          <meshStandardMaterial color="#e8a317" metalness={0.6} roughness={0.3} />
-        </mesh>
-      ))}
-      <group ref={lights}>
-        {Array.from({ length: 8 }, (_, index) => (
-          <mesh key={index} position={[-12 + index * 3, 0.95, -1.32]}>
-            <boxGeometry args={[0.6, 0.06, 0.01]} />
-            <meshBasicMaterial color="#ffd27a" />
-          </mesh>
-        ))}
-      </group>
-      <Passengers count={7} seated />
-      <group position={[3.2, 0.22, -0.75]}>
-        <Avatar look={look} anim="sit" />
-      </group>
-    </group>
-  );
-}
-
-function Street({ mode, look }: { mode: TravelMode; look: Appearance }) {
-  const scroll = useRef<Group>(null);
-  const buildings = useMemo(
-    () =>
-      Array.from({ length: 16 }, (_, index) => ({
-        x: -24 + index * 3.2,
-        h: 2 + ((index * 37) % 5),
-        colour: ["#b5523b", "#c9b49a", "#8a7b6a", "#d9cfc0", "#6b4a32", "#5c6b7a"][index % 6] ?? "#c9b49a",
-      })),
-    [],
-  );
-  const speed = mode === "walk" ? 2.2 : mode === "ride" ? 10 : 7;
-  useFrame((_, delta) => {
-    const group = scroll.current;
-    if (!group) return;
-    for (const child of group.children) {
-      child.position.x -= delta * speed;
-      if (child.position.x < -26) child.position.x += 51.2;
-    }
-  });
-  return (
-    <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
-        <planeGeometry args={[60, 30]} />
-        <meshStandardMaterial color="#4a4d52" />
-      </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, -3.2]}>
-        <planeGeometry args={[60, 2]} />
-        <meshStandardMaterial color="#a9a69f" />
-      </mesh>
-      <group ref={scroll}>
-        {buildings.map((building, index) => (
-          <group key={index} position={[building.x, 0, -5.5]}>
-            <mesh position={[0, building.h / 2, 0]}>
-              <boxGeometry args={[2.8, building.h, 2]} />
-              <meshStandardMaterial color={building.colour} />
-            </mesh>
-            {Array.from({ length: Math.floor(building.h) }, (_, row) => (
-              <mesh key={row} position={[0, 0.8 + row, 1.01]}>
-                <planeGeometry args={[2, 0.4]} />
-                <meshStandardMaterial color="#b8d4ea" emissive="#6f8fa8" emissiveIntensity={0.3} />
-              </mesh>
-            ))}
-          </group>
-        ))}
-        {Array.from({ length: 12 }, (_, index) => (
-          <mesh key={`dash-${index}`} position={[-24 + index * 4.27, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[1.4, 0.12]} />
-            <meshBasicMaterial color="#f4f1ea" />
-          </mesh>
-        ))}
-      </group>
-      {mode === "bus" ? <Bus look={look} /> : null}
-      {mode === "ride" ? <Cab look={look} /> : null}
-      {mode === "walk" ? (
-        <group position={[0, 0, -3]} rotation={[0, Math.PI / 2, 0]}>
-          <Avatar look={look} anim="walk" />
-        </group>
-      ) : null}
-    </group>
-  );
-}
-
-function Bus({ look }: { look: Appearance }) {
-  return (
-    <group position={[0, 0, 0.6]}>
-      <mesh position={[0, 1.25, 0]}>
-        <boxGeometry args={[4.6, 2.2, 1.3]} />
-        <meshStandardMaterial color="#c8102e" />
-      </mesh>
-      {[0.75, 1.75].map((y) => (
-        <mesh key={y} position={[0, y, -0.66]}>
-          <boxGeometry args={[4.2, 0.45, 0.02]} />
-          <meshStandardMaterial color="#1a2430" emissive="#1a2430" />
-        </mesh>
-      ))}
-      <mesh position={[0, 1.25, -0.67]}>
-        <boxGeometry args={[4.4, 0.18, 0.02]} />
-        <meshStandardMaterial color="#f4f1ea" />
-      </mesh>
-      {[-1.5, 1.5].map((x) => (
-        <mesh key={x} position={[x, 0.2, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.28, 0.28, 1.36, 16]} />
-          <meshStandardMaterial color="#1a1a1a" />
-        </mesh>
-      ))}
-      <group position={[0.8, 1.42, -0.2]} rotation={[0, 0, 0]} scale={0.9}>
-        <Avatar look={look} anim="sit" />
-      </group>
-    </group>
-  );
-}
-
-function Cab({ look }: { look: Appearance }) {
-  return (
-    <group position={[0, 0, 0.6]}>
-      <mesh position={[0, 0.55, 0]}>
-        <boxGeometry args={[2.4, 0.7, 1.1]} />
-        <meshStandardMaterial color="#141414" metalness={0.3} roughness={0.4} />
-      </mesh>
-      <mesh position={[0, 1.05, 0]}>
-        <boxGeometry args={[1.6, 0.5, 1.0]} />
-        <meshStandardMaterial color="#141414" metalness={0.3} roughness={0.4} />
-      </mesh>
-      <mesh position={[0, 1.05, -0.51]}>
-        <boxGeometry args={[1.4, 0.35, 0.01]} />
-        <meshStandardMaterial color="#1a2430" emissive="#1a2430" />
-      </mesh>
-      <mesh position={[0.2, 1.34, 0]}>
-        <boxGeometry args={[0.35, 0.1, 0.2]} />
-        <meshStandardMaterial color="#e8a317" emissive="#e8a317" emissiveIntensity={0.6} />
-      </mesh>
-      {[-0.8, 0.8].map((x) => (
-        <mesh key={x} position={[x, 0.2, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.22, 0.22, 1.14, 16]} />
-          <meshStandardMaterial color="#2a2a2a" />
-        </mesh>
-      ))}
-      <group position={[-0.1, 0.6, 0]} scale={0.8}>
-        <Avatar look={look} anim="sit" />
-      </group>
-    </group>
-  );
+    return { eye: [9.5, 4.0, 6.0], look: [0, 1.3, LANE_Z] };
+  }
+  if (mode === "ride") {
+    if (view === "side") return { eye: [0, 1.0, 5.2], look: [0, 0.6, LANE_Z] };
+    if (view === "inside") return { eye: [-0.95, 0.98, LANE_Z + 0.12], look: [6, 0.82, LANE_Z] };
+    return { eye: [5.2, 2.4, 4.2], look: [0, 0.6, LANE_Z] };
+  }
+  if (view === "side") return { eye: [0, 1.2, 2.6], look: [0, 0.75, PAVEMENT_Z] };
+  return { eye: [4.5, 2.2, 1.6], look: [0, 0.75, PAVEMENT_Z] };
 }
 
 function Rig({ view, mode }: { view: View; mode: TravelMode }) {
-  const { camera } = useThree();
-  const target = useMemo(() => new Vector3(), []);
-  useFrame(() => {
-    if (mode === "tube") {
-      camera.position.lerp(target.set(view === "side" ? 0 : 4.6, 1.15, view === "side" ? 0.9 : 0.6), 0.08);
-      camera.lookAt(view === "side" ? 0 : -3, 0.7, view === "side" ? -1 : 0);
-      return;
+  const camera = useThree((state) => state.camera);
+  const eye = useMemo(() => new Vector3(), []);
+  const focus = useMemo(() => new Vector3(), []);
+  const looking = useRef<Vector3 | null>(null);
+  useFrame((_, delta) => {
+    const target = shot(mode, view);
+    eye.set(...target.eye);
+    focus.set(...target.look);
+    if (!looking.current) {
+      camera.position.copy(eye);
+      looking.current = focus.clone();
     }
-    if (view === "side") camera.position.lerp(target.set(0, 2.2, 9), 0.08);
-    else if (view === "inside") camera.position.lerp(target.set(1.2, mode === "bus" ? 1.9 : 1.2, 0.7), 0.08);
-    else camera.position.lerp(target.set(6.5, 3.6, 6), 0.08);
-    camera.lookAt(view === "inside" ? -6 : 0, 1, view === "inside" ? 0.5 : 0);
+    const ease = 1 - Math.exp(-Math.min(delta, 0.1) * 5);
+    camera.position.lerp(eye, ease);
+    looking.current.lerp(focus, ease);
+    camera.lookAt(looking.current);
   });
   return null;
+}
+
+function Lights({ mode }: { mode: TravelMode }) {
+  if (mode === "tube") {
+    return (
+      <>
+        <color attach="background" args={["#050607"]} />
+        <ambientLight intensity={0.35} />
+        <hemisphereLight args={["#fffaf0", "#3a3d42", 1.1]} />
+        {[-4, 0, 4].map((x) => (
+          <pointLight key={x} position={[x, 1.25, 0]} intensity={1.6} distance={5} decay={1.5} color="#fff6e6" />
+        ))}
+      </>
+    );
+  }
+  return (
+    <>
+      <color attach="background" args={["#c5d0d9"]} />
+      <fog attach="fog" args={["#c5d0d9", 22, 50]} />
+      <hemisphereLight args={["#e6edf3", "#5a5650", 0.95]} />
+      <ambientLight intensity={0.2} />
+      <directionalLight
+        position={[8, 14, 10]}
+        intensity={1.5}
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-left={-20}
+        shadow-camera-right={20}
+        shadow-camera-top={14}
+        shadow-camera-bottom={-14}
+        shadow-camera-near={1}
+        shadow-camera-far={50}
+        shadow-bias={-0.0005}
+      />
+    </>
+  );
+}
+
+function Header({ mode, name, emoji }: { mode: TravelMode; name: string; emoji: string }) {
+  if (mode === "tube") {
+    const line = lineFor(name);
+    return (
+      <div className="overflow-hidden rounded-xl bg-white text-center shadow-xl">
+        <div className="h-2" style={{ background: line.colour }} />
+        <div className="px-5 py-2">
+          <p className="text-[10px] font-extrabold tracking-[0.2em]" style={{ color: line.ink }}>
+            {line.name.toUpperCase()} LINE
+          </p>
+          <p className="text-lg font-extrabold text-[#1b2838]">towards {name}</p>
+        </div>
+      </div>
+    );
+  }
+  if (mode === "bus") {
+    return (
+      <div className="flex items-center gap-3 rounded-xl bg-[#0a0a0a] px-4 py-2 font-mono text-[#ffb21a] shadow-xl ring-4 ring-[#cf1820]">
+        <span className="text-3xl font-black leading-none">{routeFor(name)}</span>
+        <span className="text-lg font-bold leading-tight">{name}</span>
+      </div>
+    );
+  }
+  if (mode === "ride") {
+    return (
+      <div className="flex items-center gap-3 rounded-xl bg-[#111214] px-4 py-2 text-white shadow-xl">
+        <span className="rounded bg-[#ffcf33] px-1.5 py-0.5 text-[11px] font-black text-[#111]">TAXI</span>
+        <span className="text-lg font-extrabold">
+          {emoji} {name}
+        </span>
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-xl bg-white px-4 py-2 text-center text-[#1b2838] shadow-xl">
+      <p className="text-[10px] font-bold tracking-[0.2em] opacity-60">WALKING TO</p>
+      <p className="text-lg font-extrabold">
+        {emoji} {name}
+      </p>
+    </div>
+  );
 }
 
 export function RideScene() {
@@ -250,15 +219,24 @@ export function RideScene() {
   const [view, setView] = useState<View>("chase");
   const [elapsed, setElapsed] = useState(0);
   const duration = ride ? Math.min(12, Math.max(4, ride.minutes)) : 0;
-  const slogan = useMemo(() => {
+  const venue = ride ? venuesById[ride.destination] : undefined;
+  const name = venue?.name ?? "Home";
+  const line = lineFor(name);
+  const route = routeFor(name);
+  const stations = useMemo(() => {
+    const start = hashOf(name) % STOPS.length;
+    return [...Array.from({ length: 5 }, (_, index) => STOPS[(start + index) % STOPS.length] ?? ""), name];
+  }, [name]);
+  const announcement = useMemo(() => {
     if (!ride) return "";
-    const options = SLOGANS[ride.mode];
+    const options = announcements(ride.mode, line.name, route, name);
     return options[Math.floor(Math.random() * options.length)] ?? "";
-  }, [ride]);
+  }, [ride, line.name, route, name]);
 
   useEffect(() => {
     if (!ride) return;
     setElapsed(0);
+    setView("chase");
     const started = performance.now();
     const id = window.setInterval(() => {
       const seconds = (performance.now() - started) / 1000;
@@ -269,46 +247,72 @@ export function RideScene() {
   }, [ride, duration]);
 
   if (!ride) return null;
-  const venue = venuesById[ride.destination];
-  const modeName = ride.mode === "tube" ? "Tube" : ride.mode === "bus" ? "Bus" : ride.mode === "ride" ? "Black cab" : "Walking";
+  const progress = Math.min(1, elapsed / duration);
+  const remaining = Math.max(1, Math.ceil(ride.minutes * (1 - progress)));
+  const accent =
+    ride.mode === "tube" ? line.colour : ride.mode === "bus" ? "#cf1820" : ride.mode === "ride" ? "#111214" : "#3ccf6e";
+  const nextLabel = ride.mode === "tube" ? "Next station" : ride.mode === "bus" ? "Next stop" : "Heading to";
 
   return (
     <div className="absolute inset-0 z-20 bg-[#0b1520]">
-      <Canvas camera={{ position: [6, 3, 6], fov: 50 }} dpr={[1, 1.6]}>
-        <color attach="background" args={[ride.mode === "tube" ? "#0b0d10" : "#9aafc2"]} />
-        <ambientLight intensity={0.8} />
-        <directionalLight position={[4, 8, 6]} intensity={1.1} />
-        {ride.mode === "tube" ? <TubeCarriage look={look} /> : <Street mode={ride.mode} look={look} />}
+      <Canvas shadows={ride.mode !== "tube"} camera={{ position: [6, 3, 6], fov: 50, near: 0.05 }} dpr={[1, 1.6]}>
+        <Lights mode={ride.mode} />
+        {ride.mode === "tube" ? (
+          <TubeCarriage look={look} line={line} destination={name} stations={stations} />
+        ) : (
+          <Street mode={ride.mode} look={look} speed={SPEED[ride.mode]} route={route} destination={name} />
+        )}
         <Rig view={view} mode={ride.mode} />
       </Canvas>
       <div className="pointer-events-none absolute inset-x-0 top-16 flex justify-center">
-        <div className="rounded-2xl bg-[#c8102e] px-4 py-2 text-center text-white shadow-xl">
-          <p className="text-[10px] font-bold tracking-[0.2em] opacity-80">{modeName.toUpperCase()} TO</p>
-          <p className="text-lg font-extrabold">
-            {venue?.emoji} {venue?.name}
-          </p>
-        </div>
+        <Header mode={ride.mode} name={name} emoji={venue?.emoji ?? "🏠"} />
       </div>
-      <div className="pointer-events-none absolute inset-x-0 top-36 flex justify-center">
-        <p className="rounded-full bg-white/90 px-3 py-1 text-[11px] font-extrabold tracking-wider text-[#1b2838]">“{slogan}”</p>
+      <div className="pointer-events-none absolute inset-x-0 top-[8.5rem] flex justify-center px-6">
+        <p className="rounded-full bg-white/90 px-3 py-1 text-center text-[11px] font-bold text-[#1b2838] shadow">
+          🔊 {announcement}
+        </p>
       </div>
       <div className="absolute inset-x-3 bottom-4 mx-auto max-w-md rounded-3xl bg-white/95 p-3 text-[#1b2838] shadow-2xl">
-        <div className="h-2 overflow-hidden rounded-full bg-[#ece7de]">
-          <div className="h-full rounded-full bg-[#3ccf6e] transition-all" style={{ width: `${Math.min(100, (elapsed / duration) * 100)}%` }} />
+        <div className="flex items-baseline justify-between text-[11px]">
+          <span className="font-semibold text-[#5c6b7a]">
+            {nextLabel}: <span className="font-extrabold text-[#1b2838]">{name}</span>
+          </span>
+          <span className="font-bold text-[#5c6b7a]">{remaining} min</span>
+        </div>
+        <div className="relative mt-2 h-3">
+          <div className="absolute inset-x-1 top-[3px] h-1.5 rounded-full bg-[#ece7de]" />
+          <div
+            className="absolute left-1 top-[3px] h-1.5 rounded-full transition-all"
+            style={{ width: `calc(${progress * 100}% - 0.5rem)`, background: accent }}
+          />
+          {[0, 1 / 3, 2 / 3, 1].map((stop) => (
+            <span
+              key={stop}
+              className="absolute top-0 h-3 w-3 -translate-x-1/2 rounded-full border-2 bg-white"
+              style={{
+                left: `calc(0.25rem + ${stop} * (100% - 0.5rem))`,
+                borderColor: progress >= stop ? accent : "#d5cfc4",
+              }}
+            />
+          ))}
         </div>
         <div className="mt-2 flex items-center gap-1.5">
-          {(ride.mode === "tube" ? (["chase", "side"] as const) : (["chase", "side", "inside"] as const)).map((entry) => (
+          {VIEWS[ride.mode].map((entry) => (
             <button
-              key={entry}
+              key={entry.view}
               type="button"
-              onClick={() => setView(entry)}
-              className={`rounded-full px-3 py-1.5 text-[12px] font-bold ${view === entry ? "bg-[#1b2838] text-white" : "bg-[#f1ede6]"}`}
+              onClick={() => setView(entry.view)}
+              className={`rounded-full px-3 py-1.5 text-[12px] font-bold ${view === entry.view ? "bg-[#1b2838] text-white" : "bg-[#f1ede6]"}`}
             >
-              {entry === "chase" ? "Chase" : entry === "side" ? "Side" : "Inside"}
+              {entry.label}
             </button>
           ))}
           <div className="flex-1" />
-          <button type="button" onClick={arrive} className="rounded-full bg-[#c8102e] px-4 py-1.5 text-[12px] font-extrabold text-white">
+          <button
+            type="button"
+            onClick={arrive}
+            className="rounded-full bg-[#c8102e] px-4 py-1.5 text-[12px] font-extrabold text-white"
+          >
             Skip ⏭
           </button>
         </div>
@@ -327,7 +331,10 @@ function arrive(): void {
   if (ride.mode === "walk") {
     game.addMoodlet({ id: "rain", label: "Got rained on", emoji: "🌧️", value: -10 }, 90);
   }
-  if (ride.mode === "tube" && Math.random() < 0.3) ui.pushToast("Minor delays on the Jubilee line. Classic.");
+  if (ride.mode === "tube" && Math.random() < 0.3) {
+    const name = venuesById[ride.destination]?.name ?? "Home";
+    ui.pushToast(`Minor delays on the ${lineFor(name).name} line. Classic.`);
+  }
   if (ride.destination === "home") {
     ui.pushToast("Home sweet box room", "good");
     return;
