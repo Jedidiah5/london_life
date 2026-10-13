@@ -76,7 +76,7 @@ export function Cab({ look, speed, colour = BLACK }: { look?: Appearance; speed:
               <Avatar look={driver} anim="sit" seed={2} />
             </group>
             <group position={[-0.72, 0.22, -0.22]} rotation={[0, Math.PI / 2, 0]}>
-              <Avatar look={look} anim="sit" />
+              <Avatar look={look} anim="sit" crown />
             </group>
           </>
         ) : null}

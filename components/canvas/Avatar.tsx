@@ -196,6 +196,58 @@ function Mat({ color }: { color: string }) {
 
 const HALF_SPHERE = [24, 12, 0, Math.PI * 2, 0, Math.PI / 2] as const;
 
+const CROWN_POINTS = 5;
+const CROWN_GOLD = "#f2b705";
+const CROWN_GEMS = ["#c8102e", "#1f4b99", "#2f6b4f"];
+
+/** Floats above the player's own Sim so you can always spot yourself. Same head-bone space as HeadExtras. */
+function Crown({ look }: { look: Appearance }) {
+  const ref = useRef<Group>(null);
+  const tallHead = look.hairStyle === "afro" || look.headwear === "turban" || look.headwear === "headwrap";
+  const base = tallHead ? 0.44 : 0.37;
+  useFrame(({ clock }) => {
+    const crown = ref.current;
+    if (!crown) return;
+    const t = clock.elapsedTime;
+    crown.position.y = base + Math.sin(t * 2.2) * 0.02;
+    crown.rotation.y = t * 0.8;
+  });
+  return (
+    <group ref={ref} position={[0, base, -0.01]} scale={1.6}>
+      <mesh>
+        <cylinderGeometry args={[0.085, 0.075, 0.05, 20, 1, true]} />
+        <meshStandardMaterial color={CROWN_GOLD} metalness={0.6} roughness={0.3} emissive={CROWN_GOLD} emissiveIntensity={0.25} side={DoubleSide} />
+      </mesh>
+      {Array.from({ length: CROWN_POINTS }, (_, i) => {
+        const angle = (i / CROWN_POINTS) * Math.PI * 2;
+        const x = Math.sin(angle) * 0.08;
+        const z = Math.cos(angle) * 0.08;
+        return (
+          <group key={i} position={[x, 0.05, z]}>
+            <mesh>
+              <coneGeometry args={[0.024, 0.055, 4]} />
+              <meshStandardMaterial color={CROWN_GOLD} metalness={0.6} roughness={0.3} emissive={CROWN_GOLD} emissiveIntensity={0.25} />
+            </mesh>
+            <mesh position={[0, 0.034, 0]}>
+              <sphereGeometry args={[0.011, 8, 6]} />
+              <meshStandardMaterial color="#fff6d5" emissive="#fff6d5" emissiveIntensity={0.4} />
+            </mesh>
+          </group>
+        );
+      })}
+      {CROWN_GEMS.map((gem, i) => {
+        const angle = (i / CROWN_GEMS.length) * Math.PI * 2 + Math.PI / CROWN_POINTS;
+        return (
+          <mesh key={gem} position={[Math.sin(angle) * 0.083, 0, Math.cos(angle) * 0.083]} rotation={[0, angle, 0]}>
+            <boxGeometry args={[0.022, 0.022, 0.01]} />
+            <meshStandardMaterial color={gem} emissive={gem} emissiveIntensity={0.35} roughness={0.2} />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}
+
 /** Modelled in metres around the head bone, which sits at the base of the skull. */
 function HeadExtras({ look }: { look: Appearance }) {
   const hair = look.hairColor;
@@ -332,7 +384,7 @@ function plant(shinEnd: Object3D | undefined, foot: Object3D | undefined) {
   foot.position.copy(foot.parent.worldToLocal(spot));
 }
 
-function Person({ look, anim, seed }: { look: Appearance; anim: Anim; seed: number }) {
+function Person({ look, anim, seed, crown }: { look: Appearance; anim: Anim; seed: number; crown: boolean }) {
   const bodyId = OUTFITS[look.figure][look.topStyle];
   const headId: ModelId = look.figure === "masc" && look.beard ? "m_adventurer" : HEADS[look.figure][look.hairStyle];
   const body = useGLTF(modelUrl(bodyId));
@@ -412,6 +464,7 @@ function Person({ look, anim, seed }: { look: Appearance; anim: Anim; seed: numb
         ? createPortal(
             <group scale={0.01}>
               <HeadExtras look={look} />
+              {crown ? <Crown look={look} /> : null}
             </group>,
             headBone,
           )
@@ -420,10 +473,20 @@ function Person({ look, anim, seed }: { look: Appearance; anim: Anim; seed: numb
   );
 }
 
-export function Avatar({ look, anim, seed = 0 }: { look: Appearance; anim: Anim; seed?: number }) {
+export function Avatar({
+  look,
+  anim,
+  seed = 0,
+  crown = false,
+}: {
+  look: Appearance;
+  anim: Anim;
+  seed?: number;
+  crown?: boolean;
+}) {
   return (
     <Suspense fallback={null}>
-      <Person look={look} anim={anim} seed={seed} />
+      <Person look={look} anim={anim} seed={seed} crown={crown} />
     </Suspense>
   );
 }

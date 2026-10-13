@@ -359,7 +359,7 @@ export function Street({
       ) : null}
       {mode === "walk" ? (
         <group position={[0, 0.08, PAVEMENT_Z]} rotation={[0, Math.PI / 2, 0]}>
-          <Avatar look={look} anim="walk" />
+          <Avatar look={look} anim="walk" crown />
         </group>
       ) : null}
     </group>

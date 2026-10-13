@@ -64,7 +64,6 @@ export function RoomScene() {
   const tile = useGame((state) => state.tile);
   const path = useGame((state) => state.path);
   const appearance = useGame((state) => state.appearance);
-  const name = useGame((state) => state.name);
   const action = useGame((state) => state.action);
   const goalsDone = useGame((state) => state.goalsDone);
   const hour = useLondonTime().hour;
@@ -105,8 +104,6 @@ export function RoomScene() {
   const goal = nextGoal(goals, goalsDone);
   const highlight = atHome && !visit ? goal?.highlight : undefined;
   const seat = seatFor(action, layout, inventory);
-  const flag = appearance.origin;
-
   const tap = (target: string) => {
     if (visit) return;
     if (useUi.getState().nav === "buy") return;
@@ -252,8 +249,7 @@ export function RoomScene() {
         y={visit ? 2 : tile.y}
         width={layout.width}
         height={layout.height}
-        name={visit ? visit.name : name}
-        flag={visit ? "" : flag}
+        hostName={visit ? visit.name : null}
         action={visit ? null : action}
         moving={!visit && path.length > 0}
       />
@@ -343,8 +339,7 @@ function SelfTag({
   y,
   width,
   height,
-  name,
-  flag,
+  hostName,
   action,
   moving,
 }: {
@@ -352,8 +347,8 @@ function SelfTag({
   y: number;
   width: number;
   height: number;
-  name: string;
-  flag: string;
+  /** Only set when visiting: the figure is the host, not you, so they get a name pill. */
+  hostName: string | null;
   action: SimAction | null;
   moving: boolean;
 }) {
@@ -374,10 +369,12 @@ function SelfTag({
             <span className="absolute -bottom-1 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 bg-white" />
           </div>
         ) : null}
-        <div className="flex items-center gap-1 whitespace-nowrap rounded-full bg-[#1b2838]/85 px-2 py-0.5 text-[10px] font-semibold text-white">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#3ccf6e]" />
-          {flag ? <Flag origin={flag} /> : null} {name}
-        </div>
+        {hostName ? (
+          <div className="flex items-center gap-1 whitespace-nowrap rounded-full bg-[#1b2838]/85 px-2 py-0.5 text-[10px] font-semibold text-white">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#3ccf6e]" />
+            {hostName}
+          </div>
+        ) : null}
       </div>
     </ScreenLabel>
   );

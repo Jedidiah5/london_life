@@ -306,7 +306,7 @@ export function TubeCarriage({
           <Avatar look={standing[1] ?? look} anim="stand" seed={34} />
         </group>
         <group position={[TUBE_PLAYER_SEAT.x, 0, TUBE_PLAYER_SEAT.side * 0.67]} rotation={[0, 0, 0]}>
-          <Avatar look={look} anim="sit" />
+          <Avatar look={look} anim="sit" crown />
         </group>
       </group>
     </group>

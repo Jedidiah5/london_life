@@ -298,7 +298,7 @@ export function Bus({
           position={[BUS_PLAYER_SEAT[0] + 0.03, BUS_PLAYER_SEAT[1], BUS_PLAYER_SEAT[2]]}
           rotation={[0, Math.PI / 2, 0]}
         >
-          <Avatar look={look} anim="sit" />
+          <Avatar look={look} anim="sit" crown />
         </group>
       </group>
 
