@@ -126,10 +126,10 @@ export function Jobs() {
             <span className="text-xl">{job.emoji}</span>
             <div className="min-w-0 flex-1">
               <div className="text-[12px] font-bold">{job.name}</div>
-              <div className="truncate text-[10px] text-[#5c6b7a]">
+              <div className="text-[10px] leading-tight text-[#5c6b7a]">
                 Starts as {titleFor(job, 0)} · top rank {titleFor(job, job.ladder.length - 1)}
               </div>
-              <div className="truncate text-[10px] text-[#5c6b7a]">
+              <div className="text-[10px] leading-tight text-[#5c6b7a]">
                 {venuesById[job.venue]?.name} · {job.tips ? "tips" : `${formatPence(job.payPerHourPence)}/hr`} ·{" "}
                 {job.hours}h
               </div>

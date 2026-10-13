@@ -39,16 +39,14 @@ export function PhoneOverlay() {
 
   return (
     <div className="pointer-events-auto relative mx-auto w-full max-w-[320px]">
-      <div className="mb-2 flex justify-end">
-        <button
-          type="button"
-          aria-label="Close phone"
-          className="flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-[12px] font-bold text-[#1b2838] shadow-lg ring-1 ring-black/10"
-          onClick={() => useUi.getState().setNav("home")}
-        >
-          ✕ Close
-        </button>
-      </div>
+      <button
+        type="button"
+        aria-label="Close phone"
+        className="absolute -top-10 right-0 z-10 flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-[12px] font-bold text-[#1b2838] shadow-lg ring-1 ring-black/10"
+        onClick={() => useUi.getState().setNav("home")}
+      >
+        ✕ Close
+      </button>
       <div className="rounded-[42px] bg-[#111] p-2.5 shadow-2xl">
         <div className="relative h-[min(560px,62vh)] overflow-hidden rounded-[34px] bg-gradient-to-br from-[#2b3a67] via-[#7a3e6b] to-[#e07b39] text-white">
           <div className="flex items-center justify-between px-5 pt-2 text-[11px] font-semibold">

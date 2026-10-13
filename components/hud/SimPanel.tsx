@@ -128,7 +128,7 @@ function NeedsTab() {
               <div className="flex items-center gap-2 rounded-2xl bg-[#f6f7f9] p-2">
                 <span className="text-xl">🥶</span>
                 <div>
-                  <div className="text-[11px] font-bold">Heating's off</div>
+                  <div className="text-[11px] font-bold">Heating&apos;s off</div>
                   <div className="text-[10px] font-bold text-[#c8102e]">-15 mood</div>
                 </div>
               </div>
