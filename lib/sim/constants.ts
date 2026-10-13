@@ -1,12 +1,13 @@
 import type { NeedKey } from "./types";
 
+/** One game hour passes per real minute, so these are also points lost per real minute. */
 export const NEED_DECAY_PER_HOUR: Record<NeedKey, number> = {
-  hunger: 2,
-  energy: 1.5,
-  hygiene: 1.25,
-  bladder: 2.5,
-  fun: 1.5,
-  social: 1,
+  hunger: 1,
+  energy: 0.75,
+  hygiene: 0.625,
+  bladder: 1.25,
+  fun: 0.75,
+  social: 0.5,
 };
 /** Share of normal decay while asleep. Energy never drains in bed. */
 export const SLEEP_DECAY_SHARE = 0.5;
