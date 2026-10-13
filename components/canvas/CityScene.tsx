@@ -1,10 +1,10 @@
 "use client";
 
-import { Html } from "@react-three/drei";
 import { CITY_DRESSING, venues } from "@/lib/content";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
 import { FittedModel } from "./fitted";
+import { ScreenLabel } from "./ScreenLabel";
 
 const ROADS_X = [-14, -8.5, -3, 3.5, 9.5, 14.5];
 const ROADS_Z = [-10, -4.5, 5.5, 9.5];
@@ -42,17 +42,25 @@ export function CityScene() {
         [9, 0.6, 0.2],
         [18, -0.6, -0.1],
       ].map(([x, z, r], index) => (
-        <mesh key={index} rotation={[-Math.PI / 2, 0, r ?? 0]} position={[x ?? 0, 0, (z ?? 0) - 1]} raycast={() => null}>
+        <mesh
+          key={index}
+          rotation={[-Math.PI / 2, 0, r ?? 0]}
+          position={[x ?? 0, 0, (z ?? 0) - 1]}
+          raycast={() => null}
+        >
           <planeGeometry args={[9.6, 2.6]} />
           <meshStandardMaterial color="#3d6f8f" />
         </mesh>
       ))}
-      <Html position={[6, 0.3, -1]} center zIndexRange={[8, 0]}>
+      <ScreenLabel position={[6, 0.3, -1]}>
         <div className="pointer-events-none text-[10px] font-bold tracking-[0.3em] text-[#e7f2f8]">RIVER THAMES</div>
-      </Html>
+      </ScreenLabel>
       {CITY_DRESSING.map((piece, index) => (
         <group key={`${piece.model}-${index}`} position={[piece.x, 0, piece.z]} rotation={[0, piece.rotation, 0]}>
-          <FittedModel url={`/models/city/${piece.model}.glb`} targetWidth={piece.model.startsWith("tree") ? 1.4 : 2.2} />
+          <FittedModel
+            url={`/models/city/${piece.model}.glb`}
+            targetWidth={piece.model.startsWith("tree") ? 1.4 : 2.2}
+          />
         </group>
       ))}
       {venues.map((venue) => {
@@ -61,7 +69,7 @@ export function CityScene() {
         return (
           <group key={venue.id} position={[venue.x, 0, venue.z]}>
             <FittedModel url={`/models/city/${venue.model}.glb`} targetWidth={venue.kind === "park" ? 1.8 : 2.5} />
-            <Html position={[0, 2.4, 0]} center zIndexRange={[8, 0]}>
+            <ScreenLabel position={[0, 2.4, 0]}>
               <button
                 type="button"
                 className="flex flex-col items-center"
@@ -75,7 +83,11 @@ export function CityScene() {
               >
                 <span
                   className={`grid h-11 w-11 place-items-center rounded-full border-[3px] text-xl shadow-lg transition ${
-                    here ? "border-[#3ccf6e] bg-white" : selected ? "scale-110 border-[#c8102e] bg-white" : "border-white bg-white"
+                    here
+                      ? "border-[#3ccf6e] bg-white"
+                      : selected
+                        ? "scale-110 border-[#c8102e] bg-white"
+                        : "border-white bg-white"
                   }`}
                 >
                   {venue.emoji}
@@ -84,7 +96,7 @@ export function CityScene() {
                   {here ? "📍 You're here" : venue.name}
                 </span>
               </button>
-            </Html>
+            </ScreenLabel>
           </group>
         );
       })}

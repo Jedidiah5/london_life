@@ -1,7 +1,6 @@
 "use client";
 
 import { Flag } from "@/components/Flag";
-import { Html } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import type { Mesh } from "three";
@@ -28,6 +27,7 @@ import { moveGhostTo } from "@/components/buy/placementActions";
 import { Character, type Seat } from "./Character";
 import { FurniturePiece } from "./Furniture";
 import { shadeHex } from "./colour";
+import { ScreenLabel } from "./ScreenLabel";
 
 const KITCHEN_TILE_LIGHT = "#ece8e0";
 const KITCHEN_TILE_DARK = "#9fb3bf";
@@ -189,7 +189,7 @@ export function RoomScene() {
               onClick={menu ? () => tap(fixture.id) : undefined}
             />
             {menu ? (
-              <Html position={[fx, 1.7, fz]} center zIndexRange={[8, 0]}>
+              <ScreenLabel position={[fx, 1.7, fz]}>
                 <button
                   type="button"
                   onClick={() => tap(fixture.id)}
@@ -200,7 +200,7 @@ export function RoomScene() {
                   <span className="text-sm">{fixture.emoji ?? menu.emoji}</span>
                   {atHome ? "Tap me" : (fixture.label ?? menu.title)}
                 </button>
-              </Html>
+              </ScreenLabel>
             ) : null}
           </group>
         );
@@ -282,7 +282,7 @@ export function RoomScene() {
               <boxGeometry args={[0.45, 0.8, 0.45]} />
               <meshBasicMaterial transparent opacity={0} depthWrite={false} />
             </mesh>
-            <Html position={[x, 1.4, z]} center zIndexRange={[8, 0]}>
+            <ScreenLabel position={[x, 1.4, z]}>
               <button
                 type="button"
                 onClick={() => useUi.getState().openPerson({ kind: "local", id: member.local.id })}
@@ -291,7 +291,7 @@ export function RoomScene() {
                 <span className="h-1.5 w-1.5 rounded-full bg-[#9aa5b1]" />
                 <Flag origin={member.local.origin} /> {member.local.name}
               </button>
-            </Html>
+            </ScreenLabel>
           </group>
         );
       })}
@@ -314,7 +314,7 @@ export function RoomScene() {
               roomHeight={layout.height}
               walkingEnabled={false}
             />
-            <Html position={[x, 1.4, z]} center zIndexRange={[8, 0]}>
+            <ScreenLabel position={[x, 1.4, z]}>
               <div className="text-center">
                 <button
                   type="button"
@@ -330,7 +330,7 @@ export function RoomScene() {
                   </div>
                 ) : null}
               </div>
-            </Html>
+            </ScreenLabel>
           </group>
         );
       })}
@@ -360,7 +360,7 @@ function SelfTag({
   const [wx, , wz] = tileWorld(x, y, width, height);
   const done = action ? 1 - action.remainingMinutes / action.totalMinutes : 0;
   return (
-    <Html position={[wx, 1.45, wz]} center zIndexRange={[8, 0]}>
+    <ScreenLabel position={[wx, 1.45, wz]}>
       <div className={`pointer-events-none flex-col items-center gap-1 ${moving ? "hidden" : "flex"}`}>
         {action ? (
           <div className="relative flex flex-col items-center gap-1 rounded-2xl bg-white px-2.5 pb-1.5 pt-1 shadow-md">
@@ -379,7 +379,7 @@ function SelfTag({
           {flag ? <Flag origin={flag} /> : null} {name}
         </div>
       </div>
-    </Html>
+    </ScreenLabel>
   );
 }
 
