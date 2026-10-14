@@ -3,6 +3,7 @@
 import { Flag } from "@/components/Flag";
 import { useState } from "react";
 import { locals, nationalitiesById } from "@/lib/content";
+import { meetPlayer, openConversation, refreshInbox } from "@/lib/net/messages";
 import { addFriend, greet, sendGift } from "@/lib/net/rpc";
 import { broadcastEmote } from "@/lib/net/realtime";
 import { supabaseConfigured } from "@/lib/net/supabase";
@@ -130,6 +131,20 @@ export function PersonCard() {
         </button>
       </div>
       <div className="mt-2 grid grid-cols-2 gap-1.5">
+        <button
+          type="button"
+          disabled={!online}
+          className="col-span-2 rounded-2xl bg-[#007aff] py-2 text-[12px] font-bold text-white disabled:opacity-50"
+          onClick={() => {
+            void meetPlayer(player.simId).then(() => {
+              useUi.getState().openPerson(null);
+              openConversation(player.simId);
+              void refreshInbox();
+            });
+          }}
+        >
+          💬 Message {player.name}
+        </button>
         <button
           type="button"
           className="rounded-2xl bg-[#1b2838] py-2 text-[12px] font-bold text-white"

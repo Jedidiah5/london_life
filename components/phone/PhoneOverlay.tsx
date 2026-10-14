@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import { Flag } from "@/components/Flag";
 import { nationalitiesById } from "@/lib/content";
 import { useGame } from "@/lib/store/useGame";
+import { unreadTotal, useMessages } from "@/lib/store/useMessages";
 import { useUi, type PhoneApp } from "@/lib/store/useUi";
 import { useLondonTime } from "@/lib/useNow";
 import { Bank } from "./apps/Bank";
@@ -79,15 +80,15 @@ function BatteryIcon() {
   );
 }
 
-function AppIcon({ entry, origin, badge }: { entry: AppEntry; origin: string; badge: boolean }) {
+function AppIcon({ entry, origin, badge }: { entry: AppEntry; origin: string; badge: number }) {
   return (
     <span
       className={`relative grid aspect-square w-[calc(var(--pw)*0.15)] place-items-center rounded-[22.5%] bg-gradient-to-br text-[calc(var(--pw)*0.075)] shadow-md ${entry.colour}`}
     >
       {entry.id === "callhome" && nationalitiesById[origin] ? <Flag origin={origin} size="md" /> : entry.emoji}
-      {badge ? (
+      {badge > 0 ? (
         <span className="absolute -right-1.5 -top-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-[#ff3b30] px-1 text-[11px] font-semibold text-white">
-          1
+          {badge > 99 ? "99+" : badge}
         </span>
       ) : null}
     </span>
@@ -101,6 +102,7 @@ export function PhoneOverlay() {
   const origin = useGame((state) => state.appearance.origin);
   const lastCall = useGame((state) => state.lastCallMinute);
   const clock = useLondonTime();
+  const unread = useMessages((state) => unreadTotal(state.conversations));
   if (nav !== "phone") return null;
   const time = clock.time;
   const current = APPS.find((entry) => entry.id === app);
@@ -186,7 +188,7 @@ export function PhoneOverlay() {
                       className="flex flex-col items-center gap-1"
                       onClick={() => open(entry.id)}
                     >
-                      <AppIcon entry={entry} origin={origin} badge={false} />
+                      <AppIcon entry={entry} origin={origin} badge={0} />
                       <span className="text-[calc(var(--pw)*0.034)] font-medium drop-shadow">{entry.label}</span>
                     </button>
                   ))}
@@ -198,7 +200,11 @@ export function PhoneOverlay() {
                 <div className="mb-[calc(var(--pw)*0.075)] grid grid-cols-4 justify-items-center rounded-[calc(var(--pw)*0.09)] bg-white/25 p-[calc(var(--pw)*0.035)] backdrop-blur-xl">
                   {DOCKED.map((entry) => (
                     <button key={entry.id} type="button" aria-label={entry.label} onClick={() => open(entry.id)}>
-                      <AppIcon entry={entry} origin={origin} badge={entry.id === "callhome" && missing} />
+                      <AppIcon
+                        entry={entry}
+                        origin={origin}
+                        badge={entry.id === "callhome" && missing ? 1 : entry.id === "messages" ? unread : 0}
+                      />
                     </button>
                   ))}
                 </div>

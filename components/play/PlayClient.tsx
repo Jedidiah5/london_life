@@ -7,6 +7,7 @@ import { Hud } from "@/components/hud/Hud";
 import { refreshState } from "@/lib/net/rpc";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
+import { MessageSync } from "./MessageSync";
 import { SimLoop } from "./SimLoop";
 
 const GameCanvas = dynamic(() => import("@/components/canvas/GameCanvas"), { ssr: false });
@@ -68,6 +69,7 @@ export function PlayClient() {
       <Hud />
       <RideScene />
       <SimLoop />
+      <MessageSync />
     </div>
   );
 }

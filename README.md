@@ -32,6 +32,7 @@ npm run lint
 
 - **The server is the authority.** Every action that costs or pays money is a Postgres function (`security definer`, RLS on every table). The client asks; the database charges, pays and writes a row to `transactions`.
 - **The client is a view.** Zustand holds the state the server sent back, plus the needs and clock that tick locally between checkpoints.
+- **Players message the people they meet.** Sharing a venue with another real player makes you contacts (`meet` checks you are both really there). Contacts and friends can message each other from the phone's Chat app, from anywhere. Messages go through `send_message` / `get_thread`, and Supabase Realtime pushes each new one to its recipient (`supabase/migrations/011_messages.sql`, `lib/net/messages.ts`).
 
 ## Monad
 
