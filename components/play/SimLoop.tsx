@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { checkpointNeeds } from "@/lib/net/rpc";
 import { joinWorld, leaveWorld, rememberTrack } from "@/lib/net/realtime";
 import { supabaseConfigured } from "@/lib/net/supabase";
+import type { Appearance } from "@/lib/sim/types";
 import { useGame } from "@/lib/store/useGame";
 import { useUi } from "@/lib/store/useUi";
 
@@ -12,7 +13,7 @@ export function SimLoop() {
   const location = useGame((state) => state.location);
   const created = useGame((state) => state.created);
   const name = useGame((state) => state.name);
-  const appearance = useGame((state) => state.appearance);
+  const look = useGame((state) => JSON.stringify(state.appearance));
   const last = useRef(0);
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export function SimLoop() {
 
   useEffect(() => {
     const tile = useGame.getState().tile;
+    const appearance = JSON.parse(look) as Appearance;
     const track = { simId: simId ?? "local", name, appearance, x: tile.x, y: tile.y };
     rememberTrack(track);
     if (!supabaseConfigured() || !simId) return;
@@ -46,7 +48,7 @@ export function SimLoop() {
     return () => {
       void leaveWorld();
     };
-  }, [simId, location, name, appearance]);
+  }, [simId, location, name, look]);
 
   return null;
 }

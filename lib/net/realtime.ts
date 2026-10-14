@@ -11,6 +11,18 @@ let onlineChannel: RealtimeChannel | null = null;
 let venueShard = 1;
 let joinedLocation = "";
 
+/**
+ * Joins and leaves run one at a time. React re-runs the presence effect as leave-then-join without awaiting, and
+ * if the two interleave the leave tears down the channels the join just set up, leaving the player invisible.
+ */
+let pending: Promise<void> = Promise.resolve();
+function serial(task: () => Promise<void>): Promise<void> {
+  pending = pending.then(task).catch((error: unknown) => {
+    console.warn("[realtime]", error instanceof Error ? error.message : error);
+  });
+  return pending;
+}
+
 interface TrackPayload {
   simId: string;
   name: string;
@@ -47,7 +59,11 @@ function readHere(channel: RealtimeChannel, selfId: string): RemotePlayer[] {
   return players;
 }
 
-export async function leaveWorld(): Promise<void> {
+export function leaveWorld(): Promise<void> {
+  return serial(leaveNow);
+}
+
+async function leaveNow(): Promise<void> {
   const supabase = getSupabase();
   if (venueChannel) {
     await supabase?.removeChannel(venueChannel);
@@ -74,7 +90,7 @@ async function joinShard(location: string, shard: number, self: TrackPayload): P
   channel.on("presence", { event: "sync" }, () => {
     const here = readHere(channel, self.simId);
     if (here.length >= SHARD_SIZE && shard === 1) {
-      void joinShard(location, 2, self);
+      void serial(() => joinShard(location, 2, self));
       return;
     }
     usePresence.getState().setHere(here);
@@ -139,7 +155,11 @@ async function joinShard(location: string, shard: number, self: TrackPayload): P
   });
 }
 
-export async function joinWorld(self: TrackPayload, location: string): Promise<void> {
+export function joinWorld(self: TrackPayload, location: string): Promise<void> {
+  return serial(() => joinNow(self, location));
+}
+
+async function joinNow(self: TrackPayload, location: string): Promise<void> {
   const supabase = getSupabase();
   if (!supabase) return;
   if (joinedLocation === location && venueChannel && onlineChannel) {

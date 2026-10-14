@@ -29,7 +29,7 @@ export function NeedsPanel() {
   const [open, setOpen] = useState(false);
 
   return (
-    <section className="pointer-events-auto flex items-end gap-2">
+    <section className="pointer-events-auto flex w-fit items-end gap-2">
       <button
         type="button"
         onClick={() => useUi.getState().openSimPanel("needs")}
