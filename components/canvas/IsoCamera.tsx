@@ -21,6 +21,7 @@ const TARGET = new Vector3();
 export function IsoCamera() {
   const camera = useThree((state) => state.camera);
   const gl = useThree((state) => state.gl);
+  const events = useThree((state) => state.events);
   const size = useThree((state) => state.size);
   const location = useGame((state) => state.location);
   const homeId = useGame((state) => state.homeId);
@@ -40,7 +41,7 @@ export function IsoCamera() {
   const roomSpan = Math.hypot(layout.width, layout.height) + 0.4;
 
   useEffect(() => {
-    const element = gl.domElement;
+    const element = (events.connected as HTMLElement | null | undefined) ?? gl.domElement.parentElement ?? gl.domElement;
     const pointers = new Map<number, { x: number; y: number }>();
     let drag: {
       x: number;
@@ -150,7 +151,7 @@ export function IsoCamera() {
       window.removeEventListener("click", click, true);
       element.removeEventListener("wheel", wheel);
     };
-  }, [gl]);
+  }, [gl, events.connected]);
 
   useFrame((_, delta) => {
     const ui = useUi.getState();

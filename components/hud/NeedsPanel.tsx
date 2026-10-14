@@ -43,8 +43,19 @@ export function NeedsPanel() {
       </button>
       <div className="rounded-2xl bg-white/95 p-1.5 text-[#1b2838] shadow-lg">
         {open ? (
-          <div className="w-44 space-y-1 p-1">
-            <div className="text-[11px] font-bold">{name}</div>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            aria-expanded
+            aria-label="Collapse feelings"
+            className="block w-44 space-y-1 p-1 text-left"
+          >
+            <div className="flex items-center justify-between text-[11px] font-bold">
+              <span>{name}</span>
+              <span className="grid h-5 w-5 place-items-center rounded-full bg-[#1b2838]/10 text-[10px] leading-none">
+                ▾
+              </span>
+            </div>
             {NEED_KEYS.map((key) => (
               <div key={key}>
                 <div className="flex justify-between text-[10px]">
@@ -61,11 +72,13 @@ export function NeedsPanel() {
                 </div>
               </div>
             ))}
-          </div>
+          </button>
         ) : (
           <button
             type="button"
             onClick={() => setOpen(true)}
+            aria-expanded={false}
+            aria-label="Expand feelings"
             className="grid grid-cols-3 gap-x-2.5 gap-y-1.5 px-1.5 py-1"
           >
             {NEED_KEYS.map((key) => (

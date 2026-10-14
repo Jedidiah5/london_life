@@ -17,6 +17,25 @@ export function PlayClient() {
   const created = useGame((state) => state.created);
 
   useEffect(() => {
+    // iOS Safari ignores `user-scalable=no`, so stop its pinch and double-tap page zoom here. The canvas still gets
+    // the pointer events it uses for its own pinch.
+    const stop = (event: Event) => event.preventDefault();
+    const multiTouch = (event: TouchEvent) => {
+      if (event.touches.length > 1) event.preventDefault();
+    };
+    document.addEventListener("gesturestart", stop, { passive: false });
+    document.addEventListener("gesturechange", stop, { passive: false });
+    document.addEventListener("gestureend", stop, { passive: false });
+    document.addEventListener("touchmove", multiTouch, { passive: false });
+    return () => {
+      document.removeEventListener("gesturestart", stop);
+      document.removeEventListener("gesturechange", stop);
+      document.removeEventListener("gestureend", stop);
+      document.removeEventListener("touchmove", multiTouch);
+    };
+  }, []);
+
+  useEffect(() => {
     let alive = true;
     void (async () => {
       if (useGame.persist.hasHydrated()) {
@@ -44,7 +63,7 @@ export function PlayClient() {
   if (!created) return <CharacterCreator />;
 
   return (
-    <div className="relative h-dvh w-full overflow-hidden bg-[#8ea4b8]">
+    <div className="relative h-dvh w-full touch-pan-x touch-pan-y overflow-hidden overscroll-none bg-[#8ea4b8]">
       <GameCanvas />
       <Hud />
       <RideScene />
